@@ -1,3 +1,4 @@
+# SleepKit
 ---
 
 **Documentation**: <a href="https://ambiqai.github.io/sleepkit" target="_blank">https://ambiqai.github.io/sleepkit</a>
