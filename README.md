@@ -1,4 +1,7 @@
 # SleepKit
+
+🚧 SleepKit is currently under development 🚧
+
 ---
 
 **Documentation**: <a href="https://ambiqai.github.io/sleepkit" target="_blank">https://ambiqai.github.io/sleepkit</a>
@@ -10,7 +13,7 @@
 
 ## Requirements
 
-* [Python 3.10+](https://www.python.org)
+* [Python 3.11+](https://www.python.org)
 * [Poetry 1.2.1+](https://python-poetry.org/docs/#installation)
 
 The following are also required to compile/flash the binary for the EVB demo:
@@ -35,4 +38,6 @@ __SleepKit__ is intended to be used as either a CLI-based app or as a python pac
 
 ## Reference Papers
 
-...
+* [U-Sleep: Resilient High-Frequency Sleep Staging](https://www.nature.com/articles/s41746-021-00440-5)
+* [U-Time: A Fully Convolutional Network for Time Series Segmentation Applied to Sleep Staging](https://arxiv.org/pdf/1910.11162.pdf)
+* [DeepSleepNet: a Model for Automatic Sleep Stage Scoring based on Raw Single-Channel EEG](https://arxiv.org/pdf/1703.04046.pdf)

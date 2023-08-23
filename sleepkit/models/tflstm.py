@@ -9,7 +9,6 @@ def sample_normalize(sample):
     mean = tf.math.reduce_mean(sample)
     std = tf.math.reduce_std(sample)
     sample = tf.math.divide_no_nan(sample-mean, std)
-
     return sample.numpy()
 
 def get_blocks(
@@ -38,7 +37,7 @@ def get_blocks(
     return blocks
 
 
-class FogParams(BaseModel):
+class TFLstmParams(BaseModel):
     model_dim: int = Field(default=320, description="Model dimension")
     block_size: int = Field(default=15552, description="Block size")
     patch_size: int = Field(default=18, description="Patch size")
@@ -68,7 +67,7 @@ def encoder(
         return y
     return layer
 
-def fog_encoder(
+def tflstm_encoder(
     model_dim: int,
     block_size: int,
     patch_size: int,
@@ -107,12 +106,12 @@ def fog_encoder(
             y = tf.keras.layers.Bidirectional()(y)
     return layer
 
-def fog_model(
+def TFLstm(
     inputs: tf.Tensor,
-    params: FogParams,
+    params: TFLstmParams,
     num_classes: int
 ):
-    y = fog_encoder(
+    y = tflstm_encoder(
         model_dim=params.model_dim,
         block_size=params.block_size,
         patch_size=params.patch_size,

@@ -5,7 +5,9 @@ import functools
 from enum import IntEnum
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from multiprocessing import Pool
+from typing import Callable, Generator
 
+import tensorflow as tf
 import boto3
 import h5py
 from tqdm import tqdm
@@ -17,6 +19,10 @@ from botocore.client import Config
 
 
 logger = logging.getLogger(__name__)
+
+SubjectGenerator = Generator[tuple[str, h5py.Group], None, None]
+Preprocessor = Callable[[npt.NDArray], npt.NDArray]
+SampleGenerator = Generator[tuple[npt.NDArray, npt.NDArray], None, None]
 
 class YsywSleepStage(IntEnum):
     nonrem1 = 0
@@ -57,11 +63,16 @@ class YsywDataset:
         self.ds_path = os.path.join(ds_path, "ysyw")
 
     @property
-    def patient_ids(self) -> list[str]:
-        """Get dataset patient IDs
+    def sampling_rate(self) -> int:
+        """Sampling rate in Hz"""
+        return 200
+
+    @property
+    def subject_ids(self) -> list[str]:
+        """Get dataset subject IDs
 
         Returns:
-            list[str]: Patient IDs
+            list[str]: Subject IDs
         """
         pts = glob.glob(os.path.join(self.ds_path, "*.h5"))
         pts = [os.path.splitext(os.path.basename(p))[0] for p in pts]
@@ -72,7 +83,7 @@ class YsywDataset:
     @property
     def signal_names(self) -> list[str]:
         return [
-            # ECG
+            # EEG
             'F3-M2',
             'F4-M1',
             'C3-M2',
@@ -93,6 +104,43 @@ class YsywDataset:
             # ECG
             'ECG'
         ]
+
+    def data_generator(
+            self,
+            subject_generator: SubjectGenerator,
+            samples_per_subject: int = 100,
+        ) -> SampleGenerator:
+        """Generate samples from subject generator.
+        Args:
+            subject_generator (SubjectGenerator): Subject generator
+            samples_per_subject (int, optional): # samples per subject. Defaults to 100.
+        Yields:
+            SampleGenerator: Sample generator
+        """
+        for _, records in subject_generator:
+            for _ in range(samples_per_subject):
+                # Randomly choose a record
+                record = records[np.random.choice(list(records.keys()))]
+                if record.shape[0] < self.block_size:
+                    continue
+                block_start = np.random.randint(record.shape[0] - self.block_size)
+                block_end = block_start + self.block_size
+                data = record[block_start:block_end]
+                data = tf.reshape(data, shape=(self.frame_size, self.patch_size, data.shape[1]))
+
+                # Create input ('AccV', 'AccML', 'AccAP')
+                x = data[:, :, 0:3]
+                x = tf.reshape(x, shape=(self.frame_size, -1))
+
+                # Create target+mask ('StartHesitation', 'Turn', 'Walking') + ('Valid', 'Task')
+                y = data[:, :, 3:8]
+                y = tf.transpose(y, perm=[0, 2, 1])
+                y = tf.reduce_max(y, axis=-1)
+                y = tf.cast(y, tf.int32)
+
+                yield x, y
+            # END FOR
+        # END FOR
 
     def download(self, num_workers: int | None = None, force: bool = False):
         """Download dataset
@@ -157,8 +205,8 @@ class YsywDataset:
         # 1. Download source data
         # NOTE: Skip for now
 
-        # 2. Extract and convert patient data to H5 files
-        logger.info("Generating YSYW patient data")
+        # 2. Extract and convert subject data to H5 files
+        logger.info("Generating YSYW subject data")
 
         pt_paths = list(filter(os.path.isdir, glob.glob(os.path.join(src_path, "training", "*"))))
         # pt_paths += list(filter(os.path.isdir, glob.glob(os.path.join(src_path, "test", "*"))))
@@ -167,12 +215,12 @@ class YsywDataset:
         with Pool(processes=num_workers) as pool:
             _ = list(tqdm(pool.imap(f, pt_paths), total=len(pt_paths)))
 
-        logger.info("Finished YSYW patient data")
+        logger.info("Finished YSYW subject data")
 
     def _convert_pt_to_hdf5(
         self, pt_path: str, force: bool = False
     ):
-        """Extract patient data from Physionet.
+        """Extract subject data from Physionet.
 
         Args:
             pt_path (str): Source path
