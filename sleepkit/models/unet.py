@@ -15,6 +15,7 @@ class UNetBlockParams(BaseModel):
     pool: int | tuple[int, int] = Field(default=3, description="Pool size")
     strides: int | tuple[int, int] = Field(default=1, description="Stride size")
     skip: bool = Field(default=True, description="Add skip connection")
+    seperable: bool = Field(default=False, description="Use seperable convs")
 
 
 class UNetParams(BaseModel):
@@ -22,9 +23,11 @@ class UNetParams(BaseModel):
 
     blocks: list[UNetBlockParams] = Field(default_factory=list, description="UNet blocks")
     include_top: bool = Field(default=True, description="Include top")
+    use_logits: bool = Field(default=True, description="Use logits")
     model_name: str = Field(default="UNet", description="Model name")
     output_kernel_size: int | tuple[int, int] = Field(default=3, description="Output kernel size")
-
+    output_kernel_stride: int | tuple[int, int] = Field(default=1, description="Output kernel stride")
+    include_rnn: bool = Field(default=False, description="Include RNN")
 
 def UNet(
     x: tf.Tensor,
@@ -42,31 +45,41 @@ def UNet(
         tf.keras.Model: Model
     """
     y = x
+    requires_reshape = (len(x.shape) == 3)
+    if requires_reshape:
+        y = tf.keras.layers.Reshape((1,) + x.shape[1:])(x)
+    else:
+        y = x
     skip_layers: list[tf.keras.layers.Layer | None] = []
     for i, block in enumerate(params.blocks):
         name = f"ENC{i+1}"
 
         ym = y
         for d in range(block.depth):
-            # ym = tf.keras.layers.SeparableConv2D(
-            #     block.filters,
-            #     kernel_size=block.kernel,
-            #     strides=(1, 1),
-            #     padding="same",
-            #     depthwise_initializer="he_normal",
-            #     pointwise_initializer="he_normal",
-            #     name=f"{name}.CONV{d+1}",
-            # )(ym)
-            ym = tf.keras.layers.Conv2D(
-                block.filters,
-                kernel_size=block.kernel,
-                strides=(1, 1),
-                padding="same",
-                kernel_initializer="he_normal",
-                kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-                use_bias=False,
-                name=f"{name}.CONV{d+1}",
-            )(ym)
+            if block.seperable:
+                ym = tf.keras.layers.SeparableConv2D(
+                    block.filters,
+                    kernel_size=block.kernel,
+                    strides=(1, 1),
+                    padding="same",
+                    depthwise_initializer="he_normal",
+                    pointwise_initializer="he_normal",
+                    depthwise_regularizer=tf.keras.regularizers.L2(1e-3),
+                    pointwise_regularizer=tf.keras.regularizers.L2(1e-3),
+                    use_bias=False,
+                    name=f"{name}.CONV{d+1}",
+                )(ym)
+            else:
+                ym = tf.keras.layers.Conv2D(
+                    block.filters,
+                    kernel_size=block.kernel,
+                    strides=(1, 1),
+                    padding="same",
+                    kernel_initializer="he_normal",
+                    kernel_regularizer=tf.keras.regularizers.L2(1e-3),
+                    use_bias=False,
+                    name=f"{name}.CONV{d+1}",
+                )(ym)
             # ym = tf.keras.layers.LayerNormalization(axis=[1, 2], name=f"{name}.LN{d+1}", scale=False)(ym)
             ym = batch_norm(name=f"{name}.BN{d+1}")(ym)
             ym = relu6(name=f"{name}.ACT{d+1}")(ym)
@@ -89,19 +102,41 @@ def UNet(
         y = tf.keras.layers.MaxPooling2D(block.pool, strides=block.strides, padding="same", name=f"{name}.POOL1")(y)
     # END FOR
 
+    if params.include_rnn:
+        if requires_reshape:
+            y = tf.keras.layers.Reshape(y.shape[2:])(y)
+            y = tf.keras.layers.LSTM(units=params.blocks[-1].filters, return_sequences=True)(y)
+            y = tf.keras.layers.Reshape((1,) + y.shape[1:])(y)
+        else:
+            y = tf.keras.layers.ConvLSTM1D(params.blocks[-1].filters, padding="same", return_sequences=True)(y)
+
     for i, block in enumerate(reversed(params.blocks)):
         name = f"DEC{i+1}"
         # Expand inputs via regular conv2d and upsample w/ stride
-        y = tf.keras.layers.Conv2D(
-            block.filters,
-            kernel_size=block.kernel,
-            strides=(1, 1),
-            padding="same",
-            kernel_initializer="he_normal",
-            kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-            use_bias=False,
-            name=f"{name}.CONV1",
-        )(y)
+        if block.seperable:
+            y = tf.keras.layers.SeparableConv2D(
+                block.filters,
+                kernel_size=block.kernel,
+                strides=(1, 1),
+                padding="same",
+                depthwise_initializer="he_normal",
+                pointwise_initializer="he_normal",
+                depthwise_regularizer=tf.keras.regularizers.L2(1e-3),
+                pointwise_regularizer=tf.keras.regularizers.L2(1e-3),
+                use_bias=False,
+                name=f"{name}.CONV1",
+            )(y)
+        else:
+            y = tf.keras.layers.Conv2D(
+                block.filters,
+                kernel_size=block.kernel,
+                strides=(1, 1),
+                padding="same",
+                kernel_initializer="he_normal",
+                kernel_regularizer=tf.keras.regularizers.L2(1e-3),
+                use_bias=False,
+                name=f"{name}.CONV1",
+            )(y)
         # y = tf.keras.layers.Conv2DTranspose(
         #     block.filters,
         #     kernel_size=block.kernel,
@@ -136,25 +171,30 @@ def UNet(
             y = batch_norm(name=f"{name}.BN2")(y)
             y = relu6(name=f"{name}.ACT2")(y)
 
-        # ym = tf.keras.layers.SeparableConv2D(
-        #     block.filters,
-        #     kernel_size=block.kernel,
-        #     strides=(1, 1),
-        #     padding="same",
-        #     depthwise_initializer="he_normal",
-        #     pointwise_initializer="he_normal",
-        #     name=f"{name}.CONV3",
-        # )(y)
-        ym = tf.keras.layers.Conv2D(
-            block.filters,
-            kernel_size=block.kernel,
-            strides=(1, 1),
-            padding="same",
-            kernel_initializer="he_normal",
-            kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-            use_bias=False,
-            name=f"{name}.CONV3",
-        )(y)
+        if block.seperable:
+            ym = tf.keras.layers.SeparableConv2D(
+                block.filters,
+                kernel_size=block.kernel,
+                strides=(1, 1),
+                padding="same",
+                depthwise_initializer="he_normal",
+                pointwise_initializer="he_normal",
+                depthwise_regularizer=tf.keras.regularizers.L2(1e-3),
+                pointwise_regularizer=tf.keras.regularizers.L2(1e-3),
+                use_bias=False,
+                name=f"{name}.CONV3",
+            )(y)
+        else:
+            ym = tf.keras.layers.Conv2D(
+                block.filters,
+                kernel_size=block.kernel,
+                strides=(1, 1),
+                padding="same",
+                kernel_initializer="he_normal",
+                kernel_regularizer=tf.keras.regularizers.L2(1e-3),
+                use_bias=False,
+                name=f"{name}.CONV3",
+            )(y)
         ym = batch_norm(name=f"{name}.BN3")(ym)
         ym = relu6(name=f"{name}.ACT3")(ym)
 
@@ -180,8 +220,12 @@ def UNet(
             kernel_regularizer=tf.keras.regularizers.L2(1e-3),
             name="NECK.CONV1",
         )(y)
+        if not params.use_logits:
+            y = tf.keras.layers.Softmax()(y)
+        # END IF
+    # END IF
+    if requires_reshape:
         y = tf.keras.layers.Reshape(y.shape[2:])(y)
-
     # Define the model
     model = tf.keras.Model(x, y, name=params.model_name)
     return model

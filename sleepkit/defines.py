@@ -1,5 +1,5 @@
 import os
-from enum import IntEnum, Enum
+from enum import IntEnum, StrEnum
 import tempfile
 from pathlib import Path
 from typing import Any, Literal
@@ -14,9 +14,9 @@ class SleepStage(IntEnum):
     stage3 = 3
     stage4 = 4
     rem = 5
-    noise = 5
+    noise = 6
 
-class SleepStageName(str, Enum):
+class SleepStageName(StrEnum):
     """Sleep stage name"""
     wake = "wake"
     stage1 = "stage1"
@@ -35,7 +35,7 @@ class SleepApnea(IntEnum):
     mixed = 4
     noise = 5
 
-class SleepApneaName(str, Enum):
+class SleepApneaName(StrEnum):
     """Sleep apnea name"""
     none = "none"
     hypopnea = "hypopnea"
@@ -77,3 +77,21 @@ class SKTrainParams(BaseModel, extra=Extra.allow):
     # augmentations: list[AugmentationParams] = Field(default_factory=list, description="Augmentations")
     # Extra arguments
     seed: int | None = Field(None, description="Random state seed")
+
+
+class SKTask(StrEnum):
+    """SleepKit task"""
+    detect = "detect"
+    stage = "stage"
+    apnea = "apnea"
+
+
+class SKMode(StrEnum):
+    """SleepKit Mode"""
+
+    download = "download"
+    train = "train"
+    evaluate = "evaluate"
+    export = "export"
+    predict = "predict"
+    demo = "demo"

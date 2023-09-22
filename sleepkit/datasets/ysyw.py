@@ -55,8 +55,6 @@ signal_names = [
     'ECG'
 ]
 
-# Compute Resiratory rate from ABD/CHEST or from ECG
-
 class YsywDataset:
 
     def __init__(self, ds_path: str) -> None:

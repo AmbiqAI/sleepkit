@@ -36,6 +36,40 @@ poetry install
 
 __SleepKit__ is intended to be used as either a CLI-based app or as a python package to perform additional tasks and experiments.
 
+## Experiments
+
+Group sensors based on location.
+
+Location: Head
+Device: Earable, glasses, headband
+Sensors: EEG, EOG, EMG, ACC/GYRO, PPG (ear)
+Features: Raw, freq band power, movement
+Networks: 1D/2D CNN+UNET, 1D/2D CNN+LSTM/GRU
+Tasks: Sleep detect, Apnea, Sleep stage
+Notes:
+    * Using EEG and EOG data compute features that will be fed into AI model.
+    * EEG/EOG is gold standard for determining sleep stage.
+    * Minimal temporal context is needed (i.e. 5-10 seconds).
+    * Most invasive
+
+Location: Chest
+Device: Chest strap/patch
+Sensors: ECG, RIP, ACC/GYRO, TEMP
+Features: HR, HRV, BPM, BRV, movement, body temp changes
+Networks: 1D CNN+LSTM/GRU, 1D CNN+UNET
+Notes:
+    * Much longer context as more subject/night specific and looking for subtle changes.
+    * Best location for tracking breathing
+
+Location: Wrist/Ankle
+Device: Watch, ring, strap
+Sensors: PPG/SPO2, ACC/GYRO, TEMP
+Features: HR, HRV, BPM?, movement, body temp changes
+Networks: 1D CNN+LSTM/GRU, 1D CNN+UNET
+Notes:
+    * Much longer context as more subject/night specific and looking for subtle changes.
+    * Least invasive
+
 ## Reference Papers
 
 * [U-Sleep: Resilient High-Frequency Sleep Staging](https://www.nature.com/articles/s41746-021-00440-5)

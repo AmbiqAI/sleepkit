@@ -10,12 +10,15 @@ from typing import Callable
 import physiokit as pk
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 import pyedflib
 from xml.dom.minidom import Node as XmlNode, Element as XmlElement
 from xml.dom.minidom import parse as xml_parse
 from .defines import SubjectGenerator, SampleGenerator
 
 logger = logging.getLogger(__name__)
+
+# OxStatus: 0=Good 1=Marginal 2=Poor 3=Sensor off
 
 class MesaSleepStage(IntEnum):
     WAKE = 0
@@ -67,6 +70,9 @@ class MesaDataset:
     def signal_names(self) -> list[str]:
         """ Signal names as they appear in the EDF files"""
         return [
+            # Actigraphy
+            "activity"
+            # PSG
             "EKG",
             "EOG-L",
             "EOG-R",
@@ -136,14 +142,14 @@ class MesaDataset:
         subjs_sleep_stages = dict()
         # subjs_apnea_events = dict()
         for subject_id in subject_generator:
-            max_size = int(self.target_rate*self._get_subject_duration(subject_id))
+            max_size = int(self.target_rate*self.get_subject_duration(subject_id))
             if subject_id in subjs_sleep_stages:
                 sleep_stages = subjs_sleep_stages[subject_id]
             else:
                 sleep_stages = self.extract_sleep_stages(subject_id=subject_id)
                 subjs_sleep_stages[subject_id] = sleep_stages
             # END IF
-            sleep_mask = self._sleep_stages_to_mask(sleep_stages, max_size)
+            sleep_mask = self.sleep_stages_to_mask(sleep_stages, max_size)
             # if subject_id in subjs_apnea_events:
             #     apnea_events = subjs_apnea_events[subject_id]
             # else:
@@ -173,6 +179,25 @@ class MesaDataset:
             # END FOR
         # END FOR
 
+    def _load_actigraphy_signal_for_subject(self, subject_id: str, signal_label: str, start: int = 0, data_size: int|None = None) -> npt.NDArray[np.float32]:
+        if data_size is None:
+            raise ValueError("data_size must be specified for actigraphy signals")
+
+        overlap_path = str(self.ds_path / "overlap" / "mesa-actigraphy-psg-overlap.csv")
+        df = pd.read_csv(overlap_path)
+        line = df[df["mesaid"] == int(subject_id)].line.to_numpy()
+        if len(line) != 1:
+            raise ValueError(f"Invalid line for subject {subject_id}")
+
+        df = pd.read_csv(self._get_subject_actigraphy_path(subject_id))
+        df = df[df["line"] >= line[0]]
+        l_idx = math.floor(start / self.target_rate / 30.0)
+        r_idx = l_idx + math.ceil(data_size / self.target_rate / 30.0)
+        signal = df[signal_label][l_idx:r_idx].to_numpy()
+        # Upsample signal to target rate
+        signal = np.repeat(signal, 30*self.target_rate)
+        return signal[:data_size]
+
     def load_signal_for_subject(self, subject_id: str, signal_label: str, start: int = 0, data_size: int|None = None) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
         Args:
@@ -183,6 +208,9 @@ class MesaDataset:
         Returns:
             npt.NDArray[np.float32]: Signal
         """
+        if signal_label in ["activity"]:
+            return self._load_actigraphy_signal_for_subject(subject_id, signal_label, start, data_size)
+
         with pyedflib.EdfReader(self._get_subject_edf_path(subject_id)) as fp:
             signal_labels = fp.getSignalLabels()
             signal_idx = signal_labels.index(signal_label)
@@ -289,11 +317,14 @@ class MesaDataset:
             sleep_stages.append((sleep_stage, start_time, duration))
         return sleep_stages
 
-    def _get_subject_duration(self, subject_id: str) -> float:
+    def get_subject_duration(self, subject_id: str) -> float:
         """Get subject duration in seconds"""
         with pyedflib.EdfReader(self._get_subject_edf_path(subject_id)) as fp:
             # return int(min(fp.getNSamples()/[fp.samplefrequency(i) for i in range(fp.signals_in_file)]))
             return fp.getFileDuration()
+
+    def _get_subject_actigraphy_path(self, subject_id: str) -> str:
+        return str(self.ds_path / "actigraphy" / f"mesa-sleep-{subject_id}.csv")
 
     def _get_subject_edf_path(self, subject_id: str) -> str:
         """Get subject EDF data path"""
@@ -303,7 +334,7 @@ class MesaDataset:
         """Get subject XML NSRR path"""
         return str(self.ds_path / "polysomnography" / "annotations-events-nsrr" / f"mesa-sleep-{subject_id}-nsrr.xml")
 
-    def _sleep_stages_to_mask(self, sleep_stages: list[tuple[int, float, float]], data_size: int) -> npt.NDArray[np.int32]:
+    def sleep_stages_to_mask(self, sleep_stages: list[tuple[int, float, float]], data_size: int) -> npt.NDArray[np.int32]:
         """Convert sleep stages to mask array
         Args:
             sleep_stages (list[tuple[int, float, float]]): Sleep stages

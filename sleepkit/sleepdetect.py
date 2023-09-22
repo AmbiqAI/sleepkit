@@ -2,13 +2,13 @@
 import os
 
 import numpy as np
+from multiprocessing import Pool
 import numpy.typing as npt
 import physiokit as pk
 import tensorflow as tf
 import sklearn.model_selection
 import wandb
 from rich.console import Console
-from sklearn.metrics import f1_score
 from wandb.keras import WandbCallback
 
 from neuralspot.tflite.metrics import get_flops
@@ -19,54 +19,62 @@ from .utils import env_flag, set_random_seed, setup_logger
 from .datasets import MesaDataset
 from .datasets.utils import create_dataset_from_data
 from .models import UNet, UNetParams, UNetBlockParams
+from .metrics import compute_iou, confusion_matrix_plot
 
 console = Console()
 logger = setup_logger(__name__)
 
-sd_features = ["EEG1", "EOG-L"]
+sd_features = ["EEG1", "EOG-L", "EMG"]
+
 sd_classes = [0, 1]
+sd_class_names = ["AWAKE", "SLEEP"]
 sd_sleep_mapping = lambda s: 1 if s in (1, 2, 3, 4, 5) else 0
+
+# sd_classes = [0, 1, 2, 3]
+# sd_class_names = ["AWAKE", "CORE", "DEEP", "REM"]
+# sd_sleep_mapping = lambda s: {0: 0, 1: 1, 2: 1, 3: 2, 4: 2, 5: 3}.get(s, 0)
+
 
 def load_model(inputs: tf.Tensor, num_classes: int = 2):
     blocks = [
-        UNetBlockParams(filters=8, depth=2, kernel=(1, 3), strides=(1, 2), skip=True),
-        UNetBlockParams(filters=16, depth=2, kernel=(1, 3), strides=(1, 2), skip=True),
-        UNetBlockParams(filters=24, depth=2, kernel=(1, 3), strides=(1, 2), skip=True),
-        UNetBlockParams(filters=32, depth=2, kernel=(1, 3), strides=(1, 2), skip=True),
-        UNetBlockParams(filters=48, depth=2, kernel=(1, 3), strides=(1, 2), skip=True),
+        UNetBlockParams(filters=12, depth=1, kernel=(1, 5), strides=(1, 2), skip=True),
+        UNetBlockParams(filters=24, depth=1, kernel=(1, 5), strides=(1, 2), skip=True),
+        UNetBlockParams(filters=32, depth=1, kernel=(1, 5), strides=(1, 2), skip=True),
+        UNetBlockParams(filters=40, depth=1, kernel=(1, 5), strides=(1, 2), skip=True),
     ]
     return UNet(
         inputs,
         params=UNetParams(
             blocks=blocks,
-            output_kernel_size=(1, 3),
+            output_kernel_size=(1, 5),
             include_top=True,
+            use_logits=False
         ),
         num_classes=num_classes,
     )
 
-def preprocess(x: npt.NDArray[np.float32]):
-    xx = x.copy()
-    for i in range(x.shape[-1]):
-        xx[..., i] = pk.signal.normalize_signal(xx[..., i], eps=1e-3, axis=None)
-    return xx
-
-def augment(x):
-    return x
-
-def prepare(x, y):
+def prepare(x, y, num_classes):
     return (
         # Add empty dimension (1D -> 2D)
         tf.expand_dims(x, axis=0),
         # Add empty dimension (1D -> 2D) and one-hot encode
-        tf.one_hot(tf.expand_dims(y, axis=0))
+        tf.one_hot(tf.expand_dims(y, axis=0), num_classes)
     )
 
 def load_train_datasets(params: SKTrainParams):
+    def preprocess(x: npt.NDArray[np.float32]):
+        xx = x.copy()
+        for i in range(0, 1):
+            xx[:, i] = pk.signal.filter_signal(xx[:, i], lowcut=1.0, highcut=30, sample_rate=params.sampling_rate, order=3)  # EEG
+        for i in range(1, 3):
+            xx[:, i] = pk.signal.filter_signal(xx[:, i], lowcut=0.5, highcut=30, sample_rate=params.sampling_rate, order=4)  # EOG
+        for i in range(0, 3):
+            xx[:, i] = pk.signal.normalize_signal(xx[:, i], eps=1e-3, axis=None)
+        return xx
 
-    output_signature=(
-        tf.TensorSpec(shape=(params.frame_size, len(sd_features)), dtype=tf.float32),
-        tf.TensorSpec(shape=(params.frame_size), dtype=tf.int32),
+    output_signature = (
+        tf.TensorSpec(shape=(1, params.frame_size, len(sd_features)), dtype=tf.float32),
+        tf.TensorSpec(shape=(1, params.frame_size, len(sd_classes)), dtype=tf.int32),
     )
 
     # Create dataset(s)
@@ -82,53 +90,60 @@ def load_train_datasets(params: SKTrainParams):
     train_subject_ids, val_subject_ids = sklearn.model_selection.train_test_split(
         ds.train_subject_ids, test_size=params.val_subjects
     )
-    train_subj_gen = ds.uniform_subject_generator(train_subject_ids)
-    val_subj_gen = ds.uniform_subject_generator(val_subject_ids)
+
+    def train_generator(subject_ids):
+        def ds_gen():
+            train_subj_gen = ds.uniform_subject_generator(subject_ids)
+            return map(
+                lambda x_y: prepare(preprocess(x_y[0]), x_y[1], len(sd_classes)),
+                ds.signal_generator(train_subj_gen, signals=sd_features, samples_per_subject=params.samples_per_subject)
+            )
+        return tf.data.Dataset.from_generator(
+            ds_gen,
+            output_signature=output_signature,
+        )
+
+    split = len(train_subject_ids) // params.data_parallelism
+    train_datasets = [train_generator(
+        train_subject_ids[i * split : (i + 1) * split]
+    ) for i in range(params.data_parallelism)]
 
     # Create TF datasets
-    train_ds = tf.data.Dataset.from_generator(
-        generator=ds.signal_generator,
-        output_signature=output_signature,
-        args=(train_subj_gen, sd_features, params.samples_per_subject),
-    # Preprocess/augment
-    ).map(
-        lambda x, y: (augment(preprocess(x)), y),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    # Prep for model input
-    ).map(
-        lambda x, y: prepare(x, y),
+    train_ds = tf.data.Dataset.from_tensor_slices(
+        train_datasets
+    ).interleave(
+        lambda x: x,
+        cycle_length=params.data_parallelism,
+        deterministic=False,
         num_parallel_calls=tf.data.AUTOTUNE,
     ).shuffle(
         buffer_size=params.buffer_size,
         reshuffle_each_iteration=True,
     ).batch(
         batch_size=params.batch_size,
-        drop_remainder=True,
+        drop_remainder=False,
     ).prefetch(
-        buffer_size=tf.data.AUTOTUNE,
+        buffer_size=tf.data.AUTOTUNE
     )
 
+    def val_generator():
+        val_subj_gen = ds.uniform_subject_generator(val_subject_ids)
+        return map(
+            lambda x_y: prepare(preprocess(x_y[0]), x_y[1], len(sd_classes)),
+            ds.signal_generator(val_subj_gen, signals=sd_features, samples_per_subject=params.samples_per_subject)
+        )
+
     val_ds = tf.data.Dataset.from_generator(
-        generator=ds.signal_generator,
-        output_signature=output_signature,
-        args=(val_subj_gen, sd_features, params.val_samples_per_subject),
-    # Preprocess
-    ).map(
-        lambda x, y: (preprocess(x), y),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    # Prep for model input
-    ).map(
-        lambda x, y: prepare(x, y),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    ).shuffle(
-        buffer_size=params.buffer_size,
-        reshuffle_each_iteration=True,
-    ).batch(
-        batch_size=params.batch_size,
-        drop_remainder=True,
+        generator=val_generator,
+        output_signature=output_signature
     )
     val_x, val_y = next(val_ds.batch(params.val_size).as_numpy_iterator())
-    val_ds = create_dataset_from_data(val_x, val_y, output_signature=output_signature)
+    val_ds = create_dataset_from_data(
+        val_x, val_y, output_signature=output_signature
+    ).batch(
+        batch_size=params.batch_size,
+        drop_remainder=False,
+    )
 
     return train_ds, val_ds
 
@@ -177,12 +192,15 @@ def train(params: SKTrainParams):
             m_mul=0.4,
         )
         optimizer = tf.keras.optimizers.Adam(scheduler)
-        loss = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True)
+        loss = tf.keras.losses.CategoricalFocalCrossentropy(
+            from_logits=getattr(params, "use_logits", False),
+            label_smoothing=getattr(params, "label_smoothing", 0.1),
+        )
         metrics = [
             tf.keras.metrics.CategoricalAccuracy(name="acc"),
             tf.keras.metrics.OneHotIoU(
                 num_classes=len(sd_classes),
-                target_class_ids=[0, 1],
+                target_class_ids=sd_classes,
                 name="iou",
             ),
         ]
@@ -213,7 +231,11 @@ def train(params: SKTrainParams):
                 verbose=1,
             ),
             tf.keras.callbacks.CSVLogger(str(params.job_dir / "history.csv")),
-            tf.keras.callbacks.TensorBoard(log_dir=str(params.job_dir), write_steps_per_second=True),
+            tf.keras.callbacks.TensorBoard(
+                log_dir=str(params.job_dir / "logs"),
+                write_steps_per_second=True,
+                # profile_batch=(5, 10)
+            ),
         ]
         if env_flag("WANDB"):
             model_callbacks.append(WandbCallback())
@@ -240,12 +262,22 @@ def train(params: SKTrainParams):
 
         # Get full validation results
         logger.info("Performing full validation")
-        test_labels = [label.numpy() for _, label in val_ds]
-        y_true = np.argmax(np.concatenate(test_labels), axis=1)
-        y_pred = np.argmax(model.predict(val_ds), axis=1)
+
+        test_labels = [y.numpy() for _, y in val_ds]
+        y_true = np.argmax(np.concatenate(test_labels).squeeze(), axis=-1)
+        y_pred = np.argmax(model.predict(val_ds).squeeze(), axis=-1)
 
         # Summarize results
-        test_acc = np.sum(y_pred == y_true) / len(y_true)
-        test_f1 = f1_score(y_true, y_pred, average="macro")
-        logger.info(f"[VAL SET] ACC={test_acc:.2%}, F1={test_f1:.2%}")
+        test_acc = np.sum(y_pred == y_true) / y_true.size
+        test_iou = compute_iou(y_true, y_pred, average="weighted")
+        logger.info(f"[TEST SET] ACC={test_acc:.2%}, IoU={test_iou:.2%}")
+
+        cm_path = str(params.job_dir / "confusion_matrix_test.png")
+        confusion_matrix_plot(
+            y_true.flatten(),
+            y_pred.flatten(),
+            labels=sd_class_names,
+            save_path=cm_path,
+            normalize="true",
+        )
     # END WITH
