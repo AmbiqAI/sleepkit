@@ -47,6 +47,15 @@ class Hdf5Dataset:
         """Get test subject ids"""
         return self.subject_ids[int(0.8*len(self.subject_ids)):]
 
+    @property
+    def feature_shape(self) -> tuple[int, int]:
+        """Get feature shape"""
+        with h5py.File(os.path.join(self.ds_path, f"{self.subject_ids[0]}.h5"), mode="r") as h5:
+            feat_shape = (self.frame_size, h5[self.feat_key].shape[-1])
+        if self.feat_cols:
+            feat_shape = (feat_shape[0], len(self.feat_cols))
+        return feat_shape
+
     @functools.cache
     def subject_stats(self, subject_id: str):
         with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
@@ -93,7 +102,21 @@ class Hdf5Dataset:
                 break
         # END WHILE
 
-    def signal_generator(self, subject_generator, samples_per_subject: int = 1):
+    def load_subject_data(self, subject_id: str) -> tuple[npt.NDArray, npt.NDArray]:
+        """Load subject data
+        Args:
+            subject_id (str): Subject ID
+        Returns:
+            tuple[npt.NDArray, npt.NDArray]: Tuple of features and labels
+        """
+        with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
+            x = h5[self.feat_key][:]
+            y = h5[self.label_key][:]
+        if self.feat_cols:
+            x = x[:, self.feat_cols]
+        return x, y
+
+    def signal_generator(self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-6):
         """
         Generate frames using subject generator.
         from the segments in subject data by placing a frame in a random location within one of the segments.
@@ -106,20 +129,24 @@ class Hdf5Dataset:
         """
         for subject_id, subject_data in subject_generator:
             feat_mu, feat_std = self.subject_stats(subject_id)
+            num_samples = 0
             for _ in range(samples_per_subject):
                 data_size = subject_data[self.feat_key].shape[0]
                 frame_start = np.random.randint(data_size - self.frame_size)
                 frame_end = frame_start + self.frame_size
-                x = (subject_data[self.feat_key][frame_start:frame_end] - feat_mu) / feat_std
+                x = subject_data[self.feat_key][frame_start:frame_end]
+                if normalize:
+                    x = x - feat_mu / (feat_std + epsilon)
                 y = subject_data[self.label_key][frame_start:frame_end]
                 if np.isnan(x).any():
                     continue
                 if self.mask_key:
-                    mask: npt.NDArray = subject_data["mask"][frame_start:frame_end]
+                    mask: npt.NDArray = subject_data[self.mask_key][frame_start:frame_end]
                     if mask.sum()/mask.size < 0.90:
                         continue
                 if self.feat_cols:
                     x = x[:, self.feat_cols]
+                num_samples += 1
                 yield x, y
             # END FOR
         # END FOR

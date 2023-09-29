@@ -8,6 +8,7 @@ import numpy.typing as npt
 import seaborn as sns
 from sklearn.metrics import auc, confusion_matrix, f1_score, jaccard_score, roc_curve
 
+from .defines import SleepStage
 
 def compute_iou(
     y_true: npt.NDArray,
@@ -101,7 +102,6 @@ def confusion_matrix_plot(
         labels (list[str]): Label names
         save_path (str | None): Path to save plot. Defaults to None.
     """
-
     cm = confusion_matrix(y_true, y_pred)
     cmn = cm
     ann = True
@@ -182,35 +182,6 @@ def macro_precision_recall(y_true: npt.NDArray, y_prob: npt.NDArray, thresholds:
     return av_precision, av_recall
 
 
-def challenge2020_metrics(y_true, y_pred, beta_f=2, beta_g=2, class_weights=None, single=False):
-    """source: https://github.com/helme/ecg_ptbxl_benchmarking"""
-    num_samples, num_classes = y_true.shape
-    if single:  # if evaluating single class in case of threshold-optimization
-        sample_weights = np.ones(num_samples)
-    else:
-        sample_weights = y_true.sum(axis=1)
-    if class_weights is None:
-        class_weights = np.ones(num_classes)
-    f_beta = 0
-    g_beta = 0
-    for k, w_k in enumerate(class_weights):
-        tp, fp, tn, fn = 0.0, 0.0, 0.0, 0.0
-        for i in range(num_samples):
-            if y_true[i, k] == y_pred[i, k] == 1:
-                tp += 1.0 / sample_weights[i]
-            if y_pred[i, k] == 1 and y_true[i, k] != y_pred[i, k]:
-                fp += 1.0 / sample_weights[i]
-            if y_true[i, k] == y_pred[i, k] == 0:
-                tn += 1.0 / sample_weights[i]
-            if y_pred[i, k] == 0 and y_true[i, k] != y_pred[i, k]:
-                fn += 1.0 / sample_weights[i]
-        f_beta += w_k * ((1 + beta_f**2) * tp) / ((1 + beta_f**2) * tp + fp + beta_f**2 * fn)
-        g_beta += w_k * tp / (tp + fp + beta_g * fn)
-    f_beta /= class_weights.sum()
-    g_beta /= class_weights.sum()
-    return {"F_beta": f_beta, "G_beta": g_beta}
-
-
 def _one_hot(x: npt.NDArray, depth: int) -> npt.NDArray:
     """Generate one hot encoding
 
@@ -237,3 +208,55 @@ def multi_f1(y_true: npt.NDArray, y_prob: npt.NDArray):
         _type_: _description_
     """
     return f1(y_true, y_prob, multiclass=True, threshold=0.5)
+
+
+def compute_sleep_stage_durations(sleep_mask: npt.NDArray) -> dict[int, int]:
+    """Compute sleep stage durations
+    Args:
+        sleep_mask (npt.NDArray): Sleep mask (1D array of sleep stages)
+    Returns:
+        dict[int, int]: Sleep stage durations (class -> duration)
+    """
+    left_bounds = np.concatenate(([0], np.diff(sleep_mask).nonzero()[0]+1))
+    right_bounds = np.concatenate((np.diff(sleep_mask).nonzero()[0]+1, [sleep_mask.size]))
+    dur_bounds = right_bounds - left_bounds
+    class_bounds = sleep_mask[left_bounds]
+    class_durations = {k: 0 for k in set(class_bounds)}
+    for i, c in enumerate(class_bounds):
+        class_durations[c] += dur_bounds[i]
+    # END FOR
+    return class_durations
+
+def compute_total_sleep_time(sleep_durations: dict[int, int], class_map: dict[int, int]) -> int:
+    """Compute total sleep time (# samples).
+    Args:
+        sleep_durations (dict[int, int]): Sleep stage durations (class -> duration)
+        class_map (dict[int, int]): Class map (class -> class)
+    Returns:
+        int: Total sleep time (# samples)
+    """
+    wake_classes = [SleepStage.wake]
+    sleep_classes = [SleepStage.stage1, SleepStage.stage2, SleepStage.stage3, SleepStage.stage4, SleepStage.rem]
+    wake_keys = list(set(class_map.get(s) for s in wake_classes if s in class_map))
+    sleep_keys = list(set(class_map.get(s) for s in sleep_classes if s in class_map))
+    wake_duration = sum(sleep_durations.get(k, 0) for k in wake_keys)
+    sleep_duration = sum(sleep_durations.get(k, 0) for k in sleep_keys)
+    tst = sleep_duration
+    return tst
+
+def compute_sleep_efficiency(sleep_durations: dict[int, int], class_map: dict[int, int]) -> float:
+    """Compute sleep efficiency.
+    Args:
+        sleep_durations (dict[int, int]): Sleep stage durations (class -> duration)
+        class_map (dict[int, int]): Class map (class -> class)
+    Returns:
+        float: Sleep efficiency
+    """
+    wake_classes = [SleepStage.wake]
+    sleep_classes = [SleepStage.stage1, SleepStage.stage2, SleepStage.stage3, SleepStage.stage4, SleepStage.rem]
+    wake_keys = list(set(class_map.get(s) for s in wake_classes if s in class_map))
+    sleep_keys = list(set(class_map.get(s) for s in sleep_classes if s in class_map))
+    wake_duration = sum(sleep_durations.get(k, 0) for k in wake_keys)
+    sleep_duration = sum(sleep_durations.get(k, 0) for k in sleep_keys)
+    efficiency = sleep_duration/(sleep_duration + wake_duration)
+    return efficiency

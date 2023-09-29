@@ -4,11 +4,11 @@ from typing import Type, TypeVar
 import pydantic_argparse
 from pydantic import BaseModel, Field
 
-from . import sleepdetect
+from . import sleepstage, apnea
 from .defines import (
-    SKMode, SKTask, SKTrainParams
+    SKMode, SKTask, SKTrainParams, SKFeatureParams
 )
-
+from .features import generate_feature_set
 from .utils import setup_logger
 
 logger = setup_logger(__name__)
@@ -52,17 +52,21 @@ def run(inputs: list[str] | None = None):
 
     logger.info(f"#STARTED {args.mode} model")
 
+    # Download dataset(s)
     if args.mode == SKMode.download:
         # download_datasets(parse_content(SKDownloadParams, args.config))
         return
 
+    # Generate feature set
+    if args.mode == SKMode.feature:
+        generate_feature_set(parse_content(SKFeatureParams, args.config))
+        return
+
     match args.task:
-        case SKTask.detect:
-            task_handler = sleepdetect
         case SKTask.stage:
-            raise NotImplementedError()
+            task_handler = sleepstage
         case SKTask.apnea:
-            raise NotImplementedError()
+            task_handler = apnea
         case _:
             raise NotImplementedError()
     # END MATCH

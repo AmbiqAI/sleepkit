@@ -36,7 +36,7 @@ class MesaDataset:
         ds_path: Path,
         frame_size: int = 30*128,
         target_rate: int = 128,
-        is_commercial: bool = False,
+        is_commercial: bool = True,
     ) -> None:
         self.frame_size = frame_size
         self.target_rate = target_rate
@@ -156,7 +156,7 @@ class MesaDataset:
             #     apnea_events = self.extract_sleep_apneas(subject_id=subject_id)
             #     subjs_apnea_events[subject_id] = apnea_events
             # # END IF
-            # apnea_mask = self._apnea_events_to_mask(apnea_events, max_size)
+            # apnea_mask = self.apnea_events_to_mask(apnea_events, max_size)
 
             x = np.zeros((self.frame_size, len(signals)), dtype=np.float32)
             y = np.zeros((self.frame_size,), dtype=np.int32)
@@ -350,7 +350,7 @@ class MesaDataset:
         # END FOR
         return sleep_mask
 
-    def _apnea_events_to_mask(self, apnea_events: list[tuple[int, float, float]], data_size: int) -> npt.NDArray[np.int32]:
+    def apnea_events_to_mask(self, apnea_events: list[tuple[int, float, float]], data_size: int) -> npt.NDArray[np.int32]:
         """Convert apnea events to mask array
         Args:
             apnea_events (list[tuple[int, float, float]]): Apnea events

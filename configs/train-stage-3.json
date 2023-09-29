@@ -1,0 +1,38 @@
+{
+    "job_dir": "./results/sleep-detect-3",
+    "ds_path": "./datasets/processed/fs001",
+    "sampling_rate": 0.0333,
+    "frame_size": 128,
+    "samples_per_subject": 100,
+    "val_samples_per_subject": 200,
+    "val_subjects": 0.20,
+    "val_size": 50000,
+    "batch_size": 512,
+    "buffer_size": 100000,
+    "epochs": 100,
+    "steps_per_epoch": 50,
+    "val_metric": "loss",
+    "datasets": ["mesa"],
+    "lr_rate": 5e-3,
+    "lr_cycles": 1,
+    "label_smoothing": 0.1,
+    "num_sleep_stages": 3,
+    "feat_cols": [
+        0, 1, 2, 3,
+        4, 5, 6, 7,
+        8, 9, 10, 11, 12, 13,
+        14, 15,
+        16, 17, 18
+    ],
+    "model": "unext",
+    "model_params": {
+        "blocks": [
+            {"filters": 24, "depth": 2, "kernel": 5, "pool": 2, "strides": 2, "skip": true, "expand_ratio": 1, "se_ratio": 2, "dropout": 0.1},
+            {"filters": 32, "depth": 2, "kernel": 5, "pool": 2, "strides": 2, "skip": true, "expand_ratio": 1, "se_ratio": 2, "dropout": 0.1},
+            {"filters": 48, "depth": 2, "kernel": 5, "pool": 2, "strides": 2, "skip": true, "expand_ratio": 1, "se_ratio": 2, "dropout": 0.1}
+        ],
+        "output_kernel_size": 5,
+        "include_top": true,
+        "use_logits": true
+    }
+}

@@ -218,7 +218,7 @@ class YsywDataset:
     def _convert_pt_to_hdf5(
         self, pt_path: str, force: bool = False
     ):
-        """Extract subject data from Physionet.
+        """Extract subject data from PhysiUNext.
 
         Args:
             pt_path (str): Source path
