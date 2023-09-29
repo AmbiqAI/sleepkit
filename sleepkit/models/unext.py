@@ -116,7 +116,7 @@ def UNext_block(
         )(y)
 
         # Squeeze and excite
-        if se_ratio:
+        if se_ratio > 1:
             name_se = f"{name}.se" if name else None
             y = se_block(ratio=se_ratio, name=name_se)(y)
 

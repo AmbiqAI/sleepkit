@@ -245,19 +245,33 @@ def compute_subject_features_003(subject_id: str, args: SKFeatureParams):
 
     subject_duration = max(0, ds.get_subject_duration(subject_id=subject_id)*ds.target_rate - ds.target_rate*60*60)
     sleep_stages = ds.extract_sleep_stages(subject_id=subject_id)
+    apnea_events = ds.extract_sleep_apneas(subject_id=subject_id)
     sleep_mask = ds.sleep_stages_to_mask(sleep_stages=sleep_stages, data_size=subject_duration)
+    apnea_mask = ds.apnea_events_to_mask(apnea_events=apnea_events, data_size=subject_duration)
     features = np.zeros((subject_duration // ds.frame_size, len(feat_names)), dtype=np.float32)
     sleep_stages = np.zeros((subject_duration // ds.frame_size), dtype=np.int32)
+    apnea_stages = np.zeros((subject_duration // args.frame_size), dtype=np.int32)
     mask = np.zeros((subject_duration // ds.frame_size), dtype=np.int32)
+    prev_valid = False
     for f_idx, start in enumerate(range(0, subject_duration - ds.frame_size, ds.frame_size)):
         try:
-            features[f_idx, :] = compute_features_001(ds, subject_id, start)
-            sleep_stages[f_idx] = sps.mode(sleep_mask[start:start+ds.frame_size]).mode
+            apnea_seg = apnea_mask[start:start+args.frame_size]
+            features[f_idx, :] = compute_features_003(ds, subject_id, start)
+            sleep_stages[f_idx] = sps.mode(sleep_mask[start:start+args.frame_size]).mode
+            apnea_stages[f_idx] = sps.mode(apnea_seg[apnea_seg > 0]).mode if np.any(apnea_seg) else 0
             mask[f_idx] = 1
+            prev_valid = True
         except PoorSignalError as err:
-            continue
+            # Copy previous once if it's valid
+            if prev_valid:
+                features[f_idx, :] = features[f_idx - 1, :]
+                sleep_stages[f_idx] = sleep_stages[f_idx - 1]
+                apnea_stages[f_idx] = apnea_stages[f_idx - 1]
+                mask[f_idx] = 1
+            prev_valid = False
         except Exception as err:
-            print(err)
+            prev_valid = False
+            logger.warning(f"Error processing subject {subject_id} at {start} ({err}).")
             continue
     # END FOR
 
@@ -288,12 +302,7 @@ def compute_dataset_003(args: SKFeatureParams):
     )
     subject_ids = ds.subject_ids
     os.makedirs(args.save_path, exist_ok=True)
-    f = functools.partial(compute_subject_features_003,
-        ds_path=args.ds_path,
-        frame_size=args.frame_size,
-        sample_rate=args.sample_rate,
-        save_path=args.save_path
-    )
+    f = functools.partial(compute_subject_features_003, args=args)
     with Pool(processes=args.data_parallelism) as pool:
         _ = list(tqdm(pool.imap(f, subject_ids), total=len(subject_ids)))
     # END WITH

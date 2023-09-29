@@ -17,6 +17,7 @@ from neuralspot.tflite.model import get_strategy, load_model
 
 from .defines import (
     SKTrainParams,
+    SKTestParams,
     get_sleep_stage_classes,
     get_sleep_stage_class_names,
     get_sleep_stage_class_mapping
@@ -228,6 +229,26 @@ def load_validation_dataset(
 
     return val_ds
 
+def load_test_dataset(params: SKTestParams) -> tuple[npt.NDArray, npt.NDArray]:
+    """Load test dataset
+    Args:
+        params (SKTestParams): Testing parameters
+    Returns:
+        tuple[npt.NDArray, npt.NDArray]: Test features and labels
+    """
+    ds = Hdf5Dataset(
+        ds_path=params.ds_path,
+        frame_size=params.frame_size,
+        mask_key="mask",
+    )
+    test_x = []
+    test_y = []
+    for subject_id in ds.test_subject_ids:
+        x, y = ds.load_subject_data(subject_id)
+        test_x.append(x)
+        test_y.append(y)
+
+    return test_x, test_y
 
 def train(params: SKTrainParams):
     """Train sleep stage model.
@@ -423,5 +444,50 @@ def train(params: SKTrainParams):
     # END WITH
 
 
-def evaluate(params: SKTrainParams):
-    pass
+def evaluate(params: SKTestParams):
+    """Evaluate sleep stage model.
+    Args:
+        params (SKTestParams): Testing/evaluation parameters
+    """
+    params.seed = set_random_seed(params.seed)
+    logger.info(f"Random seed {params.seed}")
+
+    test_x, test_y = load_test_dataset(params)
+
+    strategy = get_strategy()
+    with strategy.scope():
+        logger.info("Loading model")
+        model = load_model(str(params.model_file))
+        flops = get_flops(model, batch_size=1, fpath=str(params.job_dir / "model_flops.log"))
+        model.summary(print_fn=logger.info)
+        logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
+
+        logger.info("Performing inference")
+        y_true = np.argmax(test_y, axis=1)
+        y_prob = tf.nn.softmax(model.predict(test_x)).numpy()
+        y_pred = np.argmax(y_prob, axis=1)
+
+        # Summarize results
+        logger.info("Testing Results")
+        test_acc = np.sum(y_pred == y_true) / len(y_true)
+        test_f1 = f1_score(y_true, y_pred, average="macro")
+        logger.info(f"[TEST SET] ACC={test_acc:.2%}, F1={test_f1:.2%}")
+        class_names = get_class_names(HeartTask.arrhythmia)
+        if len(class_names) == 2:
+            roc_path = str(params.job_dir / "roc_auc_test.png")
+            roc_auc_plot(y_true, y_prob[:, 1], labels=class_names, save_path=roc_path)
+        # END IF
+
+        # If threshold given, only count predictions above threshold
+        if params.threshold:
+            numel = len(y_true)
+            y_prob, y_pred, y_true = threshold_predictions(y_prob, y_pred, y_true, params.threshold)
+            drop_perc = 1 - len(y_true) / numel
+            test_acc = np.sum(y_pred == y_true) / len(y_true)
+            test_f1 = f1_score(y_true, y_pred, average="macro")
+            logger.info(f"[TEST SET] THRESH={params.threshold:0.2%}, DROP={drop_perc:.2%}")
+            logger.info(f"[TEST SET] ACC={test_acc:.2%}, F1={test_f1:.2%}")
+        # END IF
+        cm_path = str(params.job_dir / "confusion_matrix_test.png")
+        confusion_matrix_plot(y_true, y_pred, labels=class_names, save_path=cm_path, normalize="true")
+    # END WITH

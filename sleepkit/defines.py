@@ -88,6 +88,39 @@ class SKTrainParams(BaseModel, extra=Extra.allow):
     # Extra arguments
     seed: int | None = Field(None, description="Random state seed")
 
+class SKTestParams(BaseModel, extra=Extra.allow):
+    """SleepKit test command params"""
+    job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
+    # Dataset arguments
+    ds_path: Path = Field(default_factory=Path, description="Dataset directory")
+    sampling_rate: int = Field(250, description="Target sampling rate (Hz)")
+    frame_size: int = Field(1250, description="Frame size")
+    samples_per_subject: int | list[int] = Field(1000, description="# train samples per patient")
+    val_samples_per_subject: int | list[int] = Field(1000, description="# validation samples per patient")
+    train_subjects: float | None = Field(None, description="# or proportion of patients for training")
+    val_subjects: float | None = Field(None, description="# or proportion of patients for validation")
+    val_file: Path | None = Field(None, description="Path to load/store pickled validation file")
+    val_size: int | None = Field(None, description="# samples for validation")
+    data_parallelism: int = Field(
+        default_factory=lambda: os.cpu_count() or 1,
+        description="# of data loaders running in parallel",
+    )
+    # Model arguments
+    model: str | None = Field(default=None, description="Custom model")
+    model_file: str | None = Field(None, description="Path to model file")
+    model_params: dict[str, Any] | None = Field(default=None, description="Custom model parameters")
+
+    weights_file: Path | None = Field(None, description="Path to a checkpoint weights to load")
+    quantization: bool | None = Field(None, description="Enable quantization aware training (QAT)")
+    # Training arguments
+    batch_size: int = Field(32, description="Batch size")
+    buffer_size: int = Field(100, description="Buffer size")
+    epochs: int = Field(50, description="Number of epochs")
+    steps_per_epoch: int | None = Field(None, description="Number of steps per epoch")
+    val_metric: Literal["loss", "acc", "f1"] = Field("loss", description="Performance metric")
+    # augmentations: list[AugmentationParams] = Field(default_factory=list, description="Augmentations")
+    # Extra arguments
+    seed: int | None = Field(None, description="Random state seed")
 
 class SKTask(StrEnum):
     """SleepKit task"""

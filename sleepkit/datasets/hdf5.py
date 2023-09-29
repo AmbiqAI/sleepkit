@@ -130,7 +130,8 @@ class Hdf5Dataset:
         for subject_id, subject_data in subject_generator:
             feat_mu, feat_std = self.subject_stats(subject_id)
             num_samples = 0
-            for _ in range(samples_per_subject):
+            num_attempts = 0
+            while num_samples < samples_per_subject:
                 data_size = subject_data[self.feat_key].shape[0]
                 frame_start = np.random.randint(data_size - self.frame_size)
                 frame_end = frame_start + self.frame_size
@@ -139,14 +140,21 @@ class Hdf5Dataset:
                     x = x - feat_mu / (feat_std + epsilon)
                 y = subject_data[self.label_key][frame_start:frame_end]
                 if np.isnan(x).any():
+                    num_attempts += 1
+                    if num_attempts > 10:
+                        num_samples += 1
                     continue
                 if self.mask_key:
                     mask: npt.NDArray = subject_data[self.mask_key][frame_start:frame_end]
                     if mask.sum()/mask.size < 0.90:
+                        num_attempts += 1
+                        if num_attempts > 10:
+                            num_samples += 1
                         continue
                 if self.feat_cols:
                     x = x[:, self.feat_cols]
                 num_samples += 1
+                num_attempts = 0
                 yield x, y
             # END FOR
         # END FOR
