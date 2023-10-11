@@ -1,0 +1,8 @@
+{
+    "feature_set": "fs004",
+    "ds_path": "/home/vscode/datasets",
+    "save_path": "./datasets/processed/fs004",
+    "dataset": "mesa",
+    "sample_rate": 64,
+    "frame_size": 1920
+}

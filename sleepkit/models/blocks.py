@@ -22,9 +22,11 @@ def make_divisible(v: int, divisor: int = 4, min_value: int | None = None) -> in
         new_v += divisor
     return new_v
 
+
 def layer_norm(name: str | None = None, axis=-1, scale: bool = True) -> KerasLayer:
     name = name + ".ln" if name else None
     return tf.keras.layers.LayerNormalization(axis=axis, name=name, scale=scale)
+
 
 def batch_norm(name: str | None = None, momentum=0.9, epsilon=1e-3) -> KerasLayer:
     """Batch normalization layer"""

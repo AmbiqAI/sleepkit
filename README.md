@@ -1,6 +1,6 @@
 # SleepKit
 
-🚧 SleepKit is currently under development 🚧
+🚧 SleepKit is currently under active development 🚧
 
 ---
 

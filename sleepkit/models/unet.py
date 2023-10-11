@@ -9,6 +9,7 @@ from .blocks import batch_norm, layer_norm, relu6
 
 class UNetBlockParams(BaseModel):
     """UNet block parameters"""
+
     filters: int = Field(..., description="# filters")
     depth: int = Field(default=1, description="Layer depth")
     kernel: int | tuple[int, int] = Field(default=3, description="Kernel size")
@@ -16,12 +17,14 @@ class UNetBlockParams(BaseModel):
     strides: int | tuple[int, int] = Field(default=1, description="Stride size")
     skip: bool = Field(default=True, description="Add skip connection")
     seperable: bool = Field(default=False, description="Use seperable convs")
-    dropout: float|None = Field(default=None, description="Dropout rate")
-    norm: Literal["batch", "layer"]|None = Field(default="batch", description="Normalization type")
-    dilation: int|tuple[int, int]|None = Field(default=None, description="Dilation factor")
+    dropout: float | None = Field(default=None, description="Dropout rate")
+    norm: Literal["batch", "layer"] | None = Field(default="batch", description="Normalization type")
+    dilation: int | tuple[int, int] | None = Field(default=None, description="Dilation factor")
+
 
 class UNetParams(BaseModel):
     """UNet parameters"""
+
     blocks: list[UNetBlockParams] = Field(default_factory=list, description="UNet blocks")
     include_top: bool = Field(default=True, description="Include top")
     use_logits: bool = Field(default=True, description="Use logits")
@@ -29,6 +32,7 @@ class UNetParams(BaseModel):
     output_kernel_size: int | tuple[int, int] = Field(default=3, description="Output kernel size")
     output_kernel_stride: int | tuple[int, int] = Field(default=1, description="Output kernel stride")
     include_rnn: bool = Field(default=False, description="Include RNN")
+
 
 def UNet(
     x: tf.Tensor,
@@ -46,7 +50,7 @@ def UNet(
         tf.keras.Model: Model
     """
     y = x
-    requires_reshape = (len(x.shape) == 3)
+    requires_reshape = len(x.shape) == 3
     if requires_reshape:
         y = tf.keras.layers.Reshape((1,) + x.shape[1:])(x)
     else:
@@ -64,7 +68,7 @@ def UNet(
             elif isinstance(block.dilation, int):
                 dilation_rate = (block.dilation**d, block.dilation**d)
             else:
-                dilation_rate = (block.dilation[0]**d, block.dilation[1]**d)
+                dilation_rate = (block.dilation[0] ** d, block.dilation[1] ** d)
             if block.seperable:
                 ym = tf.keras.layers.SeparableConv2D(
                     block.filters,
@@ -231,7 +235,6 @@ def UNet(
         y = tf.keras.layers.add([ym, yr], name=f"{name}.add")  # Add back residual
     # END FOR
 
-
     if params.include_top:
         # Add a per-point classification layer
         y = tf.keras.layers.Conv2D(
@@ -241,7 +244,7 @@ def UNet(
             kernel_initializer="he_normal",
             kernel_regularizer=tf.keras.regularizers.L2(1e-3),
             name="NECK.conv",
-            use_bias=True
+            use_bias=True,
         )(y)
         if not params.use_logits:
             y = tf.keras.layers.Softmax()(y)

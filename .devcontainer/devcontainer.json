@@ -23,6 +23,13 @@
             "injections": "pylint pytest"
         }
     },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-toolsai.jupyter"
+            ]
+        }
+    },
 
     "runArgs": [ "--gpus", "all"],
 

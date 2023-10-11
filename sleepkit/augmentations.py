@@ -2,9 +2,9 @@ import random
 
 import numpy as np
 import numpy.typing as npt
-
 import physiokit as pk
 from pydantic import BaseModel, Extra, Field
+
 
 class AugmentationParams(BaseModel, extra=Extra.allow):
     """Augmentation parameters"""

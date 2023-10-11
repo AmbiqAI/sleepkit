@@ -4,3 +4,5 @@ try:
     __version__ = version(__name__)
 except ImportError:
     __version__ = "0.0.0"
+
+from . import cli, datasets, features, metrics, models, tflite

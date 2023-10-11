@@ -1,22 +1,26 @@
-import os
-import glob
-import random
 import functools
+import glob
+import os
+import random
 from pathlib import Path
 
+import h5py
 import numpy as np
 import numpy.typing as npt
-import h5py
+
 
 class Hdf5Dataset:
     """Subject feature sets saved in HDF5 format."""
-    def __init__(self,
+
+    def __init__(
+        self,
         ds_path: Path,
         frame_size: int = 128,
         feat_key: str = "features",
         label_key: str = "labels",
         mask_key: str | None = None,
         feat_cols: list[int] | None = None,
+        mask_threshold: float = 0.90,
     ) -> None:
         self.ds_path = ds_path
         self.frame_size = frame_size
@@ -24,6 +28,7 @@ class Hdf5Dataset:
         self.label_key = label_key
         self.mask_key = mask_key
         self.feat_cols = feat_cols
+        self.mask_threshold = mask_threshold
 
     @property
     def subject_ids(self) -> list[str]:
@@ -40,12 +45,12 @@ class Hdf5Dataset:
     @property
     def train_subject_ids(self) -> list[str]:
         """Get train subject ids"""
-        return self.subject_ids[:int(0.8*len(self.subject_ids))]
+        return self.subject_ids[: int(0.8 * len(self.subject_ids))]
 
     @property
     def test_subject_ids(self) -> list[str]:
         """Get test subject ids"""
-        return self.subject_ids[int(0.8*len(self.subject_ids)):]
+        return self.subject_ids[int(0.8 * len(self.subject_ids)) :]
 
     @property
     def feature_shape(self) -> tuple[int, int]:
@@ -94,7 +99,7 @@ class Hdf5Dataset:
                 random.shuffle(subject_idxs)
             for subject_idx in subject_idxs:
                 subject_id = subject_ids[subject_idx]
-                subject_id = subject_id.decode('ascii') if isinstance(subject_id, bytes) else subject_id
+                subject_id = subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id
                 with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
                     yield subject_id, h5
             # END FOR
@@ -102,21 +107,34 @@ class Hdf5Dataset:
                 break
         # END WHILE
 
-    def load_subject_data(self, subject_id: str) -> tuple[npt.NDArray, npt.NDArray]:
+    def load_subject_data(
+        self, subject_id: str, normalize: bool = True, epsilon: float = 1e-6
+    ) -> tuple[npt.NDArray, npt.NDArray]:
         """Load subject data
         Args:
             subject_id (str): Subject ID
         Returns:
             tuple[npt.NDArray, npt.NDArray]: Tuple of features and labels
         """
+        mask = None
+        feat_mu, feat_std = self.subject_stats(subject_id)
         with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
             x = h5[self.feat_key][:]
             y = h5[self.label_key][:]
+            if self.mask_key:
+                mask = h5[self.mask_key][:]
+
+        if normalize:
+            x = (x - feat_mu) / (feat_std + epsilon)
+
         if self.feat_cols:
             x = x[:, self.feat_cols]
-        return x, y
 
-    def signal_generator(self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-6):
+        return x, y, mask
+
+    def signal_generator(
+        self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-6
+    ):
         """
         Generate frames using subject generator.
         from the segments in subject data by placing a frame in a random location within one of the segments.
@@ -137,7 +155,7 @@ class Hdf5Dataset:
                 frame_end = frame_start + self.frame_size
                 x = subject_data[self.feat_key][frame_start:frame_end]
                 if normalize:
-                    x = x - feat_mu / (feat_std + epsilon)
+                    x = (x - feat_mu) / (feat_std + epsilon)
                 y = subject_data[self.label_key][frame_start:frame_end]
                 if np.isnan(x).any():
                     num_attempts += 1
@@ -146,13 +164,14 @@ class Hdf5Dataset:
                     continue
                 if self.mask_key:
                     mask: npt.NDArray = subject_data[self.mask_key][frame_start:frame_end]
-                    if mask.sum()/mask.size < 0.90:
+                    if mask.sum() / mask.size < self.mask_threshold:
                         num_attempts += 1
                         if num_attempts > 10:
                             num_samples += 1
                         continue
                 if self.feat_cols:
                     x = x[:, self.feat_cols]
+
                 num_samples += 1
                 num_attempts = 0
                 yield x, y

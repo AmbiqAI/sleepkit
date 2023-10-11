@@ -64,10 +64,10 @@ def setup_logger(log_name: str) -> logging.Logger:
     """Setup logger with Rich
 
     Args:
-        log_name (str): _description_
+        log_name (str): Logger name
 
     Returns:
-        logging.Logger: _description_
+        logging.Logger: Logger
     """
     logger = logging.getLogger(log_name)
     if logger.handlers:
@@ -91,6 +91,11 @@ def env_flag(env_var: str, default: bool = False) -> bool:
           - 0
           - no
     - Ignore case and leading/trailing whitespace.
+    Args:
+        env_var (str): Environment variable name
+        default (bool, optional): Default value. Defaults to False.
+    Returns:
+        bool: Value of environment variable
     """
     environ_string = os.environ.get(env_var, "").strip().lower()
     if not environ_string:
@@ -99,7 +104,7 @@ def env_flag(env_var: str, default: bool = False) -> bool:
 
 
 def download_file(src: str, dst: str, progress: bool = True):
-    """Download file from supplied url to destination.
+    """Download file from supplied url to destination streaming.
 
     Args:
         src (str): Source URL path

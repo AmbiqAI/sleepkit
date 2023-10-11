@@ -9,6 +9,7 @@ from .blocks import relu6
 
 class UNextBlockParams(BaseModel):
     """UNext block parameters"""
+
     filters: int = Field(..., description="# filters")
     depth: int = Field(default=1, description="Layer depth")
     kernel: int = Field(default=3, description="Kernel size")
@@ -18,10 +19,12 @@ class UNextBlockParams(BaseModel):
     expand_ratio: float = Field(default=1, description="Expansion ratio")
     se_ratio: float = Field(default=0, description="Squeeze and excite ratio")
     dropout: float | None = Field(default=None, description="Dropout rate")
-    norm: Literal["batch", "layer"]|None = Field(default="batch", description="Normalization type")
+    norm: Literal["batch", "layer"] | None = Field(default="batch", description="Normalization type")
+
 
 class UNextParams(BaseModel):
     """UNext parameters"""
+
     blocks: list[UNextBlockParams] = Field(default_factory=list, description="UNext blocks")
     include_top: bool = Field(default=True, description="Include top")
     use_logits: bool = Field(default=True, description="Use logits")
@@ -34,40 +37,22 @@ def se_block(ratio: int = 8, name: str | None = None):
     def layer(x: tf.Tensor) -> tf.Tensor:
         num_chan = x.shape[-1]
         # Squeeze
-        y = tf.keras.layers.GlobalAveragePooling1D(
-            name=f"{name}.pool" if name else None,
-            keepdims=True
-        )(x)
+        y = tf.keras.layers.GlobalAveragePooling1D(name=f"{name}.pool" if name else None, keepdims=True)(x)
 
         y = tf.keras.layers.Conv1D(
-            num_chan // ratio,
-            kernel_size=1,
-            use_bias=True,
-            name=f"{name}.sq" if name else None
+            num_chan // ratio, kernel_size=1, use_bias=True, name=f"{name}.sq" if name else None
         )(y)
 
-        y = tf.keras.layers.Activation(
-            tf.nn.relu6,
-            name=f"{name}.relu" if name else None
-        )(y)
+        y = tf.keras.layers.Activation(tf.nn.relu6, name=f"{name}.relu" if name else None)(y)
 
         # Excite
-        y = tf.keras.layers.Conv1D(
-            num_chan,
-            kernel_size=1,
-            use_bias=True,
-            name=f"{name}.ex" if name else None
-            )(y)
-        y = tf.keras.layers.Activation(
-            tf.keras.activations.hard_sigmoid,
-            name=f"{name}.sigg" if name else None
-            )(y)
-        y = tf.keras.layers.Multiply(
-            name=f"{name}.mul" if name else None
-        )([x, y])
+        y = tf.keras.layers.Conv1D(num_chan, kernel_size=1, use_bias=True, name=f"{name}.ex" if name else None)(y)
+        y = tf.keras.layers.Activation(tf.keras.activations.hard_sigmoid, name=f"{name}.sigg" if name else None)(y)
+        y = tf.keras.layers.Multiply(name=f"{name}.mul" if name else None)([x, y])
         return y
 
     return layer
+
 
 def UNext_block(
     output_filters: int,
@@ -79,6 +64,7 @@ def UNext_block(
     name: str | None = None,
 ):
     """Create UNext block"""
+
     def layer(x: tf.Tensor) -> tf.Tensor:
         input_filters: int = x.shape[-1]
         add_residual = input_filters == output_filters and strides == 1
@@ -96,10 +82,10 @@ def UNext_block(
         y = tf.keras.layers.LayerNormalization(
             axis=(1),
             name=f"{name}.norm" if name else None,
-            )(y)
+        )(y)
 
         # Inverted expansion block (use Pointwise?)
-        y  = tf.keras.layers.Conv1D(
+        y = tf.keras.layers.Conv1D(
             filters=int(expand_ratio * input_filters),
             kernel_size=1,
             strides=1,
@@ -136,31 +122,28 @@ def UNext_block(
                     droprate,
                     noise_shape=(y.shape),
                     name=f"{name}.drop" if name else None,
-                    )(y)
-            y = tf.keras.layers.Add(
-                name=f"{name}.res" if name else None
-            )([x, y])
+                )(y)
+            y = tf.keras.layers.Add(name=f"{name}.res" if name else None)([x, y])
         return y
+
     # END DEF
     return layer
 
-def UNext(
+
+def unext_core(
     x: tf.Tensor,
     params: UNextParams,
-    num_classes: int,
-) -> tf.keras.Model:
-    """Create UNext TF functional model
+) -> tf.Tensor:
+    """Create UNext TF functional core
 
     Args:
         x (tf.Tensor): Input tensor
         params (UNextParams): Model parameters.
-        num_classes (int, optional): # classes.
 
     Returns:
-        tf.keras.Model: Model
+        tf.Tensor: Output tensor
     """
     y = x
-
     #### ENCODER ####
     skip_layers: list[tf.keras.layers.Layer | None] = []
     for i, block in enumerate(params.blocks):
@@ -223,9 +206,7 @@ def UNext(
         # Skip connection
         skip_layer = skip_layers.pop()
         if skip_layer is not None:
-            y = tf.keras.layers.Concatenate(
-                name=f"{name}.S1.cat"
-            )([y, skip_layer])
+            y = tf.keras.layers.Concatenate(name=f"{name}.S1.cat")([y, skip_layer])
 
             # Use conv to reduce filters
             y = tf.keras.layers.Conv1D(
@@ -260,7 +241,26 @@ def UNext(
         )(y)
 
     # END FOR
+    return y
 
+
+def UNext(
+    x: tf.Tensor,
+    params: UNextParams,
+    num_classes: int,
+) -> tf.keras.Model:
+    """Create UNext TF functional model
+
+    Args:
+        x (tf.Tensor): Input tensor
+        params (UNextParams): Model parameters.
+        num_classes (int, optional): # classes.
+
+    Returns:
+        tf.keras.Model: Model
+    """
+
+    y = unext_core(x, params)
 
     if params.include_top:
         # Add a per-point classification layer
@@ -271,7 +271,7 @@ def UNext(
             kernel_initializer="he_normal",
             kernel_regularizer=tf.keras.regularizers.L2(1e-3),
             name="NECK.conv",
-            use_bias=True
+            use_bias=True,
         )(y)
         if not params.use_logits:
             y = tf.keras.layers.Softmax()(y)

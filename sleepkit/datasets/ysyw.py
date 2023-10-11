@@ -1,28 +1,28 @@
-import os
+import functools
 import glob
 import logging
-import functools
-from enum import IntEnum
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from enum import IntEnum
 from multiprocessing import Pool
 from typing import Callable, Generator
 
-import tensorflow as tf
 import boto3
 import h5py
-from tqdm import tqdm
 import numpy as np
 import numpy.typing as npt
 import scipy.io
+import tensorflow as tf
 from botocore import UNSIGNED
 from botocore.client import Config
-
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
 SubjectGenerator = Generator[tuple[str, h5py.Group], None, None]
 Preprocessor = Callable[[npt.NDArray], npt.NDArray]
 SampleGenerator = Generator[tuple[npt.NDArray, npt.NDArray], None, None]
+
 
 class YsywSleepStage(IntEnum):
     nonrem1 = 0
@@ -32,31 +32,32 @@ class YsywSleepStage(IntEnum):
     undefined = 4
     wake = 5
 
+
 signal_names = [
     # ECG
-    'F3-M2',
-    'F4-M1',
-    'C3-M2',
-    'C4-M1',
-    'O1-M2',
-    'O2-M1',
+    "F3-M2",
+    "F4-M1",
+    "C3-M2",
+    "C4-M1",
+    "O1-M2",
+    "O2-M1",
     # EOG
-    'E1-M2',
+    "E1-M2",
     # EMG
-    'Chin1-Chin2',
+    "Chin1-Chin2",
     # RSP
-    'ABD',
-    'CHEST',
+    "ABD",
+    "CHEST",
     #
-    'AIRFLOW',
+    "AIRFLOW",
     # SPO2
-    'SaO2',
+    "SaO2",
     # ECG
-    'ECG'
+    "ECG",
 ]
 
-class YsywDataset:
 
+class YsywDataset:
     def __init__(self, ds_path: str) -> None:
         self.ds_path = os.path.join(ds_path, "ysyw")
 
@@ -77,37 +78,36 @@ class YsywDataset:
         pts.sort()
         return pts
 
-
     @property
     def signal_names(self) -> list[str]:
         return [
             # EEG
-            'F3-M2',
-            'F4-M1',
-            'C3-M2',
-            'C4-M1',
-            'O1-M2',
-            'O2-M1',
+            "F3-M2",
+            "F4-M1",
+            "C3-M2",
+            "C4-M1",
+            "O1-M2",
+            "O2-M1",
             # EOG
-            'E1-M2',
+            "E1-M2",
             # EMG
-            'Chin1-Chin2',
+            "Chin1-Chin2",
             # RSP
-            'ABD',
-            'CHEST',
+            "ABD",
+            "CHEST",
             #
-            'AIRFLOW',
+            "AIRFLOW",
             # SPO2
-            'SaO2',
+            "SaO2",
             # ECG
-            'ECG'
+            "ECG",
         ]
 
     def data_generator(
-            self,
-            subject_generator: SubjectGenerator,
-            samples_per_subject: int = 100,
-        ) -> SampleGenerator:
+        self,
+        subject_generator: SubjectGenerator,
+        samples_per_subject: int = 100,
+    ) -> SampleGenerator:
         """Generate samples from subject generator.
         Args:
             subject_generator (SubjectGenerator): Subject generator
@@ -173,7 +173,7 @@ class YsywDataset:
         client = session.client("s3", config=Config(signature_version=UNSIGNED))
 
         rst = client.list_objects(Bucket=s3_bucket, Prefix=s3_prefix, MaxKeys=1000)
-        pt_s3_paths = list(filter(lambda obj: obj.endswith('h5'), (obj['Key'] for obj in rst['Contents'])))
+        pt_s3_paths = list(filter(lambda obj: obj.endswith("h5"), (obj["Key"] for obj in rst["Contents"])))
 
         func = functools.partial(download_s3_file, bucket=s3_bucket, client=client, force=force)
 
@@ -197,7 +197,6 @@ class YsywDataset:
         # END WITH
 
     def download_raw_dataset(self, src_path: str, num_workers: int | None = None, force: bool = False):
-
         os.makedirs(self.ds_path, exist_ok=True)
 
         # 1. Download source data
@@ -215,16 +214,14 @@ class YsywDataset:
 
         logger.info("Finished YSYW subject data")
 
-    def _convert_pt_to_hdf5(
-        self, pt_path: str, force: bool = False
-    ):
+    def _convert_pt_to_hdf5(self, pt_path: str, force: bool = False):
         """Extract subject data from PhysiUNext.
 
         Args:
             pt_path (str): Source path
             force (bool, optional): Whether to override destination if it exists. Defaults to False.
         """
-        sleep_stage_names = ['nonrem1', 'nonrem2', 'nonrem3', 'rem', 'undefined', 'wake']
+        sleep_stage_names = ["nonrem1", "nonrem2", "nonrem3", "rem", "undefined", "wake"]
         pt_id = os.path.basename(pt_path)
         pt_src_data_path = os.path.join(pt_path, f"{pt_id}.mat")
         pt_src_ann_path = os.path.join(pt_path, f"{pt_id}-arousal.mat")
@@ -234,12 +231,12 @@ class YsywDataset:
             return
 
         data = scipy.io.loadmat(pt_src_data_path)
-        atr = h5py.File(pt_src_ann_path, mode='r')
-        h5 = h5py.File(pt_dst_h5_path, mode='w')
+        atr = h5py.File(pt_src_ann_path, mode="r")
+        h5 = h5py.File(pt_dst_h5_path, mode="w")
 
-        sleep_stages = np.vstack([atr['data']['sleep_stages'][stage][:] for stage in sleep_stage_names])
-        arousals = atr['data']['arousals'][:].squeeze().astype(np.int8)
-        h5.create_dataset(name='/data', data=data['val'], compression="gzip", compression_opts=5)
-        h5.create_dataset(name='/arousals', data=arousals, compression="gzip", compression_opts=5)
-        h5.create_dataset(name='/sleep_stages', data=sleep_stages, compression="gzip", compression_opts=5)
+        sleep_stages = np.vstack([atr["data"]["sleep_stages"][stage][:] for stage in sleep_stage_names])
+        arousals = atr["data"]["arousals"][:].squeeze().astype(np.int8)
+        h5.create_dataset(name="/data", data=data["val"], compression="gzip", compression_opts=5)
+        h5.create_dataset(name="/arousals", data=arousals, compression="gzip", compression_opts=5)
+        h5.create_dataset(name="/sleep_stages", data=sleep_stages, compression="gzip", compression_opts=5)
         h5.close()

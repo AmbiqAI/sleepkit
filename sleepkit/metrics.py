@@ -6,9 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 import seaborn as sns
+import scipy.signal
 from sklearn.metrics import auc, confusion_matrix, f1_score, jaccard_score, roc_curve
 
-from .defines import SleepStage
+from .defines import SleepStage, SleepApnea
+
 
 def compute_iou(
     y_true: npt.NDArray,
@@ -24,9 +26,6 @@ def compute_iou(
     Returns:
         float: IoU
     """
-    # intersect = np.logical_and(y_true, y_pred)
-    # union = np.logical_or(y_true, y_pred)
-    # return np.sum(intersect) / np.sum(union)
     return jaccard_score(y_true.flatten(), y_pred.flatten(), average=average)
 
 
@@ -68,8 +67,7 @@ def f_max(
     y_prob: npt.NDArray,
     thresholds: float | list[float] | None = None,
 ) -> tuple[float, float]:
-    """Compute F max
-    source: https://github.com/helme/ecg_ptbxl_benchmarking
+    """Compute F max (https://github.com/helme/ecg_ptbxl_benchmarking)
     Args:
         y_true (npt.NDArray): Y True
         y_prob (npt.NDArray): Y probs
@@ -95,7 +93,6 @@ def confusion_matrix_plot(
     **kwargs,
 ) -> tuple[plt.Figure, plt.Axes] | None:
     """Generate confusion matrix plot via matplotlib/seaborn
-
     Args:
         y_true (npt.NDArray): True y labels
         y_pred (npt.NDArray): Predicted y labels
@@ -201,11 +198,11 @@ def multi_f1(y_true: npt.NDArray, y_prob: npt.NDArray):
     """Compute multi-class F1
 
     Args:
-        y_true (npt.NDArray): _description_
-        y_prob (npt.NDArray): _description_
+        y_true (npt.NDArray): True y labels
+        y_prob (npt.NDArray): Predicted y labels
 
     Returns:
-        _type_: _description_
+        npt.NDArray|float: F1 score
     """
     return f1(y_true, y_prob, multiclass=True, threshold=0.5)
 
@@ -217,8 +214,9 @@ def compute_sleep_stage_durations(sleep_mask: npt.NDArray) -> dict[int, int]:
     Returns:
         dict[int, int]: Sleep stage durations (class -> duration)
     """
-    left_bounds = np.concatenate(([0], np.diff(sleep_mask).nonzero()[0]+1))
-    right_bounds = np.concatenate((np.diff(sleep_mask).nonzero()[0]+1, [sleep_mask.size]))
+    bounds = np.diff(sleep_mask).nonzero()[0] + 1
+    left_bounds = np.concatenate(([0], bounds))
+    right_bounds = np.concatenate((bounds, [sleep_mask.size]))
     dur_bounds = right_bounds - left_bounds
     class_bounds = sleep_mask[left_bounds]
     class_durations = {k: 0 for k in set(class_bounds)}
@@ -226,6 +224,7 @@ def compute_sleep_stage_durations(sleep_mask: npt.NDArray) -> dict[int, int]:
         class_durations[c] += dur_bounds[i]
     # END FOR
     return class_durations
+
 
 def compute_total_sleep_time(sleep_durations: dict[int, int], class_map: dict[int, int]) -> int:
     """Compute total sleep time (# samples).
@@ -244,6 +243,7 @@ def compute_total_sleep_time(sleep_durations: dict[int, int], class_map: dict[in
     tst = sleep_duration
     return tst
 
+
 def compute_sleep_efficiency(sleep_durations: dict[int, int], class_map: dict[int, int]) -> float:
     """Compute sleep efficiency.
     Args:
@@ -258,5 +258,65 @@ def compute_sleep_efficiency(sleep_durations: dict[int, int], class_map: dict[in
     sleep_keys = list(set(class_map.get(s) for s in sleep_classes if s in class_map))
     wake_duration = sum(sleep_durations.get(k, 0) for k in wake_keys)
     sleep_duration = sum(sleep_durations.get(k, 0) for k in sleep_keys)
-    efficiency = sleep_duration/(sleep_duration + wake_duration)
+    efficiency = sleep_duration / (sleep_duration + wake_duration)
     return efficiency
+
+
+def compute_sleep_apnea_durations(apnea_mask: npt.NDArray) -> dict[int, int]:
+    """Compute sleep apnea durations
+    Args:
+        apnea_mask (npt.NDArray): Sleep mask (1D array of sleep apnea)
+    Returns:
+        dict[int, int]: Sleep apnea durations (class -> duration)
+    """
+    bounds = np.diff(apnea_mask).nonzero()[0] + 1
+    left_bounds = np.concatenate(([0], bounds))
+    right_bounds = np.concatenate((bounds, [apnea_mask.size]))
+    dur_bounds = right_bounds - left_bounds
+    class_bounds = apnea_mask[left_bounds]
+    class_durations = {k: 0 for k in set(class_bounds)}
+    for i, c in enumerate(class_bounds):
+        class_durations[c] += dur_bounds[i]
+    # END FOR
+    return class_durations
+
+def compute_apnea_efficiency(apnea_durations: dict[int, int], class_map: dict[int, int]) -> float:
+    """Compute apnea efficiency.
+    Args:
+        apnea_durations (dict[int, int]): Sleep apnea durations (class -> duration)
+        class_map (dict[int, int]): Class map (class -> class)
+    Returns:
+        float: apnea efficiency
+    """
+    norm_classes = [SleepApnea.none]
+    apnea_classes = [SleepApnea.hypopnea, SleepApnea.central, SleepApnea.obstructive, SleepApnea.mixed]
+    norm_keys = list(set(class_map.get(s) for s in norm_classes if s in class_map))
+    apnea_keys = list(set(class_map.get(s) for s in apnea_classes if s in class_map))
+    norm_duration = sum(apnea_durations.get(k, 0) for k in norm_keys)
+    apnea_duration = sum(apnea_durations.get(k, 0) for k in apnea_keys)
+    efficiency = norm_duration / (apnea_duration + norm_duration)
+    return efficiency
+
+def compute_apnea_hypopnea_index(apnea_mask: npt.NDArray, min_duration: int, sample_rate: float) -> float:
+    """Compute apnea hypopnea index (AHI).
+    Args:
+        apnea_durations (dict[int, int]): Sleep stage durations (class -> duration)
+        class_map (dict[int, int]): Class map (class -> class)
+    Returns:
+        float: Sleep efficiency
+    """
+    med_len = (1 + min_duration // 2)%2 + min_duration // 2
+    med_mask = scipy.signal.medfilt(apnea_mask, kernel_size=med_len)
+
+    bounds = np.diff(med_mask).nonzero()[0] + 1
+    left_bounds = np.concatenate(([0], bounds))
+    right_bounds = np.concatenate((bounds, [med_mask.size]))
+    dur_bounds = right_bounds - left_bounds
+    num_events = 0
+
+    for (left_bound, right_bound, dur) in zip(left_bounds, right_bounds, dur_bounds):
+        if dur > min_duration and med_mask[left_bound] != 0:
+            num_events += 1
+    num_hours =  (apnea_mask.size / sample_rate / 3600)
+    ahi = num_events / num_hours
+    return ahi

@@ -1,4 +1,5 @@
-from typing import Callable, Generator, Any
+from typing import Any, Callable, Generator
+
 import numpy.typing as npt
 
 SubjectGenerator = Generator[str, None, None]

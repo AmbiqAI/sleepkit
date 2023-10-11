@@ -1,18 +1,24 @@
 [tool.poetry]
 name = "sleepkit"
 version = "0.1.0"
-description = "AI driven heart monitoring kit for ultra low-power wearables."
+description = "AI driven sleep monitoring kit for ultra low-power wearables."
 license = "BSD-3-Clause"
-authors = ["Adam Page <adam.page@ambiq.com>"]
+authors = ["Ambiq AI <support.aitg@ambiq.com>"]
 readme = "README.md"
 homepage = "https://ambiq.ai"
 packages = [
-    { include = "sleepkit" },
-    { include = "neuralspot" },
+    { include = "sleepkit" }
 ]
 
 [tool.poetry.scripts]
 sleepkit = 'sleepkit.cli:run'
+
+[tool.taskipy.tasks]
+format = "isort --profile black sleepkit && black --line-length 120 sleepkit"
+lint = "pylint sleepkit"
+test = "pytest tests/"
+clean = "make -C ./evb clean"
+build = "make -C ./evb"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
@@ -36,12 +42,15 @@ plotly = "^5.16.1"
 wandb = "^0.15.8"
 seaborn = "^0.12.2"
 matplotlib = "3.7.3"
+fastparquet = "^2023.8.0"
+statsmodels = "^0.14.0"
 
 [tool.poetry.group.ci.dependencies]
 black = "^23.3.0"
 pytest = "^7.3.1"
 taskipy = "^1.10.4"
 pre-commit = "^3.3.1"
+isort = "^5.12.0"
 
 [tool.poetry.group.docs]
 optional = true
@@ -62,3 +71,16 @@ tensorboard-plugin-profile = "^2.13.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = 'black'
+
+[tool.black]
+line-length = 120
+
+[tool.pylint.master]
+ignore-paths = [
+    "sleepkit/demo/rpc/GenericDataOperations_EvbToPc",
+    "sleepkit/demo/rpc/GenericDataOperations_PcToEvb"
+]
+extension-pkg-whitelist = "pydantic"

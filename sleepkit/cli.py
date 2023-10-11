@@ -4,9 +4,16 @@ from typing import Type, TypeVar
 import pydantic_argparse
 from pydantic import BaseModel, Field
 
-from . import sleepstage, apnea
+from . import apnea, sleepstage
+from .datasets import download_datasets
 from .defines import (
-    SKMode, SKTask, SKTrainParams, SKFeatureParams
+    SKDownloadParams,
+    SKExportParams,
+    SKFeatureParams,
+    SKMode,
+    SKTask,
+    SKTestParams,
+    SKTrainParams,
 )
 from .features import generate_feature_set
 from .utils import setup_logger
@@ -52,9 +59,9 @@ def run(inputs: list[str] | None = None):
 
     logger.info(f"#STARTED {args.mode} model")
 
-    # Download dataset(s)
+    # Download datasets
     if args.mode == SKMode.download:
-        # download_datasets(parse_content(SKDownloadParams, args.config))
+        download_datasets(parse_content(SKDownloadParams, args.config))
         return
 
     # Generate feature set
@@ -62,6 +69,7 @@ def run(inputs: list[str] | None = None):
         generate_feature_set(parse_content(SKFeatureParams, args.config))
         return
 
+    # Grab task handler
     match args.task:
         case SKTask.stage:
             task_handler = sleepstage
@@ -76,23 +84,17 @@ def run(inputs: list[str] | None = None):
             task_handler.train(parse_content(SKTrainParams, args.config))
 
         case SKMode.evaluate:
-            raise NotImplementedError()
-            # task_handler.evaluate_model(parse_content(SKTestParams, args.config))
+            task_handler.evaluate(parse_content(SKTestParams, args.config))
 
         case SKMode.export:
-            raise NotImplementedError()
-            # task_handler.export_model(parse_content(SKExportParams, args.config))
+            task_handler.export(parse_content(SKExportParams, args.config))
 
         case SKMode.demo:
             raise NotImplementedError()
             # demo(params=parse_content(SKDemoParams, args.config))
 
-        case SKMode.predict:
-            raise NotImplementedError()
-
         case _:
-            logger.error("Error: Unknown command")
-
+            logger.error("Error: Unsupported CLI command")
     # END MATCH
 
     logger.info(f"#FINISHED {args.mode} model")
