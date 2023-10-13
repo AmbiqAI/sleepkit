@@ -1,6 +1,21 @@
 {
     "job_dir": "./results/sleep-apnea-2-fs004",
     "ds_path": "./datasets/processed/fs004",
+    "ds_handler": "hdf5",
+    "ds_params": {
+        "feat_cols": [
+            0, 1,
+            2, 3,
+            4, 5,
+            6, 7,
+            8, 9,
+            10, 11,
+            12, 13,
+            14, 15
+        ],
+        "mask_key": "mask",
+        "mask_threshold": 0.90
+    },
     "sampling_rate": 0.0333,
     "frame_size": 128,
     "samples_per_subject": 80,
@@ -12,20 +27,10 @@
     "epochs": 100,
     "steps_per_epoch": 100,
     "val_metric": "loss",
-    "datasets": ["mesa"],
     "lr_rate": 5e-3,
     "lr_cycles": 2,
     "label_smoothing": 0,
     "num_apnea_stages": 2,
-    "feat_cols": [
-        2, 3,
-        4, 5,
-        6, 7,
-        8, 9,
-        10, 11,
-        12, 13,
-        14, 15
-    ],
     "model": "unext",
     "model_params": {
         "blocks": [

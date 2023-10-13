@@ -1,8 +1,10 @@
-try:
-    from importlib.metadata import version
-
-    __version__ = version(__name__)
-except ImportError:
-    __version__ = "0.0.0"
+import os
+from importlib.metadata import version
 
 from . import cli, datasets, features, metrics, models, tflite
+from .utils import setup_logger
+
+__version__ = version(__name__)
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+setup_logger(__name__)

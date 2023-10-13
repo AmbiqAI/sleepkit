@@ -16,7 +16,7 @@ from tqdm import tqdm
 from wandb.keras import WandbCallback
 
 from . import tflite as tfa
-from .datasets import Hdf5Dataset
+from .datasets import Hdf5Dataset, OfsgDataset, SKDataset
 from .datasets.utils import create_dataset_from_data
 from .defines import (
     SKExportParams,
@@ -73,6 +73,24 @@ def create_model(
     if name == "efficientnetv2":
         return EfficientNetV2(x=inputs, params=EfficientNetParams.parse_obj(params), num_classes=num_classes)
 
+    if name == "lstm":
+        y = inputs
+        y = tf.keras.layers.Reshape(y.shape[1:] + (1,))(y)
+        y = tf.keras.layers.TimeDistributed(
+            tf.keras.layers.Conv1D(filters=24, padding="same", kernel_size=7, strides=2, activation="relu")
+        )(y)
+        y = tf.keras.layers.ConvLSTM1D(filters=32, kernel_size=7, padding="same", strides=2, return_sequences=True)(y)
+        y = tf.keras.layers.ConvLSTM1D(filters=48, kernel_size=5, padding="same", strides=2, return_sequences=True)(y)
+        y = tf.keras.layers.TimeDistributed(tf.keras.layers.GlobalAveragePooling1D())(y)
+        y = tf.keras.layers.Conv1D(
+            num_classes,
+            kernel_size=5,
+            padding="same",
+            name="NECK.conv",
+            use_bias=True,
+        )(y)
+        return tf.keras.models.Model(inputs, y)
+
     if name:
         raise ValueError(f"No network architecture with name {name}")
 
@@ -116,27 +134,25 @@ def prepare(x: tf.Tensor, y: tf.Tensor, num_classes: int, class_map: dict[int, i
     )
 
 
-def load_dataset(ds_path: Path, frame_size: int, feat_cols: list[int] | None = None) -> Hdf5Dataset:
+def load_dataset(handler: str, ds_path: Path, frame_size: int, params: dict[str, Any]) -> SKDataset:
     """Load dataset(s)
     Args:
+        handler (str): Dataset handler
         ds_path (Path): Dataset path
         frame_size (int): Frame size
-        feat_cols (list[int] | None, optional): Feature columns. Defaults to None.
+        params (dict[str, Any]): Dataset arguments
     Returns:
-        Hdf5Dataset: Dataset
+        SKDataset: Dataset
     """
-    ds = Hdf5Dataset(
-        ds_path=ds_path,
-        frame_size=frame_size,
-        feat_cols=feat_cols,
-        mask_key="mask",
-        mask_threshold=0.90
-    )
-    return ds
+    if handler == "ofsg":
+        return OfsgDataset(ds_path=ds_path, frame_size=frame_size, **params)
+    if handler == "hdf5":
+        return Hdf5Dataset(ds_path=ds_path, frame_size=frame_size, **params)
+    raise ValueError(f"Unknown dataset handler {handler}")
 
 
 def load_train_dataset(
-    ds: Hdf5Dataset,
+    ds: SKDataset,
     subject_ids: list[str],
     samples_per_subject: int,
     buffer_size: int,
@@ -148,7 +164,7 @@ def load_train_dataset(
 ) -> tf.data.Dataset:
     """Load train dataset
     Args:
-        ds (Hdf5Dataset): Dataset
+        ds (SKDataset): Dataset
         subject_ids (list[str]): Subject IDs
         samples_per_subject (int): Samples per subject
         buffer_size (int): Buffer size
@@ -215,7 +231,7 @@ def load_train_dataset(
 
 
 def load_validation_dataset(
-    ds: Hdf5Dataset,
+    ds: SKDataset,
     subject_ids: list[str],
     samples_per_subject: int,
     batch_size: int,
@@ -226,7 +242,7 @@ def load_validation_dataset(
 ) -> tf.data.Dataset:
     """Load validation dataset.
     Args:
-        ds (Hdf5Dataset): Dataset
+        ds (SKDataset): Dataset
         subject_ids (list[str]): Subject IDs
         samples_per_subject (int): Samples per subject
         batch_size (int): Batch size
@@ -263,7 +279,7 @@ def load_validation_dataset(
     return val_ds
 
 
-def load_test_dataset(ds: Hdf5Dataset, params: SKTestParams) -> tuple[npt.NDArray, npt.NDArray]:
+def load_test_dataset(ds: SKDataset, params: SKTestParams) -> tuple[npt.NDArray, npt.NDArray]:
     """Load test dataset
     Args:
         params (SKTestParams): Testing parameters
@@ -289,7 +305,6 @@ def train(params: SKTrainParams):
 
     # Custom parameters (add to SKTrainParams for automatic logging)
     params.num_sleep_stages = getattr(params, "num_sleep_stages", 3)
-    params.feat_cols = getattr(params, "feat_cols", None)
     params.lr_rate: float = getattr(params, "lr_rate", 1e-3)
     params.lr_cycles: int = getattr(params, "lr_cycles", 3)
     params.steps_per_epoch = params.steps_per_epoch or 100
@@ -314,16 +329,17 @@ def train(params: SKTrainParams):
     class_names = get_sleep_stage_class_names(params.num_sleep_stages)
     class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
-    logger.info("Loading dataset(s)")
-    ds = load_dataset(ds_path=params.ds_path, frame_size=params.frame_size, feat_cols=params.feat_cols)
+    ds = load_dataset(
+        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
+    )
     feat_shape = ds.feature_shape
-    class_shape = (ds.frame_size, len(target_classes))
+    class_shape = (params.frame_size, len(target_classes))
 
     # Get train/val subject IDs and generators
     train_subject_ids, val_subject_ids = sklearn.model_selection.train_test_split(
         ds.subject_ids, test_size=params.val_subjects
     )
-
+    logger.info("Loading training dataset")
     train_ds = load_train_dataset(
         ds=ds,
         subject_ids=train_subject_ids,
@@ -336,6 +352,7 @@ def train(params: SKTrainParams):
         num_workers=params.data_parallelism,
     )
 
+    logger.info("Loading validation dataset")
     val_ds = load_validation_dataset(
         ds=ds,
         subject_ids=val_subject_ids,
@@ -346,7 +363,6 @@ def train(params: SKTrainParams):
         class_shape=class_shape,
         class_map=class_mapping,
     )
-
     test_labels = [y.numpy() for _, y in val_ds]
     y_true = np.argmax(np.concatenate(test_labels).squeeze(), axis=-1).flatten()
     class_weights = sklearn.utils.compute_class_weight("balanced", classes=target_classes, y=y_true)
@@ -480,7 +496,9 @@ def evaluate(params: SKTestParams):
     class_names = get_sleep_stage_class_names(params.num_sleep_stages)
     class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
-    ds = load_dataset(ds_path=params.ds_path, frame_size=params.frame_size, feat_cols=params.feat_cols)
+    ds = load_dataset(
+        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
+    )
     feat_shape = ds.feature_shape
     test_true, test_pred = [], []
     pt_metrics = []
@@ -496,10 +514,10 @@ def evaluate(params: SKTestParams):
         logger.info("Performing inference")
         for subject_id in tqdm(ds.test_subject_ids, desc="Subject"):
             features, labels, mask = ds.load_subject_data(subject_id=subject_id, normalize=True)
-            num_windows = int(features.shape[0] // ds.frame_size)
-            data_len = ds.frame_size * num_windows
+            num_windows = int(features.shape[0] // params.frame_size)
+            data_len = params.frame_size * num_windows
 
-            x = features[:data_len, :].reshape((num_windows, ds.frame_size) + feat_shape[1:])
+            x = features[:data_len, :].reshape((num_windows, params.frame_size) + feat_shape[1:])
             y_prob = tf.nn.softmax(model.predict(x, verbose=0)).numpy()
             y_pred = np.argmax(y_prob, axis=-1).flatten()
             y_mask = mask[:data_len].flatten()
@@ -558,10 +576,12 @@ def export(params: SKExportParams):
     logger.info("Loading trained model")
     model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
 
-    class_names = get_sleep_stage_class_names(params.num_sleep_stages)
-    class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
+    # class_names = get_sleep_stage_class_names(params.num_sleep_stages)
+    # class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
-    ds = load_dataset(ds_path=params.ds_path, frame_size=params.frame_size, feat_cols=params.feat_cols)
+    ds = load_dataset(
+        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
+    )
     feat_shape = ds.feature_shape
 
     inputs = tf.keras.layers.Input(feat_shape, dtype=tf.float32, batch_size=1)
@@ -576,7 +596,7 @@ def export(params: SKExportParams):
 
     logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
-    test_x, test_y = load_test_dataset(params)
+    test_x, test_y = load_test_dataset(ds, params)
 
     logger.info("Converting model to TFLite")
     tflite_model = tfa.convert_tflite(

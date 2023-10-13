@@ -25,6 +25,8 @@ SampleGenerator = Generator[tuple[npt.NDArray, npt.NDArray], None, None]
 
 
 class YsywSleepStage(IntEnum):
+    """Sleep stage enum"""
+
     nonrem1 = 0
     nonrem2 = 1
     nonrem3 = 2
@@ -34,7 +36,7 @@ class YsywSleepStage(IntEnum):
 
 
 signal_names = [
-    # ECG
+    # EEG
     "F3-M2",
     "F4-M1",
     "C3-M2",
@@ -48,7 +50,6 @@ signal_names = [
     # RSP
     "ABD",
     "CHEST",
-    #
     "AIRFLOW",
     # SPO2
     "SaO2",
@@ -58,7 +59,18 @@ signal_names = [
 
 
 class YsywDataset:
-    def __init__(self, ds_path: str) -> None:
+    """YSYW dataset"""
+
+    def __init__(
+        self,
+        ds_path: str,
+        frame_size: int = 30 * 128,
+        target_rate: int = 128,
+    ) -> None:
+        self.frame_size = frame_size
+        self.block_size = frame_size
+        self.patch_size = frame_size
+        self.target_rate = target_rate
         self.ds_path = os.path.join(ds_path, "ysyw")
 
     @property
@@ -80,6 +92,7 @@ class YsywDataset:
 
     @property
     def signal_names(self) -> list[str]:
+        """Signal names"""
         return [
             # EEG
             "F3-M2",
@@ -197,6 +210,7 @@ class YsywDataset:
         # END WITH
 
     def download_raw_dataset(self, src_path: str, num_workers: int | None = None, force: bool = False):
+        """Download raw dataset"""
         os.makedirs(self.ds_path, exist_ok=True)
 
         # 1. Download source data
@@ -235,7 +249,8 @@ class YsywDataset:
         h5 = h5py.File(pt_dst_h5_path, mode="w")
 
         sleep_stages = np.vstack([atr["data"]["sleep_stages"][stage][:] for stage in sleep_stage_names])
-        arousals = atr["data"]["arousals"][:].squeeze().astype(np.int8)
+        arousals: npt.NDArray = atr["data"]["arousals"][:]
+        arousals = arousals.squeeze().astype(np.int8)  # pylint: disable=no-member
         h5.create_dataset(name="/data", data=data["val"], compression="gzip", compression_opts=5)
         h5.create_dataset(name="/arousals", data=arousals, compression="gzip", compression_opts=5)
         h5.create_dataset(name="/sleep_stages", data=sleep_stages, compression="gzip", compression_opts=5)

@@ -1,10 +1,12 @@
 import os
-from pathlib import Path
 
 import tensorflow as tf
+
+# pylint: disable=no-name-in-module
 from tensorflow.python.profiler.model_analyzer import profile
+
+# pylint: disable=no-name-in-module
 from tensorflow.python.profiler.option_builder import ProfileOptionBuilder
-from tensorflow.python.util.tf_export import keras_export
 
 
 def get_flops(model: tf.keras.Model, batch_size: int | None = None, fpath: os.PathLike | None = None) -> float:
@@ -28,8 +30,9 @@ def get_flops(model: tf.keras.Model, batch_size: int | None = None, fpath: os.Pa
     return float(graph_info.total_float_ops)
 
 
-# @keras_export("custom.metrics.MultiF1Score")
 class MultiF1Score(tf.keras.metrics.F1Score):
+    """Multi-class F1 score"""
+
     def update_state(self, y_true, y_pred, sample_weight=None):
         if len(y_true.shape) > 2:
             y_true = tf.reshape(y_true, (-1, y_true.shape[-1]))

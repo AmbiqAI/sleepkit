@@ -1,5 +1,6 @@
 """Sleep Apnea"""
 import os
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -22,16 +23,16 @@ from .defines import (
     SKTestParams,
     SKTrainParams,
     get_sleep_apnea_class_mapping,
+    get_sleep_apnea_class_names,
     get_sleep_apnea_classes,
-    get_sleep_apnea_class_names
 )
 from .metrics import (
-    compute_iou,
-    confusion_matrix_plot,
-    f1_score,
-    compute_sleep_apnea_durations,
     compute_apnea_efficiency,
     compute_apnea_hypopnea_index,
+    compute_iou,
+    compute_sleep_apnea_durations,
+    confusion_matrix_plot,
+    f1_score,
 )
 from .models import UNet, UNetParams, UNext, UNextBlockParams, UNextParams
 from .utils import env_flag, set_random_seed, setup_logger
@@ -222,6 +223,7 @@ def load_validation_dataset(
     Returns:
         tf.data.Dataset: Validation dataset
     """
+
     def preprocess(x: npt.NDArray[np.float32]):
         """Preprocess data"""
         return x
@@ -246,6 +248,7 @@ def load_validation_dataset(
     )
     return val_ds
 
+
 def load_test_dataset(
     ds: Hdf5Dataset,
     subject_ids: list[str],
@@ -269,6 +272,7 @@ def load_test_dataset(
     Returns:
         tf.data.Dataset: Validation dataset
     """
+
     def preprocess(x: npt.NDArray[np.float32]):
         """Preprocess data"""
         return x
@@ -292,6 +296,7 @@ def load_test_dataset(
         drop_remainder=False,
     )
     return test_ds
+
 
 def train(params: SKTrainParams):
     """Train sleep apnea model.
@@ -485,7 +490,7 @@ def evaluate(params: SKTestParams):
     params.seed = set_random_seed(params.seed)
     logger.info(f"Random seed {params.seed}")
 
-    target_classes = get_sleep_apnea_classes(params.num_apnea_stages)
+    # target_classes = get_sleep_apnea_classes(params.num_apnea_stages)
     class_names = get_sleep_apnea_class_names(params.num_apnea_stages)
     class_mapping = get_sleep_apnea_class_mapping(params.num_apnea_stages)
 
@@ -532,7 +537,9 @@ def evaluate(params: SKTestParams):
         test_true = np.concatenate(test_true)
         test_pred = np.concatenate(test_pred)
 
-        df_metrics = pd.DataFrame(pt_metrics, columns=["subject_id", "acc", "act_eff", "pred_eff", "act_ahi", "pred_ahi"])
+        df_metrics = pd.DataFrame(
+            pt_metrics, columns=["subject_id", "acc", "act_eff", "pred_eff", "act_ahi", "pred_ahi"]
+        )
         df_metrics.to_csv(params.job_dir / "metrics.csv", header=True, index=False)
 
         confusion_matrix_plot(
@@ -551,6 +558,7 @@ def evaluate(params: SKTestParams):
         logger.info(f"[TEST SET] ACC={test_acc:.2%}, F1={test_f1:.2%} IoU={test_iou:0.2%}")
     # END WITH
 
+
 def export(params: SKExportParams):
     """Export sleep apnea model.
 
@@ -567,7 +575,7 @@ def export(params: SKExportParams):
     model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
 
     target_classes = get_sleep_apnea_classes(params.num_apnea_stages)
-    class_names = get_sleep_apnea_class_names(params.num_apnea_stages)
+    # class_names = get_sleep_apnea_class_names(params.num_apnea_stages)
     class_mapping = get_sleep_apnea_class_mapping(params.num_apnea_stages)
 
     ds = load_dataset(ds_path=params.ds_path, frame_size=params.frame_size, feat_cols=params.feat_cols)

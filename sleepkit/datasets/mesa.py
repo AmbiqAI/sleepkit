@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class MesaSleepStage(IntEnum):
+    """MESA sleep stages"""
+
     WAKE = 0
     N1 = 1
     N2 = 2
@@ -89,7 +91,8 @@ class MesaDataset:
             "EMG",
             "EEG1",
             "EEG2",
-            "EEG3" "Pres",
+            "EEG3",
+            "Pres",
             "Flow",
             "Snore",
             "Thor",
@@ -256,7 +259,7 @@ class MesaDataset:
 
         def element_has_node_value(element: XmlElement, node_value) -> bool:
             """Check if element has child node with value"""
-            return any([node for node in element.childNodes if node.nodeValue == node_value])
+            return any((node for node in element.childNodes if node.nodeValue == node_value))
 
         def is_apnea_event(event: XmlElement) -> bool:
             """Determine if event is an apnea event"""
@@ -307,7 +310,7 @@ class MesaDataset:
 
         def element_has_node_value(element: XmlElement, node_value):
             """Check if element has child node with value"""
-            return any([node for node in element.childNodes if node.nodeValue == node_value])
+            return any((node for node in element.childNodes if node.nodeValue == node_value))
 
         def is_sleep_stage_event(event: XmlElement) -> bool:
             """Check if event is a sleep stage event"""

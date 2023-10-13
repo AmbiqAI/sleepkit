@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 
 def sample_normalize(sample):
+    """Normalize sample"""
     mean = tf.math.reduce_mean(sample)
     std = tf.math.reduce_std(sample)
     sample = tf.math.divide_no_nan(sample - mean, std)
@@ -14,6 +15,7 @@ def sample_normalize(sample):
 
 
 def get_blocks(series, columns, block_size, block_stride):
+    """Get blocks"""
     series = series.copy()
     series = series[columns]
     series = series.values
@@ -35,6 +37,8 @@ def get_blocks(series, columns, block_size, block_stride):
 
 
 class TFLstmParams(BaseModel):
+    """TFLstm parameters"""
+
     model_dim: int = Field(default=320, description="Model dimension")
     block_size: int = Field(default=15552, description="Block size")
     patch_size: int = Field(default=18, description="Patch size")
@@ -47,6 +51,8 @@ class TFLstmParams(BaseModel):
 
 
 def encoder(num_heads: int = 2, model_dim: int = 2, dropout: float = 0) -> Callable[[tf.Tensor], tf.Tensor]:
+    """Encoder layer"""
+
     def layer(x: tf.Tensor):
         y = tf.keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=model_dim, dropout=dropout)(
             query=x, key=x, value=x
@@ -76,6 +82,8 @@ def tflstm_encoder(
     training: int,
     dropout: float = 0,
 ):
+    """TFLstm encoder"""
+
     def layer(x: tf.Tensor) -> tf.Tensor:
         sequence_len = block_size / patch_size
         y = tf.keras.layers.Dense(model_dim)(x)
@@ -98,11 +106,13 @@ def tflstm_encoder(
         for _ in range(num_lstms):
             y = tf.keras.layers.LSTM(model_dim, return_sequences=True)(y)
             y = tf.keras.layers.Bidirectional()(y)
+        return y
 
     return layer
 
 
 def TFLstm(inputs: tf.Tensor, params: TFLstmParams, num_classes: int):
+    """Create TFLstm model"""
     y = tflstm_encoder(
         model_dim=params.model_dim,
         block_size=params.block_size,

@@ -2,8 +2,9 @@
 import tensorflow as tf
 from pydantic import BaseModel, Field
 
-from .blocks import batch_norm, conv2d, make_divisible, mbconv_block, relu6
+from .blocks import batch_norm, conv2d, mbconv_block, relu6
 from .defines import KerasLayer, MBConvParams
+from .utils import make_divisible
 
 
 class EfficientNetParams(BaseModel):
@@ -53,6 +54,7 @@ def efficientnet_core(blocks: list[MBConvParams], drop_connect_rate: float = 0) 
         # END FOR
         return x
 
+    # END DEF
     return layer
 
 
@@ -71,7 +73,14 @@ def EfficientNetV2(
     Returns:
         tf.keras.Model: Model
     """
-    # Stem
+    # Force input to be 4D (add dummy dimension)
+    requires_reshape = len(x.shape) == 3
+    if requires_reshape:
+        y = tf.keras.layers.Reshape((1,) + x.shape[1:])(x)
+    else:
+        y = x
+
+    # END IF    # Stem
     if params.input_filters > 0:
         name = "stem"
         filters = make_divisible(params.input_filters, 8)

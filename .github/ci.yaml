@@ -1,0 +1,20 @@
+name: SleepKit CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry==1.6.1
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
+      - run: poetry install
+      - run: poetry run task lint
+      - run: poetry run task test

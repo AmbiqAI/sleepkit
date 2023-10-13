@@ -5,11 +5,11 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-import seaborn as sns
 import scipy.signal
+import seaborn as sns
 from sklearn.metrics import auc, confusion_matrix, f1_score, jaccard_score, roc_curve
 
-from .defines import SleepStage, SleepApnea
+from .defines import SleepApnea, SleepStage
 
 
 def compute_iou(
@@ -234,11 +234,11 @@ def compute_total_sleep_time(sleep_durations: dict[int, int], class_map: dict[in
     Returns:
         int: Total sleep time (# samples)
     """
-    wake_classes = [SleepStage.wake]
+    # wake_classes = [SleepStage.wake]
     sleep_classes = [SleepStage.stage1, SleepStage.stage2, SleepStage.stage3, SleepStage.stage4, SleepStage.rem]
-    wake_keys = list(set(class_map.get(s) for s in wake_classes if s in class_map))
+    # wake_keys = list(set(class_map.get(s) for s in wake_classes if s in class_map))
     sleep_keys = list(set(class_map.get(s) for s in sleep_classes if s in class_map))
-    wake_duration = sum(sleep_durations.get(k, 0) for k in wake_keys)
+    # wake_duration = sum(sleep_durations.get(k, 0) for k in wake_keys)
     sleep_duration = sum(sleep_durations.get(k, 0) for k in sleep_keys)
     tst = sleep_duration
     return tst
@@ -280,6 +280,7 @@ def compute_sleep_apnea_durations(apnea_mask: npt.NDArray) -> dict[int, int]:
     # END FOR
     return class_durations
 
+
 def compute_apnea_efficiency(apnea_durations: dict[int, int], class_map: dict[int, int]) -> float:
     """Compute apnea efficiency.
     Args:
@@ -297,6 +298,7 @@ def compute_apnea_efficiency(apnea_durations: dict[int, int], class_map: dict[in
     efficiency = norm_duration / (apnea_duration + norm_duration)
     return efficiency
 
+
 def compute_apnea_hypopnea_index(apnea_mask: npt.NDArray, min_duration: int, sample_rate: float) -> float:
     """Compute apnea hypopnea index (AHI).
     Args:
@@ -305,7 +307,7 @@ def compute_apnea_hypopnea_index(apnea_mask: npt.NDArray, min_duration: int, sam
     Returns:
         float: Sleep efficiency
     """
-    med_len = (1 + min_duration // 2)%2 + min_duration // 2
+    med_len = (1 + min_duration // 2) % 2 + min_duration // 2
     med_mask = scipy.signal.medfilt(apnea_mask, kernel_size=med_len)
 
     bounds = np.diff(med_mask).nonzero()[0] + 1
@@ -314,9 +316,9 @@ def compute_apnea_hypopnea_index(apnea_mask: npt.NDArray, min_duration: int, sam
     dur_bounds = right_bounds - left_bounds
     num_events = 0
 
-    for (left_bound, right_bound, dur) in zip(left_bounds, right_bounds, dur_bounds):
+    for left_bound, dur in zip(left_bounds, dur_bounds):
         if dur > min_duration and med_mask[left_bound] != 0:
             num_events += 1
-    num_hours =  (apnea_mask.size / sample_rate / 3600)
+    num_hours = apnea_mask.size / sample_rate / 3600
     ahi = num_events / num_hours
     return ahi

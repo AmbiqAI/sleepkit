@@ -4,8 +4,6 @@ from typing import Literal
 import tensorflow as tf
 from pydantic import BaseModel, Field
 
-from .blocks import relu6
-
 
 class UNextBlockParams(BaseModel):
     """UNext block parameters"""
@@ -34,6 +32,8 @@ class UNextParams(BaseModel):
 
 
 def se_block(ratio: int = 8, name: str | None = None):
+    """Squeeze and excite block"""
+
     def layer(x: tf.Tensor) -> tf.Tensor:
         num_chan = x.shape[-1]
         # Squeeze
@@ -78,7 +78,6 @@ def UNext_block(
             depthwise_regularizer=tf.keras.regularizers.L2(1e-3),
             name=f"{name}.dwconv" if name else None,
         )(x)
-
         y = tf.keras.layers.LayerNormalization(
             axis=(1),
             name=f"{name}.norm" if name else None,
@@ -143,6 +142,7 @@ def unext_core(
     Returns:
         tf.Tensor: Output tensor
     """
+
     y = x
     #### ENCODER ####
     skip_layers: list[tf.keras.layers.Layer | None] = []
@@ -171,6 +171,7 @@ def unext_core(
             kernel_regularizer=tf.keras.regularizers.L2(1e-3),
             name=f"{name}.pool",
         )(y)
+
         y = tf.keras.layers.LayerNormalization(
             axis=(1),
             name=f"{name}.norm",

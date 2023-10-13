@@ -12,7 +12,7 @@
     "epochs": 100,
     "steps_per_epoch": 50,
     "val_metric": "loss",
-    "datasets": ["mesa"],
+    "datasets": ["hdf5"],
     "lr_rate": 5e-3,
     "lr_cycles": 1,
     "label_smoothing": 0,

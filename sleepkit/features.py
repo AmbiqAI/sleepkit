@@ -2,7 +2,6 @@ import functools
 import os
 import time
 from multiprocessing import Pool
-from pathlib import Path
 
 import h5py
 import numpy as np
@@ -19,11 +18,11 @@ logger = setup_logger(__name__)
 
 
 class PoorSignalError(Exception):
-    pass
+    """Poor signal error."""
 
 
 class NoSignalError(Exception):
-    pass
+    """No signal error."""
 
 
 def get_feature_names_001():
@@ -473,7 +472,7 @@ def compute_subject_features(subject_id: str, args: SKFeatureParams, feat_names:
             apnea_stages[f_idx] = sps.mode(apnea_seg[apnea_seg > 0]).mode if np.any(apnea_seg) else 0
             mask[f_idx] = 1
             prev_valid = True
-        except PoorSignalError as err:
+        except PoorSignalError:
             # Copy previous once if it's valid
             if prev_valid:
                 features[f_idx, :] = features[f_idx - 1, :]
@@ -481,10 +480,10 @@ def compute_subject_features(subject_id: str, args: SKFeatureParams, feat_names:
                 apnea_stages[f_idx] = apnea_stages[f_idx - 1]
                 mask[f_idx] = 1
             prev_valid = False
-        except NoSignalError as err:
+        except NoSignalError:
             # If no signal, skip subject
-            print("x")
             return
+        # pylint: disable=broad-exception-caught
         except Exception as err:
             prev_valid = False
             logger.warning(f"Error processing subject {subject_id} at {start} ({err}).")
@@ -492,10 +491,10 @@ def compute_subject_features(subject_id: str, args: SKFeatureParams, feat_names:
     # END FOR
 
     with h5py.File(str(args.save_path / f"{subject_id}.h5"), "w") as h5:
-        h5.create_dataset(f"/features", data=features, compression="gzip", compression_opts=6)
-        h5.create_dataset(f"/labels", data=sleep_stages, compression="gzip", compression_opts=6)
-        h5.create_dataset(f"/apnea", data=apnea_stages, compression="gzip", compression_opts=6)
-        h5.create_dataset(f"/mask", data=mask, compression="gzip", compression_opts=6)
+        h5.create_dataset("/features", data=features, compression="gzip", compression_opts=6)
+        h5.create_dataset("/labels", data=sleep_stages, compression="gzip", compression_opts=6)
+        h5.create_dataset("/apnea", data=apnea_stages, compression="gzip", compression_opts=6)
+        h5.create_dataset("/mask", data=mask, compression="gzip", compression_opts=6)
     # END WITH
 
 

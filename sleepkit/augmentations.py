@@ -3,7 +3,7 @@ import random
 import numpy as np
 import numpy.typing as npt
 import physiokit as pk
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Extra
 
 
 class AugmentationParams(BaseModel, extra=Extra.allow):

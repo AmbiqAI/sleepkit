@@ -3,27 +3,8 @@ import tensorflow as tf
 from .defines import KerasLayer
 
 
-def make_divisible(v: int, divisor: int = 4, min_value: int | None = None) -> int:
-    """Ensure layer has # channels divisble by divisor
-       https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet.py
-    Args:
-        v (int): # channels
-        divisor (int, optional): Divisor. Defaults to 4.
-        min_value (int | None, optional): Min # channels. Defaults to None.
-
-    Returns:
-        int: # channels
-    """
-    if min_value is None:
-        min_value = divisor
-    new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
-    # Make sure that round down does not go down by more than 10%.
-    if new_v < 0.9 * v:
-        new_v += divisor
-    return new_v
-
-
 def layer_norm(name: str | None = None, axis=-1, scale: bool = True) -> KerasLayer:
+    """Layer normalization layer"""
     name = name + ".ln" if name else None
     return tf.keras.layers.LayerNormalization(axis=axis, name=name, scale=scale)
 
@@ -43,6 +24,7 @@ def glu(dim: int = -1) -> KerasLayer:
         x = tf.multiply(out, gate)
         return x
 
+    # END DEF
     return layer
 
 
@@ -201,7 +183,7 @@ def mbconv_block(
     def layer(x: tf.Tensor) -> tf.Tensor:
         input_filters = x.shape[-1]
         stride_len = strides if isinstance(strides, int) else sum(strides) / len(strides)
-        is_downsample = stride_len
+        is_downsample = stride_len > 1
         add_residual = input_filters == output_filters and not is_downsample
         # Expand: narrow -> wide
         if expand_ratio != 1:
@@ -214,19 +196,8 @@ def mbconv_block(
             y = x
 
         # Apply: wide -> wide
-        # NOTE: DepthwiseConv2D only supports equal size stride
-        # Using Pooling operator for now
+        # NOTE: DepthwiseConv2D only supports equal size stride -> use maxpooling instead
         name_dp = f"{name}.dp" if name else None
-        # y = tf.keras.layers.Conv2D(
-        #     input_filters,
-        #     kernel_size=kernel_size,
-        #     strides=strides,
-        #     groups=input_filters,
-        #     padding="same",
-        #     kernel_initializer="he_normal",
-        #     use_bias=False,
-        #     name=name_dp,
-        # )(y)
         y = tf.keras.layers.DepthwiseConv2D(
             kernel_size=kernel_size,
             strides=(1, 1),

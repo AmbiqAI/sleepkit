@@ -8,8 +8,10 @@ import h5py
 import numpy as np
 import numpy.typing as npt
 
+from .dataset import SKDataset
 
-class Hdf5Dataset:
+
+class Hdf5Dataset(SKDataset):
     """Subject feature sets saved in HDF5 format."""
 
     def __init__(
@@ -21,7 +23,9 @@ class Hdf5Dataset:
         mask_key: str | None = None,
         feat_cols: list[int] | None = None,
         mask_threshold: float = 0.90,
+        **kwargs,
     ) -> None:
+        super().__init__(ds_path, frame_size)
         self.ds_path = ds_path
         self.frame_size = frame_size
         self.feat_key = feat_key
@@ -61,8 +65,9 @@ class Hdf5Dataset:
             feat_shape = (feat_shape[0], len(self.feat_cols))
         return feat_shape
 
-    @functools.cache
+    @functools.lru_cache(maxsize=2000)
     def subject_stats(self, subject_id: str):
+        """Get subject feature stats"""
         with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
             features = h5[self.feat_key][:]
             if self.mask_key:

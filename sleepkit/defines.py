@@ -80,6 +80,8 @@ class SKTrainParams(BaseModel, extra=Extra.allow):
     job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
     # Dataset arguments
     ds_path: Path = Field(default_factory=Path, description="Dataset base directory")
+    ds_handler: str = Field(description="Dataset handler name")
+    ds_params: dict[str, Any] | None = Field(default_factory=dict, description="Dataset parameters")
     sampling_rate: int = Field(250, description="Target sampling rate (Hz)")
     frame_size: int = Field(1250, description="Frame size")
     samples_per_subject: int | list[int] = Field(1000, description="# train samples per subject")
@@ -116,6 +118,8 @@ class SKTestParams(BaseModel, extra=Extra.allow):
     job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
     # Dataset arguments
     ds_path: Path = Field(default_factory=Path, description="Dataset base directory")
+    ds_handler: str = Field(description="Dataset handler name")
+    ds_params: dict[str, Any] | None = Field(default_factory=dict, description="Dataset parameters")
     sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
     frame_size: int = Field(1250, description="Frame size")
     test_subjects: float | None = Field(None, description="# or proportion of subjects for testing")
@@ -136,6 +140,8 @@ class SKExportParams(BaseModel, extra=Extra.allow):
     job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
     # Dataset arguments
     ds_path: Path = Field(default_factory=Path, description="Dataset base directory")
+    ds_handler: str = Field(description="Dataset handler name")
+    ds_params: dict[str, Any] | None = Field(default_factory=dict, description="Dataset parameters")
     sampling_rate: int = Field(250, description="Target sampling rate (Hz)")
     frame_size: int = Field(1250, description="Frame size")
     samples_per_subject: int | list[int] = Field(100, description="# test samples per subject")
@@ -155,7 +161,7 @@ class SKExportParams(BaseModel, extra=Extra.allow):
 
 
 class SKDemoParams(BaseModel, extra=Extra.allow):
-    pass
+    """Demo command params"""
 
 
 class SKTask(StrEnum):
@@ -188,6 +194,7 @@ def get_sleep_stage_classes(nstages: int) -> list[int]:
         return list(range(nstages))
     raise ValueError(f"Invalid number of stages: {nstages}")
 
+
 def get_sleep_apnea_classes(nstages: int) -> list[int]:
     """Get target classes for sleep apnea classification
     Args:
@@ -198,6 +205,7 @@ def get_sleep_apnea_classes(nstages: int) -> list[int]:
     if nstages in (2, 3):
         return list(range(nstages))
     raise ValueError(f"Invalid number of stages: {nstages}")
+
 
 def get_sleep_apnea_class_mapping(nstages: int) -> dict[int, int]:
     """Get class mapping for sleep apnea classification
@@ -223,6 +231,7 @@ def get_sleep_apnea_class_mapping(nstages: int) -> dict[int, int]:
             SleepApnea.hypopnea: 2,
         }
     raise ValueError(f"Invalid number of stages: {nstages}")
+
 
 def get_sleep_apnea_class_names(nstages: int):
     """Get class names for sleep apnea classification

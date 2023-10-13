@@ -7,6 +7,15 @@ copyright: Copyright &copy; 2023 Ambiq
 
 nav:
   - SleepKit: index.md
+  - Overview: overview.md
+  - Datasets: datasets.md
+  - Architecture: architecture.md
+  - Results: results.md
+  - Tutorials:
+    - SleepKit Demo: demo.md
+  - API:
+    - Datasets: ./api/datasets.md
+    - Models: ./api/models.md
 
 theme:
   name: material

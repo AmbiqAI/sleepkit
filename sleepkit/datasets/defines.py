@@ -1,4 +1,4 @@
-from typing import Any, Callable, Generator
+from typing import Callable, Generator
 
 import numpy.typing as npt
 

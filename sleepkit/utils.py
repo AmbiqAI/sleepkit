@@ -3,6 +3,7 @@ import logging
 import os
 import pickle
 import random
+from typing import Any
 
 import numpy as np
 import requests
@@ -27,7 +28,7 @@ def set_random_seed(seed: int | None = None) -> int:
     return seed
 
 
-def load_pkl(file: str, compress: bool = True):
+def load_pkl(file: str, compress: bool = True) -> dict[str, Any]:
     """Load pickled file.
 
     Args:
@@ -35,7 +36,7 @@ def load_pkl(file: str, compress: bool = True):
         compress (bool, optional): If file is compressed. Defaults to True.
 
     Returns:
-        Any: Contents of pickle
+        dict[str, Any]: Dictionary of pickled objects
     """
     if compress:
         with gzip.open(file, "rb") as fh:
@@ -103,12 +104,12 @@ def env_flag(env_var: str, default: bool = False) -> bool:
     return environ_string in ["1", "true", "yes", "on"]
 
 
-def download_file(src: str, dst: str, progress: bool = True):
+def download_file(src: str, dst: os.PathLike, progress: bool = True):
     """Download file from supplied url to destination streaming.
 
     Args:
         src (str): Source URL path
-        dst (str): Destination file path
+        dst (PathLike): Destination file path
         progress (bool, optional): Display progress bar. Defaults to True.
 
     """
