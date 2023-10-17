@@ -9,6 +9,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .dataset import SKDataset
+from .defines import SubjectGenerator
 
 
 class Hdf5Dataset(SKDataset):
@@ -82,7 +83,7 @@ class Hdf5Dataset(SKDataset):
         subject_ids: list[str] | None = None,
         repeat: bool = True,
         shuffle: bool = True,
-    ):
+    ) -> SubjectGenerator:
         """Yield data for each subject in the array.
 
         Args:

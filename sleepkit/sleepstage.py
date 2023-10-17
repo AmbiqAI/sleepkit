@@ -77,9 +77,9 @@ def create_model(
         y = inputs
         y = tf.keras.layers.Reshape(y.shape[1:] + (1,))(y)
         y = tf.keras.layers.TimeDistributed(
-            tf.keras.layers.Conv1D(filters=24, padding="same", kernel_size=7, strides=2, activation="relu")
+            tf.keras.layers.Conv1D(filters=32, padding="same", kernel_size=7, strides=2, activation="relu")
         )(y)
-        y = tf.keras.layers.ConvLSTM1D(filters=32, kernel_size=7, padding="same", strides=2, return_sequences=True)(y)
+        y = tf.keras.layers.ConvLSTM1D(filters=32, kernel_size=5, padding="same", strides=2, return_sequences=True)(y)
         y = tf.keras.layers.ConvLSTM1D(filters=48, kernel_size=5, padding="same", strides=2, return_sequences=True)(y)
         y = tf.keras.layers.TimeDistributed(tf.keras.layers.GlobalAveragePooling1D())(y)
         y = tf.keras.layers.Conv1D(

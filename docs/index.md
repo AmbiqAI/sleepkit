@@ -75,7 +75,7 @@ SleepKit leverages a light weight network architecture...
 
 
 <p align="center">
-  <img src="./assets/sleepkit-architecture.svg" alt="SleepKit Architecture">
+  <img src="./assets/sleepkit-banner.png" alt="SleepKit Architecture">
 </p>
 
 Refer to [Architecture Overview](./architecture.md) for additional details on the model design.

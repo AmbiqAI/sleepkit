@@ -100,7 +100,7 @@ sleepkit --task stage --mode evaluate --config ./configs/evaluate-stage-2.json
 The `export` command will convert the trained TensorFlow model into both TFLite (TFL) and TFLite for microcontroller (TFLM) variants. The command will also verify the models' outputs match. Post-training quantization can also be enabled by setting the `quantization` flag in the configuration.
 
 ```bash
-sleepkit --task arrhythmia --mode export --config ./configs/export-stage-2.json
+sleepkit --task stage --mode export --config ./configs/export-stage-2.json
 ```
 
 Once converted, the TFLM header file will be copied to location specified by `tflm_file`. If parameters were changed (e.g. window size, quantization), `./evb/src/constants.h` will need to be updated.

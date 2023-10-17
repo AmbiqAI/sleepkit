@@ -130,7 +130,7 @@ def compute_features_001(ds: MesaDataset, subject_id: str, start: int):
 
     #### Preprocess signals
     ppg = pk.ppg.clean(ppg, sample_rate=ds.target_rate)
-    rsp = pk.rsp.clean(rsp, sample_rate=ds.target_rate)
+    rsp = pk.rsp.clean_signal(rsp, sample_rate=ds.target_rate)
     mov = pk.signal.filter_signal(leg, lowcut=3, highcut=11, order=3, sample_rate=ds.target_rate)
 
     spo2 = np.clip(spo2, 50, 100)
@@ -263,7 +263,7 @@ def compute_features_003(ds: MesaDataset, subject_id: str, start: int):
 
     #### Preprocess signals
     ppg = pk.ppg.clean(ppg, sample_rate=ds.target_rate)
-    rsp = pk.rsp.clean(rsp, sample_rate=ds.target_rate)
+    rsp = pk.rsp.clean_signal(rsp, sample_rate=ds.target_rate)
 
     hr_bpm = np.nanmean(np.clip(hr, 30, 120))
     min_rr, max_rr = max(0.25, 60 / hr_bpm - 0.25), min(2.5, 60 / hr_bpm + 0.25)
@@ -355,7 +355,7 @@ def compute_features_004(ds: MesaDataset, subject_id: str, start: int):
     ppg = pk.ppg.clean(ppg, lowcut=0.5, highcut=3, sample_rate=ds.target_rate, order=3)
     ppg_mov = pk.ppg.clean(ppg, lowcut=4, highcut=11, sample_rate=ds.target_rate, order=3)
 
-    rsp = pk.rsp.clean(rsp, lowcut=0.067, highcut=3, sample_rate=ds.target_rate)
+    rsp = pk.rsp.clean_signal(rsp, lowcut=0.067, highcut=3, sample_rate=ds.target_rate)
     rsp_mov = pk.signal.filter_signal(rsp, lowcut=3, highcut=11, order=3, sample_rate=ds.target_rate)
 
     leg_mov = pk.signal.filter_signal(leg, lowcut=3, highcut=11, order=3, sample_rate=ds.target_rate)
@@ -364,7 +364,7 @@ def compute_features_004(ds: MesaDataset, subject_id: str, start: int):
 
     pos = sps.mode(pos.astype(np.int32)).mode
 
-    ppg_freq, ppg_sp = pk.ppg.compute_fft(ppg, sample_rate=ds.target_rate)
+    ppg_freq, ppg_sp = pk.signal.compute_fft(ppg, sample_rate=ds.target_rate)
     l_idx = np.where(ppg_freq >= 0.5)[0][0]
     r_idx = np.where(ppg_freq >= 3)[0][0]
     ppg_sp = 2 * np.abs(ppg_sp)

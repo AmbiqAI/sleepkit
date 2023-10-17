@@ -88,7 +88,7 @@ class OfsgDataset(SKDataset):
 
         # Clean signals
         ecg = pk.ecg.clean(ecg, lowcut=0.5, highcut=30, sample_rate=self.mesa.target_rate, order=5)
-        rsp = pk.rsp.clean(rsp, sample_rate=self.mesa.target_rate)
+        rsp = pk.rsp.clean_signal(rsp, sample_rate=self.mesa.target_rate)
         mov = pk.signal.filter_signal(leg, lowcut=3, highcut=11, order=3, sample_rate=self.mesa.target_rate)
         spo2 = np.clip(spo2, 50, 100)
 

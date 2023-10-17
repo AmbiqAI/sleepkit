@@ -9,8 +9,11 @@ nav:
   - SleepKit: index.md
   - Overview: overview.md
   - Datasets: datasets.md
+  - Tasks:
+    - Sleep Staging: sleepstages.md
   - Architecture: architecture.md
   - Results: results.md
+
   - Tutorials:
     - SleepKit Demo: demo.md
   - API:
@@ -61,8 +64,8 @@ plugins:
           options:
             docstring_style: google
             docstring_section_style: list
-            line_length: 92
-            show_root_heading: true
+            line_length: 120
+            show_root_heading: false
 
 extra_css:
   - css/mkdocstrings.css
@@ -90,7 +93,7 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - tables
   - md_in_html
