@@ -1,6 +1,10 @@
-# SleepKit
+<p align="center">
+  <a href="https://github.com/AmbiqAI/sleepkit"><img src="./docs/assets/sleepkit-banner.png" alt="SleepKit"></a>
+</p>
 
+<p align="center" style="color:red;font-size:2.0em;">
 🚧 SleepKit is currently under active development 🚧
+</p>
 
 ---
 

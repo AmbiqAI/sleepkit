@@ -7,6 +7,10 @@ title:
   <a href="https://github.com/AmbiqAI/sleepkit"><img src="./assets/sleepkit-banner.png" alt="SleepKit"></a>
 </p>
 
+<p align="center" style="color:red;font-size:1.5em;">
+🚧 SleepKit is currently under active development 🚧
+</p>
+
 ---
 
 **Documentation**: <a href="https://ambiqai.github.io/sleepkit" target="_blank">https://ambiqai.github.io/sleepkit</a>
