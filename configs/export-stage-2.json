@@ -9,5 +9,10 @@
         "mask_key": "mask"
     },
     "frame_size": 128,
-    "model_file": "./results/sleep-stage-2/model.tf"
+    "samples_per_subject": 10,
+    "test_size": 3800,
+    "model_file": "./results/sleep-stage-2/model.tf",
+    "val_acc_threshold": 0.98,
+    "use_logits": true,
+    "quantization": true
 }

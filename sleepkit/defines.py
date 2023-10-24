@@ -65,9 +65,12 @@ class SKFeatureParams(BaseModel, extra=Extra.allow):
 
     job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
     ds_path: Path = Field(default_factory=Path, description="Dataset base directory")
+    datasets: list[str] = Field(default_factory=list, description="Dataset names")
     feature_set: str = Field(description="Feature set name")
     feature_params: dict[str, Any] | None = Field(default=None, description="Custom feature parameters")
     save_path: Path = Field(default_factory=Path, description="Save directory")
+    sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
+    frame_size: int = Field(1250, description="Frame size")
     data_parallelism: int = Field(
         default_factory=lambda: os.cpu_count() or 1,
         description="# of data loaders running in parallel",
@@ -82,7 +85,7 @@ class SKTrainParams(BaseModel, extra=Extra.allow):
     ds_path: Path = Field(default_factory=Path, description="Dataset base directory")
     ds_handler: str = Field(description="Dataset handler name")
     ds_params: dict[str, Any] | None = Field(default_factory=dict, description="Dataset parameters")
-    sampling_rate: int = Field(250, description="Target sampling rate (Hz)")
+    sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
     frame_size: int = Field(1250, description="Frame size")
     samples_per_subject: int | list[int] = Field(1000, description="# train samples per subject")
     val_samples_per_subject: int | list[int] = Field(1000, description="# validation samples per subject")

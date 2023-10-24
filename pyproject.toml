@@ -36,7 +36,7 @@ neurokit2 = "^0.2.4"
 joulescope = "^1.1.7"
 pydantic = "^1.10.2"
 pydantic-argparse = "^0.5.0"
-physiokit = "^0.4.0"
+physiokit = "^0.5.0"
 pyedflib = "^0.1.34"
 plotly = "^5.16.1"
 wandb = "^0.15.8"
@@ -46,6 +46,7 @@ fastparquet = "^2023.8.0"
 statsmodels = "^0.14.0"
 erpc = {git = "https://github.com/AmbiqAI/erpc.git", rev = "develop", subdirectory = "erpc_python"}
 pyserial = "^3.5"
+tensorflow-model-optimization = "^0.7.5"
 
 
 [tool.poetry.group.ci.dependencies]

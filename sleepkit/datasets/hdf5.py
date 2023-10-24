@@ -9,7 +9,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .dataset import SKDataset
-from .defines import SubjectGenerator
+from .defines import SampleGenerator, SubjectGenerator
 
 
 class Hdf5Dataset(SKDataset):
@@ -49,17 +49,30 @@ class Hdf5Dataset(SKDataset):
 
     @property
     def train_subject_ids(self) -> list[str]:
-        """Get train subject ids"""
+        """Get train subject ids.
+
+        Returns:
+            list[str]: Train subject ids
+        """
         return self.subject_ids[: int(0.8 * len(self.subject_ids))]
 
     @property
     def test_subject_ids(self) -> list[str]:
-        """Get test subject ids"""
+        """Get test subject ids.
+
+        Returns:
+            list[str]: Test subject ids
+
+        """
         return self.subject_ids[int(0.8 * len(self.subject_ids)) :]
 
     @property
-    def feature_shape(self) -> tuple[int, int]:
-        """Get feature shape"""
+    def feature_shape(self) -> tuple[int, ...]:
+        """Get feature shape.
+
+        Returns:
+            tuple[int, ...]: Feature shape
+        """
         with h5py.File(os.path.join(self.ds_path, f"{self.subject_ids[0]}.h5"), mode="r") as h5:
             feat_shape = (self.frame_size, h5[self.feat_key].shape[-1])
         if self.feat_cols:
@@ -67,16 +80,25 @@ class Hdf5Dataset(SKDataset):
         return feat_shape
 
     @functools.lru_cache(maxsize=2000)
-    def subject_stats(self, subject_id: str):
-        """Get subject feature stats"""
+    def subject_stats(self, subject_id: str) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray]:
+        """Get subject feature stats.
+
+        Args:
+            subject_id (str): Subject ID
+
+                    Returns:
+            tuple[npt.NDArray, npt.NDArray]: Tuple of feature mean and std
+        """
         with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
             features = h5[self.feat_key][:]
             if self.mask_key:
                 mask = h5[self.mask_key][:]
                 features = features[mask == 1, :]
         feats_mu = np.nanmean(features, axis=0)
-        feats_std = np.nanstd(features, axis=0)
-        return feats_mu, feats_std
+        feats_var = np.nanvar(features, axis=0)
+        feats_med = np.nanmedian(features, axis=0)
+        feats_iqr = np.nanpercentile(features, 75, axis=0) - np.nanpercentile(features, 25, axis=0)
+        return feats_mu, feats_var, feats_med, feats_iqr
 
     def uniform_subject_generator(
         self,
@@ -113,73 +135,121 @@ class Hdf5Dataset(SKDataset):
                 break
         # END WHILE
 
-    def load_subject_data(
-        self, subject_id: str, normalize: bool = True, epsilon: float = 1e-6
-    ) -> tuple[npt.NDArray, npt.NDArray]:
-        """Load subject data
-        Args:
-            subject_id (str): Subject ID
-        Returns:
-            tuple[npt.NDArray, npt.NDArray]: Tuple of features and labels
-        """
-        mask = None
-        feat_mu, feat_std = self.subject_stats(subject_id)
-        with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
-            x = h5[self.feat_key][:]
-            y = h5[self.label_key][:]
-            if self.mask_key:
-                mask = h5[self.mask_key][:]
+    def _preprocess_data(
+        self,
+        subject_id: str,
+        x: npt.NDArray,
+        y: npt.NDArray,
+        mask: npt.NDArray|None = None,
+        normalize: bool = False,
+        epsilon: float = 1e-3
+    ) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]:
+
+        mask_x = x[mask == 1, ] if mask is not None else x
+
+        # Impute missing values with median
+        if mask is not None:
+            x_med = np.nanmedian(x[mask == 1], axis=0)
+            x[mask == 0, :] = x_med
 
         if normalize:
-            x = (x - feat_mu) / (feat_std + epsilon)
+            x_mu = np.nanmean(mask_x, axis=0)
+            x_var = np.nanvar(mask_x, axis=0)
+            x_med = np.nanmedian(mask_x, axis=0)
+            x_iqr = np.nanpercentile(mask_x, 75, axis=0) - np.nanpercentile(mask_x, 25, axis=0)
+            # x = self.normalize_signals(x)
+            # x = (x - x_mu) / np.sqrt(x_var + epsilon)
+            x = (x - x_med) / (x_iqr + epsilon)
 
         if self.feat_cols:
             x = x[:, self.feat_cols]
 
         return x, y, mask
 
-    def signal_generator(
-        self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-6
-    ):
+    def load_subject_data(
+        self, subject_id: str, normalize: bool = True, epsilon: float = 1e-3
+    ) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]:
+        """Load subject data
+        Args:
+            subject_id (str): Subject ID
+        Returns:
+            tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]: Tuple of features, labels, and mask
         """
-        Generate frames using subject generator.
-        from the segments in subject data by placing a frame in a random location within one of the segments.
+        mask = None
+        with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
+            x = h5[self.feat_key][:]
+            y = h5[self.label_key][:]
+            if self.mask_key:
+                mask = h5[self.mask_key][:]
+
+        return self._preprocess_data(subject_id, x, y, mask, normalize, epsilon)
+
+
+    def normalize_signals(self, data):
+        """Temporary"""
+        data[:, 0] = (np.clip(data[:, 0], 30, 100) - 30)/(100 - 30)
+        data[:, 1] = (np.clip(data[:, 1], 500, 1500) - 500)/(1500 - 500)
+        data[:, 2] = (np.clip(data[:, 2], 20, 150) - 20)/(150 - 20)
+        data[:, 3] = (np.clip(data[:, 3], 0.02, 0.15) - 0.02)/(0.15 - 0.02)
+        data[:, 4] = (np.clip(data[:, 4], 500, 1500) - 500)/(1500 - 500)
+        data[:, 5] = data[:, 5]
+        data[:, 6] = data[:, 6]
+        data[:, 7] = data[:, 7]
+        data[:, 8] = (np.clip(data[:, 8], 80, 100) - 80)/(100 - 80)
+        data[:, 9] = data[:, 9]
+        data[:, 10] = (np.clip(data[:, 10], 80, 100) - 80)/(100 - 80)
+        data[:, 11] = (np.clip(data[:, 11], 0, 20) - 0)/(20 - 0)
+        data[:, 12] = (np.clip(data[:, 12], 0.05, 1) - .05)/(1 - 0.05)
+        data[:, 13] = (np.clip(data[:, 13], 0, 1) - 0)/(1 - 0)
+        data[:, 14] = (np.clip(data[:, 14], 0.05, 1) - .05)/(1 - 0.05)
+        data[:, 15] = (np.clip(data[:, 15], 0, 1) - 0)/(1 - 0)
+        data[:, 16] = (np.clip(data[:, 16], 9, 120) - 9)/(120 - 9)
+        data[:, 17] = (np.clip(2 - data[:, 17], 0, 2) - 0)/(2 - 0)
+        data[:, 18] = data[:, 18]
+        data[:, 19] = (np.clip(data[:, 19], 0, 1) - 0)/(1 - 0)
+        return data
+
+    def signal_generator(
+        self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-3
+    ) -> SampleGenerator:
+        """Generate frames using subject generator from the segments in subject data by
+        placing a frame in a random location within one of the segments.
+
         Args:
             subject_generator (SubjectGenerator): Generator that yields a tuple of subject id and subject data.
                     subject data may contain only signals, since labels are not used.
             samples_per_subject (int): Samples per subject.
+        Yields:
+            Iterator[SampleGenerator]: Iterator of frames and labels.
+
         Returns:
-            SampleGenerator: Generator of input data of shape (frame_size, 1)
+            SampleGenerator: Generator of frames and labels.
         """
         for subject_id, subject_data in subject_generator:
-            feat_mu, feat_std = self.subject_stats(subject_id)
+
+            xx = subject_data[self.feat_key][:] if True else subject_data[self.feat_key]
+            yy = subject_data[self.label_key][:] if True else subject_data[self.label_key]
+            mm: npt.NDArray = subject_data[self.mask_key][:] if self.mask_key else None
+            xx, yy, mm = self._preprocess_data(subject_id, xx, yy, mm, normalize, epsilon)
+
             num_samples = 0
             num_attempts = 0
             while num_samples < samples_per_subject:
-                data_size = subject_data[self.feat_key].shape[0]
-                frame_start = np.random.randint(data_size - self.frame_size)
+                frame_start = np.random.randint(xx.shape[0] - self.frame_size)
                 frame_end = frame_start + self.frame_size
-                x = subject_data[self.feat_key][frame_start:frame_end]
-                if normalize:
-                    x = (x - feat_mu) / (feat_std + epsilon)
-                y = subject_data[self.label_key][frame_start:frame_end]
-                if np.isnan(x).any():
+                x = xx[frame_start:frame_end]
+                y = yy[frame_start:frame_end]
+
+                is_invalid = np.isnan(x).any() or (np.mean(mm[frame_start:frame_end]) < self.mask_threshold)
+                if is_invalid:
                     num_attempts += 1
                     if num_attempts > 10:
                         num_samples += 1
-                    continue
-                if self.mask_key:
-                    mask: npt.NDArray = subject_data[self.mask_key][frame_start:frame_end]
-                    if mask.sum() / mask.size < self.mask_threshold:
-                        num_attempts += 1
-                        if num_attempts > 10:
-                            num_samples += 1
-                        continue
-                if self.feat_cols:
-                    x = x[:, self.feat_cols]
-
-                num_samples += 1
-                num_attempts = 0
-                yield x, y
-            # END FOR
+                        num_attempts = 0
+                else:
+                    num_samples += 1
+                    num_attempts = 0
+                    yield x, y
+                # END IF
+            # END WHILE
         # END FOR

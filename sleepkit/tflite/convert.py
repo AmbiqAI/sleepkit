@@ -165,6 +165,7 @@ def debug_quant_tflite(
     # Debug model
     debugger = tf.lite.experimental.QuantizationDebugger(converter=converter, debug_dataset=rep_dataset)
 
+    debugger.run()
     with io.StringIO() as f:
         debugger.layer_statistics_dump(f)
         f.seek(0)

@@ -1,6 +1,6 @@
 {
-    "num_sleep_stages": 2,
-    "job_dir": "./results/sleep-stage-2",
+    "num_sleep_stages": 3,
+    "job_dir": "./results/sleep-stage-3",
     "ds_path": "./datasets/processed/fs001",
     "ds_handler": "hdf5",
     "ds_params": {
@@ -9,5 +9,5 @@
         "mask_key": "mask"
     },
     "frame_size": 128,
-    "model_file": "./results/sleep-stage-2/model.tf"
+    "model_file": "./results/sleep-stage-3/model.tf"
 }

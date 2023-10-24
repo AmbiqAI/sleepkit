@@ -58,12 +58,12 @@ class SKDataset(abc.ABC):
 
     def load_subject_data(
         self, subject_id: str, normalize: bool = True, epsilon: float = 1e-6
-    ) -> tuple[npt.NDArray, npt.NDArray]:
+    ) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]:
         """Load subject data
         Args:
             subject_id (str): Subject ID
         Returns:
-            tuple[npt.NDArray, npt.NDArray]: Tuple of features and labels
+            tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]: Tuple of features and labels
         """
         raise NotImplementedError()
 

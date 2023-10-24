@@ -49,7 +49,6 @@ def UNet(
     Returns:
         tf.keras.Model: Model
     """
-    y = x
     requires_reshape = len(x.shape) == 3
     if requires_reshape:
         y = tf.keras.layers.Reshape((1,) + x.shape[1:])(x)

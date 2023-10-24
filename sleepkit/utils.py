@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 import requests
 import tensorflow as tf
+from rich.console import Console
 from rich.logging import RichHandler
 from tqdm import tqdm
 
@@ -73,10 +74,11 @@ def setup_logger(log_name: str) -> logging.Logger:
     logger = logging.getLogger(log_name)
     if logger.handlers:
         return logger
-    logging.basicConfig(level=logging.ERROR, force=True, handlers=[RichHandler()])
+    rich_handler = RichHandler()
+    logging.basicConfig(level=logging.ERROR, force=True, handlers=[rich_handler])
     logger.propagate = False
     logger.setLevel(logging.INFO)
-    logger.handlers = [RichHandler()]
+    logger.handlers = [rich_handler]
     return logger
 
 

@@ -1,4 +1,5 @@
 """Sleep Stage"""
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -10,13 +11,14 @@ import pandas as pd
 import sklearn.model_selection
 import sklearn.utils
 import tensorflow as tf
+import tensorflow_model_optimization as tfmot
 import wandb
 from rich.console import Console
 from tqdm import tqdm
 from wandb.keras import WandbCallback
 
 from . import tflite as tfa
-from .datasets import Hdf5Dataset, OfsgDataset, SKDataset
+from .datasets import Hdf5Dataset, SKDataset
 from .datasets.utils import create_dataset_from_data
 from .defines import (
     SKExportParams,
@@ -75,21 +77,28 @@ def create_model(
 
     if name == "lstm":
         y = inputs
-        y = tf.keras.layers.Reshape(y.shape[1:] + (1,))(y)
-        y = tf.keras.layers.TimeDistributed(
-            tf.keras.layers.Conv1D(filters=32, padding="same", kernel_size=7, strides=2, activation="relu")
-        )(y)
-        y = tf.keras.layers.ConvLSTM1D(filters=32, kernel_size=5, padding="same", strides=2, return_sequences=True)(y)
-        y = tf.keras.layers.ConvLSTM1D(filters=48, kernel_size=5, padding="same", strides=2, return_sequences=True)(y)
-        y = tf.keras.layers.TimeDistributed(tf.keras.layers.GlobalAveragePooling1D())(y)
-        y = tf.keras.layers.Conv1D(
-            num_classes,
-            kernel_size=5,
-            padding="same",
-            name="NECK.conv",
-            use_bias=True,
-        )(y)
-        return tf.keras.models.Model(inputs, y)
+        y = tf.keras.layers.Reshape((1,) + y.shape[1:])(y)
+        y = tf.keras.layers.DepthwiseConv2D(kernel_size=(1, 5), padding="same")(y)
+        y = tf.keras.layers.LayerNormalization(axis=[2])(y)
+        y = tf.keras.layers.Activation("relu6")(y)
+
+        y = tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 5), padding="same")(y)
+        y = tf.keras.layers.LayerNormalization(axis=[2])(y)
+        y = tf.keras.layers.Activation("relu6")(y)
+
+        y = tf.keras.layers.Reshape(y.shape[2:])(y)
+
+        y = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=40, return_sequences=True))(y)
+        y = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=48, return_sequences=True))(y)
+        y = tf.keras.layers.LayerNormalization(axis=[1])(y)
+
+        y = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(56))(y)
+        y = tf.keras.layers.LayerNormalization(axis=[1])(y)
+        y = tf.keras.layers.Activation("relu6")(y)
+
+        y = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(num_classes))(y)
+        model = tf.keras.models.Model(inputs, y)
+        return model
 
     if name:
         raise ValueError(f"No network architecture with name {name}")
@@ -100,13 +109,13 @@ def create_model(
         params=UNextParams(
             blocks=[
                 UNextBlockParams(
-                    filters=24, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0
+                    filters=24, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=1, dropout=0.1
                 ),
                 UNextBlockParams(
-                    filters=32, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0
+                    filters=32, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0.1
                 ),
                 UNextBlockParams(
-                    filters=48, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0
+                    filters=48, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0.1
                 ),
             ],
             output_kernel_size=5,
@@ -144,8 +153,6 @@ def load_dataset(handler: str, ds_path: Path, frame_size: int, params: dict[str,
     Returns:
         SKDataset: Dataset
     """
-    if handler == "ofsg":
-        return OfsgDataset(ds_path=ds_path, frame_size=frame_size, **params)
     if handler == "hdf5":
         return Hdf5Dataset(ds_path=ds_path, frame_size=frame_size, **params)
     raise ValueError(f"Unknown dataset handler {handler}")
@@ -180,9 +187,9 @@ def load_train_dataset(
     def preprocess(x: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
         """Preprocess data"""
         xx = x.copy()
-        xx = x + np.random.normal(0, 0.1, size=x.shape)
-        if np.random.rand() < 0.1:
-            xx = np.flip(xx, axis=0)
+        xx = xx + np.random.normal(0, 0.1, size=x.shape)
+        # if np.random.rand() < 0.2:
+            # xx = np.flip(xx, axis=0)
         return xx
 
     def train_generator(subject_ids):
@@ -279,19 +286,38 @@ def load_validation_dataset(
     return val_ds
 
 
-def load_test_dataset(ds: SKDataset, params: SKTestParams) -> tuple[npt.NDArray, npt.NDArray]:
+def load_test_dataset(
+    ds: SKDataset,
+    subject_ids: list[str],
+    samples_per_subject: int,
+    test_size: int,
+    feat_shape: tuple[int, ...],
+    class_shape: tuple[int, ...],
+    class_map: dict[int, int],
+) -> tuple[npt.NDArray, npt.NDArray]:
     """Load test dataset
     Args:
         params (SKTestParams): Testing parameters
     Returns:
         tuple[npt.NDArray, npt.NDArray]: Test features and labels
     """
-    test_x = []
-    test_y = []
-    for subject_id in ds.test_subject_ids:
-        x, y = ds.load_subject_data(subject_id)
-        test_x.append(x)
-        test_y.append(y)
+    def preprocess(x: npt.NDArray[np.float32]):
+        return x
+
+    output_signature = (
+        tf.TensorSpec(shape=feat_shape, dtype=tf.float32),
+        tf.TensorSpec(shape=class_shape, dtype=tf.int32),
+    )
+
+    def test_generator():
+        test_subj_gen = ds.uniform_subject_generator(subject_ids)
+        return map(
+            lambda x_y: prepare(preprocess(x_y[0]), x_y[1], class_shape[-1], class_map),
+            ds.signal_generator(test_subj_gen, samples_per_subject=samples_per_subject, normalize=True),
+        )
+
+    test_ds = tf.data.Dataset.from_generator(generator=test_generator, output_signature=output_signature)
+    test_x, test_y = next(test_ds.batch(test_size).as_numpy_iterator())
 
     return test_x, test_y
 
@@ -310,10 +336,15 @@ def train(params: SKTrainParams):
     params.steps_per_epoch = params.steps_per_epoch or 100
     params.seed = set_random_seed(params.seed)
 
+    logger.info(f"Creating working directory in {params.job_dir}")
+    os.makedirs(params.job_dir, exist_ok=True)
+
+    handler = logging.FileHandler(params.job_dir / "train.log", mode="w")
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
+
     logger.info(f"Random seed {params.seed}")
 
-    os.makedirs(params.job_dir, exist_ok=True)
-    logger.info(f"Creating working directory in {params.job_dir}")
     with open(params.job_dir / "train_config.json", "w", encoding="utf-8") as fp:
         fp.write(params.json(indent=2))
 
@@ -366,7 +397,8 @@ def train(params: SKTrainParams):
     test_labels = [y.numpy() for _, y in val_ds]
     y_true = np.argmax(np.concatenate(test_labels).squeeze(), axis=-1).flatten()
     class_weights = sklearn.utils.compute_class_weight("balanced", classes=target_classes, y=y_true)
-    # class_weights = np.log2(1+class_weights).tolist()
+    class_weights = (class_weights + class_weights.mean()) / 2
+    # class_weights = 0.25
 
     strategy = tfa.get_strategy()
     with strategy.scope():
@@ -402,15 +434,27 @@ def train(params: SKTrainParams):
                 name="iou",
             ),
         ]
-        model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-        model(inputs)
-        model.summary(print_fn=logger.info)
-        logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
         if params.weights_file:
             logger.info(f"Loading weights from file {params.weights_file}")
             model.load_weights(params.weights_file)
         params.weights_file = params.job_dir / "model.weights"
+        tfmot.quantization.keras.QuantizeConfig
+        if params.quantization:
+            logger.info("Performing QAT...")
+
+            def apply_quantization_to_non_norm(layer):
+                if not isinstance(layer, tf.keras.layers.LayerNormalization):
+                    return tfmot.quantization.keras.quantize_annotate_layer(layer)
+                return layer
+            # model = tfmot.quantization.keras.quantize_model(model)
+            model = tf.keras.models.clone_model(model, clone_function=apply_quantization_to_non_norm)
+            model = tfmot.quantization.keras.quantize_apply(model)
+
+        model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+        model(inputs)
+        model.summary(print_fn=logger.info)
+        logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
         # Remove existing TB logs
         if os.path.exists(params.job_dir / "logs"):
@@ -490,6 +534,14 @@ def evaluate(params: SKTestParams):
         params (SKTestParams): Testing/evaluation parameters
     """
     params.num_sleep_stages = getattr(params, "num_sleep_stages", 3)
+
+    logger.info(f"Creating working directory in {params.job_dir}")
+    os.makedirs(params.job_dir, exist_ok=True)
+
+    handler = logging.FileHandler(params.job_dir / "test.log", mode="w")
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
+
     params.seed = set_random_seed(params.seed)
     logger.info(f"Random seed {params.seed}")
 
@@ -504,7 +556,7 @@ def evaluate(params: SKTestParams):
     pt_metrics = []
 
     strategy = tfa.get_strategy()
-    with strategy.scope():
+    with strategy.scope(), tfmot.quantization.keras.quantize_scope():
         logger.info("Loading model")
         model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
         flops = tfa.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
@@ -518,9 +570,12 @@ def evaluate(params: SKTestParams):
             data_len = params.frame_size * num_windows
 
             x = features[:data_len, :].reshape((num_windows, params.frame_size) + feat_shape[1:])
+            m = mask[:data_len].reshape((num_windows, params.frame_size))
+            # m[:, :64] = 0 # Ignore first N samples
             y_prob = tf.nn.softmax(model.predict(x, verbose=0)).numpy()
             y_pred = np.argmax(y_prob, axis=-1).flatten()
-            y_mask = mask[:data_len].flatten()
+            # y_mask = mask[:data_len].flatten()
+            y_mask = m.flatten()
             y_true = np.vectorize(class_mapping.get)(labels[:data_len].flatten())
             y_pred = y_pred[y_mask == 1]
             y_true = y_true[y_mask == 1]
@@ -569,12 +624,11 @@ def export(params: SKExportParams):
     """
     params.num_sleep_stages = getattr(params, "num_sleep_stages", 3)
 
+    target_classes = get_sleep_stage_classes(params.num_sleep_stages)
+    class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
+
     tfl_model_path = params.job_dir / "model.tflite"
     tflm_model_path = params.job_dir / "model_buffer.h"
-
-    # Load model and set fixed batch size of 1
-    logger.info("Loading trained model")
-    model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
 
     # class_names = get_sleep_stage_class_names(params.num_sleep_stages)
     # class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
@@ -583,50 +637,78 @@ def export(params: SKExportParams):
         handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
     )
     feat_shape = ds.feature_shape
+    class_shape = (params.frame_size, len(target_classes))
 
-    inputs = tf.keras.layers.Input(feat_shape, dtype=tf.float32, batch_size=1)
-    outputs = model(inputs)
-    if not params.use_logits and not isinstance(model.layers[-1], tf.keras.layers.Softmax):
-        outputs = tf.keras.layers.Softmax()(outputs)
-        model = tf.keras.Model(inputs, outputs, name=model.name)
+    test_x, test_y = load_test_dataset(
+        ds=ds,
+        subject_ids=ds.test_subject_ids,
+        samples_per_subject=params.samples_per_subject,
+        test_size=params.test_size,
+        feat_shape=feat_shape,
+        class_shape=class_shape,
+        class_map=class_mapping,
+    )
+
+    # Load model and set fixed batch size of 1
+    strategy = tfa.get_strategy()
+    with strategy.scope(), tfmot.quantization.keras.quantize_scope():
+        logger.info("Loading trained model")
+        model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
+
+        inputs = tf.keras.layers.Input(feat_shape, dtype=tf.float32, batch_size=1)
         outputs = model(inputs)
-    # END IF
-    flops = tfa.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
-    model.summary(print_fn=logger.info)
+        if not params.use_logits and not isinstance(model.layers[-1], tf.keras.layers.Softmax):
+            outputs = tf.keras.layers.Softmax()(outputs)
+            model = tf.keras.Model(inputs, outputs, name=model.name)
+            outputs = model(inputs)
+        # END IF
+        flops = tfa.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
+        model.summary(print_fn=logger.info)
 
-    logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
+        logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
-    test_x, test_y = load_test_dataset(ds, params)
+        logger.info(f"Converting model to TFLite (quantization={params.quantization})")
 
-    logger.info("Converting model to TFLite")
-    tflite_model = tfa.convert_tflite(
-        model=model,
-        quantize=params.quantization,
-        test_x=test_x,
-        input_type=tf.int8 if params.quantization else None,
-        output_type=tf.int8 if params.quantization else None,
-    )
+        # if params.quantization:
+        #     _, quant_df = tfa.debug_quant_tflite(
+        #         model=model,
+        #         test_x=test_x,
+        #         input_type=tf.int8 if params.quantization else None,
+        #         output_type=tf.int8 if params.quantization else None,
+        #     )
+        #     quant_df.to_csv(params.job_dir / "quant.csv")
 
-    # Save TFLite model
-    logger.info(f"Saving TFLite model to {tfl_model_path}")
-    with open(tfl_model_path, "wb") as fp:
-        fp.write(tflite_model)
+        tflite_model = tfa.convert_tflite(
+            model=model,
+            quantize=params.quantization,
+            test_x=test_x,
+            input_type=tf.int8 if params.quantization else None,
+            output_type=tf.int8 if params.quantization else None,
+        )
 
-    # Save TFLM model
-    logger.info(f"Saving TFL micro model to {tflm_model_path}")
-    tfa.xxd_c_dump(
-        src_path=tfl_model_path,
-        dst_path=tflm_model_path,
-        var_name=params.tflm_var_name,
-        chunk_len=20,
-        is_header=True,
-    )
+        # Save TFLite model
+        logger.info(f"Saving TFLite model to {tfl_model_path}")
+        with open(tfl_model_path, "wb") as fp:
+            fp.write(tflite_model)
+
+        # Save TFLM model
+        logger.info(f"Saving TFL micro model to {tflm_model_path}")
+        tfa.xxd_c_dump(
+            src_path=tfl_model_path,
+            dst_path=tflm_model_path,
+            var_name=params.tflm_var_name,
+            chunk_len=20,
+            is_header=True,
+        )
+    # END WITH
+
+    y_pred_tf = np.argmax(model.predict(test_x), axis=-1).flatten()
 
     # Verify TFLite results match TF results on example data
     logger.info("Validating model results")
-    y_true = np.argmax(test_y, axis=1)
-    y_pred_tf = np.argmax(model.predict(test_x), axis=1)
-    y_pred_tfl = np.argmax(tfa.predict_tflite(model_content=tflite_model, test_x=test_x), axis=1)
+    y_true = np.argmax(test_y, axis=-1).flatten()
+
+    y_pred_tfl = np.argmax(tfa.predict_tflite(model_content=tflite_model, test_x=test_x), axis=-1).flatten()
 
     tf_acc = np.sum(y_true == y_pred_tf) / y_true.size
     tf_f1 = f1_score(y_true, y_pred_tf, average="weighted")

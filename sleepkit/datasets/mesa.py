@@ -50,6 +50,7 @@ class MesaDataset:
         self.target_rate = target_rate
         self.ds_path = ds_path / ("mesa-commercial-use" if is_commercial else "mesa")
         self.sleep_mapping = lambda v: {0: 0, 1: 1, 2: 2, 3: 3, 4: 3, 5: 5, 6: 0, 9: 0}.get(v, 0)
+        self.is_commercial = is_commercial
 
     @property
     def subject_ids(self) -> list[str]:
