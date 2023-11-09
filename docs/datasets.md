@@ -8,10 +8,6 @@ Multi-Ethnic Study of Atherosclerosis (MESA) is an NHLBI-sponsored 6-center coll
 
 More info available on [NSRR website](https://sleepdata.org/datasets/mesa)
 
-### Usage
-
-...
-
 ### Funding
 
 The Multi-Ethnic Study of Atherosclerosis (MESA) Sleep Ancillary study was funded by NIH-NHLBI Association of Sleep Disorders with Cardiovascular Health Across Ethnic Groups (RO1 HL098433). MESA is supported by NHLBI funded contracts HHSN268201500003I, N01-HC-95159, N01-HC-95160, N01-HC-95161, N01-HC-95162, N01-HC-95163, N01-HC-95164, N01-HC-95165, N01-HC-95166, N01-HC-95167, N01-HC-95168 and N01-HC-95169 from the National Heart, Lung, and Blood Institute, and by cooperative agreements UL1-TR-000040, UL1-TR-001079, and UL1-TR-001420 funded by NCATS. The National Sleep Research Resource was supported by the National Heart, Lung, and Blood Institute (R24 HL114473, 75N92019R002).
@@ -22,7 +18,7 @@ The STAGES dataset is available for non-commercial and commercial use.
 
 ## STAGES Dataset
 
-## Overview
+### Overview
 
 The Stanford Technology Analytics and Genomics in Sleep (STAGES) study is a prospective cross-sectional, multi-site study involving 20 data collection sites from six centers including Stanford University, Bogan Sleep Consulting, Geisinger Health, Mayo Clinic, MedSleep, and St. Luke's Hospital. The project has collected data on 1,500 adult/adolescent patients evaluated for sleep disorders, including:
 
@@ -39,17 +35,26 @@ The National Sleep Research Resource is grateful to the STAGES team for sharing 
 
 More info available on [NSRR website](https://sleepdata.org/datasets/stages)
 
-### Usage
-
-...
-
 ### Funding
 
 This research has been conducted using the STAGES - Stanford Technology, Analytics and Genomics in Sleep Resource funded by the Klarman Family Foundation. The investigators of the STAGES study contributed to the design and implementation of the STAGES cohort and/or provided data and/or collected biospecimens, but did not necessarily participate in the analysis or writing of this report. The full list of STAGES investigators can be found at the project website.
 
 The National Sleep Research Resource was supported by the U.S. National Institutes of Health, National Heart Lung and Blood Institute (R24 HL114473, 75N92019R002).
 
-
 ### Licensing
 
 The STAGES dataset is available for non-commercial and commercial use.
+
+## YSYW Dataset
+
+### Overview
+
+A total of 1,983 PSG recordings were provided by the Massachusetts General Hospital’s (MGH) Sleep Lab in the Sleep Division together with the Computational Clinical Neurophysiology Laboratory, and the Clinical Data Ani- mation Center. The Partners Institutional Review Board approved retrospective analysis of the MGH dataset with- out requiring additional consent.
+
+### Funding
+
+Funding was from the National Institutes of Health, grant R01-GM104987. We are also grateful to Mathworks and Computing in Cardiology for sponsoring the competi- tion prize money and software licenses.
+
+### Licensing
+
+The YSYW dataset is available commercial use under [Open Data Commons Attribution License](https://physionet.org/content/challenge-2018/view-license/1.0.0/).

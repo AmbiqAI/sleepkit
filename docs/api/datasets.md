@@ -2,7 +2,6 @@
 
 See [Datasets](../datasets.md) for information about available datasets.
 
-
 ::: sleepkit.datasets.defines
 
 ::: sleepkit.datasets.download

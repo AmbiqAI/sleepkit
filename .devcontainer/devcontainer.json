@@ -2,7 +2,6 @@
     "name": "Python 3",
     "image": "mcr.microsoft.com/devcontainers/python:0-3.11",
 
-    // Features: https://containers.dev/features.
     "features": {
         "ghcr.io/devcontainers/features/git:1": {
             "ppa": true,
@@ -13,7 +12,7 @@
             "installNvtx": true,
             "installToolkit": true,
             "cudaVersion": "11.8",
-            "cudnnVersion": "8.6.0.163"
+            "cudnnVersion": "8.7.0.84"
         },
         "ghcr.io/devcontainers-contrib/features/pipenv:2": {
             "version": "latest"
@@ -22,13 +21,6 @@
             "package": "black",
             "version": "latest",
             "injections": "pylint pytest"
-        }
-    },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-toolsai.jupyter"
-            ]
         }
     },
 

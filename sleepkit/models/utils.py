@@ -6,6 +6,7 @@ import pandas as pd
 def make_divisible(v: int, divisor: int = 4, min_value: int | None = None) -> int:
     """Ensure layer has # channels divisble by divisor
        https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet.py
+
     Args:
         v (int): # channels
         divisor (int, optional): Divisor. Defaults to 4.
@@ -78,12 +79,14 @@ def create_predictions_frame(
     record_ids: list[str] | None = None,
 ):
     """Create predictions matrix.
+
     Args:
         y_prob (npt.NDArray): Array of class probabilities of shape (num_samples,) or (num_samples, num_classes).
         y_true (npt.NDArray | None): Integer array with true labels of shape (num_samples,) or (num_samples, num_classes).
         y_pred (npt.NDArray | None): Integer array with class predictions of shape (num_samples,) or (num_samples, num_classes).
         class_names (list[str] | None): Array of class names of shape (num_classes,).
         record_ids (list[str] | None): Array of record names of shape (num_samples,).
+
     Returns:
         pd.DataFrame: Predictions matrix.
     """
@@ -130,8 +133,10 @@ def create_predictions_frame(
 
 def read_predictions(file: str):
     """Read predictions matrix.
+
     Args:
-    file (str): Path to the csv file with predictions.
+        file (str): Path to the csv file with predictions.
+
     Returns:
         Dict[str, any]: Keys: `y_prob`, (optionally) `y_true`, (optionally) `y_pred`, and `classes`.
     """
@@ -161,10 +166,12 @@ def is_multiclass(labels: npt.NDArray) -> bool:
 
 def matches_spec(o, spec, ignore_batch_dim: bool = False):
     """Test whether data object matches the desired spec.
+
     Args:
         o: Data object.
         spec: Metadata for describing the the data object.
         ignore_batch_dim: Ignore first dimension when checking shapes.
+
     Returns:
         bool: If matches
     """

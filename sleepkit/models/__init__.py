@@ -3,5 +3,7 @@ from .mobileone import MobileOne, MobileOneU0
 from .multiresnet import MultiresNet, MultiresNetParams
 from .resnet import ResNet, ResNetBlockParams, ResNetParams
 from .tflstm import TFLstm, TFLstmParams
+from .tcn import Tcn, TcnBlockParams, TcnParams
 from .unet import UNet, UNetBlockParams, UNetParams
 from .unext import UNext, UNextBlockParams, UNextParams
+from .factory import generate_model

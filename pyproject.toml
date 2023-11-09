@@ -64,12 +64,13 @@ mkdocs = "^1.5.3"
 mkdocs-material = "^9.4.6"
 mkdocstrings-python = "^1.7.3"
 markdown-include = "^0.8.1"
+mkdocs-exclude = "^1.0.2"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.13.2"
 wfdb = "^4.1.1"
 jupyterlab = "^4.0.0"
-tensorboard-plugin-profile = "^2.13.0"
+tensorboard-plugin-profile = "^2.14.0"
 pylint = "^3.0.1"
 
 [build-system]

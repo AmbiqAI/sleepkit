@@ -20,65 +20,49 @@
 #include "ns_peripherals_power.h"
 #include "ns_rpc_generic_data.h"
 #include "ns_usb.h"
-
+// TFLM
+#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+#include "tensorflow/lite/micro/system_setup.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 // Locals
 #include "constants.h"
-#include "sleepkit.h"
 #include "main.h"
-#include "sensor.h"
-#include "physiokit.h"
 
-// Application globals
-static uint32_t numSamples = 0;
-
-static bool usbAvailable = false;
-static int volatile sensorCollectBtnPressed = false;
-static int volatile clientCollectBtnPressed = false;
-
-static float32_t ppg1Data[SK_SENSOR_LEN];
-static float32_t ppg2Data[SK_SENSOR_LEN];
-static float32_t ecgData[SK_SENSOR_LEN];
-
-
+static bool modelInitialized = false;
+static uint32_t inputIdx = 0;
+static uint32_t modelIdx = 0;
 static AppState state = IDLE_STATE;
-static DataCollectMode collectMode = SENSOR_DATA_COLLECT;
 
-const ns_power_config_t ns_pwr_config = {.api = &ns_power_V1_0_0,
-                                         .eAIPowerMode = NS_MINIMUM_PERF,
-                                         .bNeedAudAdc = false,
-                                         .bNeedSharedSRAM = false,
-                                         .bNeedCrypto = true,
-                                         .bNeedBluetooth = false,
-                                         .bNeedUSB = true,
-                                         .bNeedIOM = false, // We will manually enable IOM0
-                                         .bNeedAlternativeUART = false,
-                                         .b128kTCM = false};
+// Model variables
+static TfLiteTensor *inputs;
+static TfLiteTensor *outputs;
+static tflite::ErrorReporter *errorReporter = nullptr;
+constexpr int tensorArenaSize = 1024 * MAX_ARENA_SIZE;
+alignas(16) static uint8_t tensorArena[tensorArenaSize];
+const tflite::Model *model;
+unsigned char modelBuffer[MAX_MODEL_SIZE];
 
-//*****************************************************************************
-//*** Peripheral Configs
-ns_button_config_t button_config = {.api = &ns_button_V1_0_0,
-                                    .button_0_enable = true,
-                                    .button_1_enable = true,
-                                    .button_0_flag = &sensorCollectBtnPressed,
-                                    .button_1_flag = &clientCollectBtnPressed};
+static tflite::MicroInterpreter *interpreter;
+static tflite::AllOpsResolver opResolver;
+static tflite::MicroErrorReporter microErrorReporter;
 
-// Handle TinyUSB events
-void
-tud_mount_cb(void) {
-    usbAvailable = true;
-}
-void
-tud_resume_cb(void) {
-    usbAvailable = true;
-}
-void
-tud_umount_cb(void) {
-    usbAvailable = false;
-}
-void
-tud_suspend_cb(bool remote_wakeup_en) {
-    usbAvailable = false;
-}
+const ns_power_config_t ns_pwr_config = {
+    .api = &ns_power_V1_0_0,
+    .eAIPowerMode = NS_MINIMUM_PERF,
+    .bNeedAudAdc = false,
+    .bNeedSharedSRAM = false,
+    .bNeedCrypto = true,
+    .bNeedBluetooth = false,
+    .bNeedUSB = true,
+    .bNeedIOM = false,
+    .bNeedAlternativeUART = false,
+    .b128kTCM = false
+};
+
 
 void
 gpio_init(uint32_t pin, uint32_t mode) {
@@ -99,6 +83,38 @@ gpio_read(uint32_t pin, uint32_t mode, uint32_t value) {
         AM_HAL_GPIO_INPUT_READ : mode == 1 ?
         AM_HAL_GPIO_OUTPUT_READ : AM_HAL_GPIO_INPUT_READ;
     return am_hal_gpio_state_read(pin, readMode, &value);
+}
+
+uint32_t
+setup_model() {
+    size_t bytesUsed;
+    TfLiteStatus allocateStatus;
+    errorReporter = &microErrorReporter;
+
+    tflite::InitializeTarget();
+
+    model = tflite::GetModel(modelBuffer);
+    if (model->version() != TFLITE_SCHEMA_VERSION) {
+        TF_LITE_REPORT_ERROR(errorReporter, "Schema mismatch: given=%d != expected=%d.", model->version(), TFLITE_SCHEMA_VERSION);
+        return 1;
+    }
+    static tflite::MicroInterpreter tflm_interpreter(model, opResolver, tensorArena, tensorArenaSize, errorReporter);
+    interpreter = &tflm_interpreter;
+
+    allocateStatus = interpreter->AllocateTensors();
+    if (allocateStatus != kTfLiteOk) {
+        TF_LITE_REPORT_ERROR(errorReporter, "AllocateTensors() failed");
+        return 1;
+    }
+    bytesUsed = interpreter->arena_used_bytes();
+    if (bytesUsed > tensorArenaSize) {
+        TF_LITE_REPORT_ERROR(errorReporter, "Arena mismatch: given=%d < expected=%d bytes.", tensorArenaSize, bytesUsed);
+        return 1;
+    }
+    inputs = interpreter->input(0);
+    outputs = interpreter->output(0);
+    modelInitialized = true;
+    return 0;
 }
 
 void
@@ -124,6 +140,94 @@ sleep_us(uint32_t time) {
     }
 }
 
+status ns_rpc_data_to_evb_cb(const dataBlock *block) {
+    /**
+     * @brief Callback for sending data block to EVB
+     * @param block Data block to send
+     * @return status
+     */
+
+    // Receive model
+    if (block->cmd == 0) {
+        memcpy((void *)&modelBuffer[modelIdx], block->buffer.data, block->buffer.dataLength);
+        modelIdx += block->buffer.dataLength;
+        if (modelIdx >= MAX_MODEL_SIZE) {
+            ns_printf("Received model\n");
+            setup_model();
+            modelIdx = 0;
+            state = IDLE_STATE;
+        }
+    }
+
+    // Receive inputs
+    if (block->cmd == 1) {
+        memcpy((void *)&(inputs->data.uint8[inputIdx]), block->buffer.data, block->buffer.dataLength);
+        inputIdx += block->buffer.dataLength;
+        if (inputIdx >= inputs->bytes) {
+            ns_printf("Received inputs\n");
+            inputIdx = 0;
+            state = IDLE_STATE;
+        }
+    }
+
+    // Perform inference
+    if (block->cmd == 4 && modelInitialized) {
+        state = INFERENCE_STATE;
+    }
+
+    return ns_rpc_data_success;
+}
+
+
+status ns_rpc_data_from_evb_cb(dataBlock *block) {
+    /**
+     * @brief Callback for fetching data block from EVB
+     * @param block Data block to fetch
+     * @return status
+    */
+    static char rpcOutputsDesc[] = "OUTPUTS";
+    static char rpcStateDesc[] = "STATE";
+    dataBlock commandBlock = {
+        .length = 0,
+        .dType = uint8_e,
+        .description = NULL,
+        .cmd = generic_cmd,
+        .buffer = {
+            .data = NULL,
+            .dataLength = 0,
+        }
+    };
+
+    // Send outputs
+    if (block->cmd == 2) {
+        commandBlock.description = rpcOutputsDesc;
+        for (size_t i = 0; i < outputs->bytes; i += RPC_BUF_LEN) {
+            uint32_t numSamples = MIN(outputs->bytes - i, RPC_BUF_LEN);
+            commandBlock.length = i;
+            commandBlock.buffer.data = (uint8_t *)(&outputs->data.uint8[i]);
+            commandBlock.buffer.dataLength = numSamples * sizeof(uint8_t);
+            ns_rpc_data_sendBlockToPC(&commandBlock);
+            ns_delay_us(200);
+        }
+    }
+
+    // Send state
+    if (block->cmd == 3) {
+        commandBlock.description = rpcStateDesc;
+        commandBlock.length = 0;
+        commandBlock.buffer.data = (uint8_t *)(&state);
+        commandBlock.buffer.dataLength = sizeof(AppState);
+        ns_rpc_data_sendBlockToPC(&commandBlock);
+    }
+
+    return ns_rpc_data_success;
+}
+
+status ns_rpc_data_compute_on_evb_cb(const dataBlock *in_block, dataBlock *result_block) {
+
+    return ns_rpc_data_success;
+}
+
 void
 init_rpc(void) {
     /**
@@ -131,10 +235,10 @@ init_rpc(void) {
      *
      */
     ns_rpc_config_t rpcConfig = {.api = &ns_rpc_gdo_V1_0_0,
-                                 .mode = NS_RPC_GENERICDATA_CLIENT,
-                                 .sendBlockToEVB_cb = NULL,
-                                 .fetchBlockFromEVB_cb = NULL,
-                                 .computeOnEVB_cb = NULL};
+                                 .mode = NS_RPC_GENERICDATA_SERVER,
+                                 .sendBlockToEVB_cb = ns_rpc_data_to_evb_cb,
+                                 .fetchBlockFromEVB_cb = ns_rpc_data_from_evb_cb,
+                                 .computeOnEVB_cb = ns_rpc_data_compute_on_evb_cb};
     ns_rpc_genericDataOperations_init(&rpcConfig);
 }
 
@@ -144,156 +248,8 @@ print_to_pc(const char *msg) {
      * @brief Print to PC over RPC
      *
      */
-    if (usbAvailable) {
-        ns_rpc_data_remotePrintOnPC(msg);
-    }
+    // ns_rpc_data_remotePrintOnPC(msg);
     ns_printf(msg);
-}
-
-void
-start_collecting(void) {
-    /**
-     * @brief Setup sensor for collecting
-     *
-     */
-    if (collectMode == SENSOR_DATA_COLLECT) {
-        start_sensor();
-        // Discard first second for sensor warm up time
-        for (size_t i = 0; i < 25; i++) {
-            capture_sensor_data(ppg1Data, ppg2Data, ecgData, NULL, 32);
-            sleep_us(40000);
-        }
-    }
-    numSamples = 0;
-}
-
-void
-stop_collecting(void) {
-    /**
-     * @brief Disable sensor
-     *
-     */
-    if (collectMode == SENSOR_DATA_COLLECT) {
-        stop_sensor();
-    }
-    numSamples = 0;
-}
-
-uint32_t
-fetch_samples_from_pc(float32_t *samples, uint32_t offset, uint32_t numSamples) {
-    /**
-     * @brief Fetch samples from PC over RPC
-     * @param samples Buffer to store samples
-     * @param offset Buffer offset
-     * @param numSamples # requested samples
-     * @return # samples actually fetched
-     */
-    static char rpcFetchSamplesDesc[] = "FETCH_SAMPLES";
-    int err;
-    if (!usbAvailable) {
-        return 0;
-    }
-    binary_t binaryBlock = {
-        .data = (uint8_t *)(&samples[offset]),
-        .dataLength = numSamples * sizeof(float32_t),
-    };
-    dataBlock resultBlock = {
-        .length = numSamples, .dType = float32_e, .description = rpcFetchSamplesDesc, .cmd = generic_cmd, .buffer = binaryBlock};
-    err = ns_rpc_data_computeOnPC(&resultBlock, &resultBlock);
-    if (resultBlock.description != rpcFetchSamplesDesc) {
-        ns_free(resultBlock.description);
-    }
-    if (resultBlock.buffer.data != (uint8_t *)&samples[offset]) {
-        ns_free(resultBlock.buffer.data);
-    }
-    if (err) {
-        ns_printf("Failed fetching from PC w/ error: %x\n", err);
-        return 0;
-    }
-    memcpy(&samples[offset], resultBlock.buffer.data, resultBlock.buffer.dataLength);
-    return resultBlock.buffer.dataLength / sizeof(float32_t);
-}
-
-void
-send_samples_to_pc(float32_t *samples, uint32_t offset, uint32_t numSamples) {
-    /**
-     * @brief Send sensor samples to PC
-     * @param samples Samples to send
-     * @param offset Buffer offset
-     * @param numSamples # samples to send
-     */
-    static char rpcSendSamplesDesc[] = "SEND_SAMPLES";
-    if (!usbAvailable) {
-        return;
-    }
-    binary_t binaryBlock = {
-        .data = (uint8_t *)(&samples[offset]),
-        .dataLength = numSamples * sizeof(float32_t),
-    };
-    dataBlock commandBlock = {
-        .length = offset, .dType = float32_e, .description = rpcSendSamplesDesc, .cmd = generic_cmd, .buffer = binaryBlock};
-    ns_rpc_data_sendBlockToPC(&commandBlock);
-}
-
-// void
-// send_mask_to_pc(uint8_t *mask, uint32_t offset, uint32_t maskLen) {
-//     /**
-//      * @brief Send mask to PC
-//      */
-//     static char rpcSendMaskDesc[] = "SEND_MASK";
-//     if (!usbAvailable) {
-//         return;
-//     }
-//     binary_t binaryBlock = {
-//         .data = mask,
-//         .dataLength = maskLen * sizeof(uint8_t),
-//     };
-//     dataBlock commandBlock = {
-//         .length = offset, .dType = uint8_e, .description = rpcSendMaskDesc, .cmd = generic_cmd, .buffer = binaryBlock};
-//     ns_rpc_data_sendBlockToPC(&commandBlock);
-// }
-
-// void
-// send_results_to_pc(hk_result_t *result) {
-//     /**
-//      * @brief Send results to PC
-//      */
-//     static char rpcSendResultsDesc[] = "SEND_RESULTS";
-//     hk_print_result(result);
-//     if (!usbAvailable) {
-//         return;
-//     }
-//     binary_t binaryBlock = {
-//         .data = (uint8_t *)result,
-//         .dataLength = sizeof(hk_result_t),
-//     };
-//     dataBlock commandBlock = {.length = 1, .dType = uint32_e, .description = rpcSendResultsDesc, .cmd = generic_cmd, .buffer = binaryBlock};
-//     ns_rpc_data_sendBlockToPC(&commandBlock);
-// }
-
-uint32_t
-collect_samples() {
-    /**
-     * @brief Collect samples from sensor or PC
-     * @return # new samples collected
-     */
-    uint32_t newSamples = 0;
-    uint32_t reqSamples = MIN(SK_SENSOR_LEN - numSamples, 32);
-    if (numSamples == SK_SENSOR_LEN) {
-        return newSamples;
-    }
-    if (collectMode == CLIENT_DATA_COLLECT) {
-        newSamples = reqSamples;
-        // newSamples = fetch_samples_from_pc(hkData, numSamples, reqSamples);
-    } else if (collectMode == SENSOR_DATA_COLLECT) {
-        newSamples = capture_sensor_data(&ppg1Data[numSamples], &ppg2Data[numSamples], &ecgData[numSamples], NULL, reqSamples);
-        sleep_us(40000);
-        if (newSamples) {
-            // send_samples_to_pc(hkData, numSamples, newSamples);
-        }
-    }
-    numSamples += newSamples;
-    return newSamples;
 }
 
 void
@@ -316,24 +272,18 @@ setup() {
      *
      */
     // Power configuration (mem, cache, peripherals, clock)
-    uint32_t err = 0;
     ns_core_config_t ns_core_cfg = {.api = &ns_core_V1_0_0};
     ns_core_init(&ns_core_cfg);
     ns_power_config(&ns_pwr_config);
-    am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM0);
     gpio_init(GPIO_TRIGGER, 1);
-    gpio_write(GPIO_TRIGGER, 0);
     // Enable Interrupts
     am_hal_interrupt_master_enable();
     // Enable SWO/USB
     wakeup();
     // Initialize blocks
     init_rpc();
-    err |= init_sensor();
-    err |= init_sleepkit();
-    err |= ns_peripheral_button_init(&button_config);
-    ns_printf("😴 SleepKit Demo\n\n");
-    ns_printf("Please select data collection options:\n\n\t1. BTN1=sensor\n\t2. BTN2=client\n");
+    // err |= ns_peripheral_button_init(&button_config);
+    ns_printf("😴 SleepKit demo running...\n\n");
 }
 
 void
@@ -345,75 +295,19 @@ loop() {
     static uint32_t app_err = 0;
     switch (state) {
     case IDLE_STATE:
-        if (sensorCollectBtnPressed | clientCollectBtnPressed) {
-            collectMode = sensorCollectBtnPressed ? SENSOR_DATA_COLLECT : CLIENT_DATA_COLLECT;
-            wakeup();
-            state = START_COLLECT_STATE;
+        if (true) {
         } else {
             ns_printf("IDLE_STATE\n");
             deepsleep();
         }
         break;
 
-    case START_COLLECT_STATE:
-        print_to_pc("COLLECT_STATE\n");
-        sensorCollectBtnPressed = false; // DEBOUNCE
-        clientCollectBtnPressed = false; // DEBOUNCE
-        start_collecting();
-        state = COLLECT_STATE;
-        break;
-
-    case COLLECT_STATE:
-        collect_samples();
-        if (numSamples >= SK_SENSOR_LEN) {
-            state = STOP_COLLECT_STATE;
-        }
-        break;
-
-    case STOP_COLLECT_STATE:
-        stop_collecting();
-        // am_hal_pwrctrl_mcu_mode_select(AM_HAL_PWRCTRL_MCU_MODE_HIGH_PERFORMANCE);
-        state = PREPROCESS_STATE;
-        break;
-
-    case PREPROCESS_STATE:
-        print_to_pc("PREPROCESS_STATE\n");
-        gpio_write(GPIO_TRIGGER, 1);
-        if (collectMode == SENSOR_DATA_COLLECT) {
-            pk_linear_downsample(ppg1Data, SK_SENSOR_LEN, SENSOR_RATE, ppg1Data, SK_DATA_LEN, SAMPLE_RATE);
-            pk_linear_downsample(ppg2Data, SK_SENSOR_LEN, SENSOR_RATE, ppg2Data, SK_DATA_LEN, SAMPLE_RATE);
-            pk_linear_downsample(ecgData, SK_SENSOR_LEN, SENSOR_RATE, ecgData, SK_DATA_LEN, SAMPLE_RATE);
-        }
-        sk_preprocess(ppg1Data, ppg2Data, ecgData, SK_DATA_LEN);
-        gpio_write(GPIO_TRIGGER, 0);
-        state = INFERENCE_STATE;
-        break;
-
     case INFERENCE_STATE:
-        print_to_pc("INFERENCE_STATE\n");
-        // app_err = hk_run(hkData, hkSegMask, &hkResults);
-        // am_hal_pwrctrl_mcu_mode_select(AM_HAL_PWRCTRL_MCU_MODE_LOW_POWER);
-        state = app_err == 1 ? FAIL_STATE : DISPLAY_STATE;
-        break;
-
-    case DISPLAY_STATE:
-        // for (size_t i = 0; i < SK_DATA_LEN; i += SAMPLE_RATE) {
-        //     uint32_t maskLen = MIN(SK_DATA_LEN - i, SAMPLE_RATE);
-        //     send_mask_to_pc(&hkSegMask[i], i, maskLen);
-        // }
-        // send_results_to_pc(&hkResults);
-        ns_delay_us(10000);
-        print_to_pc("DISPLAY_STATE\n");
-        ns_delay_us(DISPLAY_LEN_USEC);
-
-        // am_hal_pwrctrl_mcu_mode_select(AM_HAL_PWRCTRL_MCU_MODE_LOW_POWER);
-        if (sensorCollectBtnPressed | clientCollectBtnPressed) {
-            sensorCollectBtnPressed = false;
-            clientCollectBtnPressed = false;
-            state = IDLE_STATE;
-        } else {
-            state = IDLE_STATE; // START_COLLECT_STATE;
-        }
+        ns_printf("INFERENCE_STATE\n");
+        gpio_write(GPIO_TRIGGER, 0);
+        interpreter->Invoke();
+        gpio_write(GPIO_TRIGGER, 1);
+        state = IDLE_STATE;
         break;
 
     case FAIL_STATE:

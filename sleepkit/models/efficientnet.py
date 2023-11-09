@@ -80,7 +80,7 @@ def EfficientNetV2(
     else:
         y = x
 
-    # END IF    # Stem
+    # END IF
     if params.input_filters > 0:
         name = "stem"
         filters = make_divisible(params.input_filters, 8)

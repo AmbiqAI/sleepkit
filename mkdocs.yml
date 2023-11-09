@@ -9,11 +9,14 @@ nav:
   - SleepKit: index.md
   - Overview: overview.md
   - Datasets: datasets.md
-  - Tasks:
-    - Sleep Staging: sleepstages.md
-  - Architecture: architecture.md
   - Results: results.md
-
+  - Sleep Staging:
+    - Overview: ./stages/overview.md
+    - Background: ./stages/background.md
+    - Methods: ./stages/methods.md
+    - Model: ./stages/architecture.md
+    - Results: ./stages/results.md
+    - Experiments: ./stages/experiments.md
   - Tutorials:
     - SleepKit Demo: demo.md
   - API:
@@ -85,7 +88,8 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: 'docs/'
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid

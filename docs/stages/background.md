@@ -1,11 +1,4 @@
-# Sleep Stage Assessment
-
-PSG is the gold standard for sleep stage assessment. A PSG study typically involves monitoring numerous phsyiological signals including EEG, EOG, EMG, ECG, airflow, respiratory effort, oxygen saturation, body position, snoring, and limb movements.
-
-<figure markdown>
-  ![Sleep Stage](./assets/sleep-stage.svg){ width="540" }
-  <figcaption>Sleep Stage</figcaption>
-</figure>
+# Background
 
 ## Stages
 

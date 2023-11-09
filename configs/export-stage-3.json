@@ -8,9 +8,9 @@
         "label_key": "labels",
         "mask_key": "mask"
     },
-    "frame_size": 128,
-    "samples_per_subject": 10,
-    "test_size": 1000,
+    "frame_size": 240,
+    "samples_per_subject": 20,
+    "test_size": 7000,
     "model_file": "./results/sleep-stage-3/model.tf",
     "val_acc_threshold": 0.98,
     "use_logits": true,

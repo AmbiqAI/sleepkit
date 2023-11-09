@@ -109,7 +109,7 @@ def confusion_matrix_plot(
         fmt = ""
     # END IF
     fig, ax = plt.subplots(figsize=kwargs.get("figsize", (10, 8)))
-    sns.heatmap(cmn, xticklabels=labels, yticklabels=labels, annot=ann, fmt=fmt, ax=ax)
+    sns.heatmap(cmn, xticklabels=labels, yticklabels=labels, annot=ann, fmt=fmt, ax=ax, vmin=0, vmax=0.9)
     ax.set_xlabel("Prediction")
     ax.set_ylabel("Label")
     if save_path:

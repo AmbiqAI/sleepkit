@@ -9,6 +9,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import sklearn.model_selection
+import sklearn.metrics
 import sklearn.utils
 import tensorflow as tf
 import tensorflow_model_optimization as tfmot
@@ -37,13 +38,10 @@ from .metrics import (
     f1_score,
 )
 from .models import (
-    EfficientNetParams,
-    EfficientNetV2,
-    UNet,
-    UNetParams,
-    UNext,
-    UNextBlockParams,
-    UNextParams,
+    generate_model,
+    Tcn,
+    TcnParams,
+    TcnBlockParams
 )
 from .utils import env_flag, set_random_seed, setup_logger
 
@@ -63,66 +61,30 @@ def create_model(
     Returns:
         tf.keras.Model: Model
     """
-    if name and params is None:
-        raise ValueError("Model parameters must be provided if model name is provided")
-
-    if name == "unet":
-        return UNet(x=inputs, params=UNetParams.parse_obj(params), num_classes=num_classes)
-
-    if name == "unext":
-        return UNext(x=inputs, params=UNextParams.parse_obj(params), num_classes=num_classes)
-
-    if name == "efficientnetv2":
-        return EfficientNetV2(x=inputs, params=EfficientNetParams.parse_obj(params), num_classes=num_classes)
-
-    if name == "lstm":
-        y = inputs
-        y = tf.keras.layers.Reshape((1,) + y.shape[1:])(y)
-        y = tf.keras.layers.DepthwiseConv2D(kernel_size=(1, 5), padding="same")(y)
-        y = tf.keras.layers.LayerNormalization(axis=[2])(y)
-        y = tf.keras.layers.Activation("relu6")(y)
-
-        y = tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 5), padding="same")(y)
-        y = tf.keras.layers.LayerNormalization(axis=[2])(y)
-        y = tf.keras.layers.Activation("relu6")(y)
-
-        y = tf.keras.layers.Reshape(y.shape[2:])(y)
-
-        y = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=40, return_sequences=True))(y)
-        y = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=48, return_sequences=True))(y)
-        y = tf.keras.layers.LayerNormalization(axis=[1])(y)
-
-        y = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(56))(y)
-        y = tf.keras.layers.LayerNormalization(axis=[1])(y)
-        y = tf.keras.layers.Activation("relu6")(y)
-
-        y = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(num_classes))(y)
-        model = tf.keras.models.Model(inputs, y)
-        return model
-
     if name:
-        raise ValueError(f"No network architecture with name {name}")
+        return generate_model(inputs=inputs, num_classes=num_classes, name=name, params=params)
 
-    # Otherwise, use default
-    return UNext(
+    return Tcn(
         x=inputs,
-        params=UNextParams(
+        params=TcnParams(
+            input_kernel=(1, 5),
+            input_norm="batch",
             blocks=[
-                UNextBlockParams(
-                    filters=24, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=1, dropout=0.1
-                ),
-                UNextBlockParams(
-                    filters=32, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0.1
-                ),
-                UNextBlockParams(
-                    filters=48, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0.1
-                ),
+                TcnBlockParams(
+                    filters=64,
+                    kernel=(1, 5),
+                    dilation=(1, 2**d),
+                    dropout=0.1,
+                    ex_ratio=1,
+                    se_ratio=4,
+                    norm="batch"
+                ) for d in range(4)
             ],
-            output_kernel_size=5,
+            output_kernel=(1, 5),
             include_top=True,
-            use_logits=False,
-        ),
-        num_classes=num_classes,
+            use_logits=True,
+            model_name="tcn"
+        )
     )
 
 
@@ -361,14 +323,17 @@ def train(params: SKTrainParams):
     class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
     ds = load_dataset(
-        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
+        handler=params.ds_handler,
+        ds_path=params.ds_path,
+        frame_size=params.frame_size,
+        params=params.ds_params
     )
     feat_shape = ds.feature_shape
     class_shape = (params.frame_size, len(target_classes))
 
     # Get train/val subject IDs and generators
     train_subject_ids, val_subject_ids = sklearn.model_selection.train_test_split(
-        ds.subject_ids, test_size=params.val_subjects
+        ds.train_subject_ids, test_size=params.val_subjects
     )
     logger.info("Loading training dataset")
     train_ds = load_train_dataset(
@@ -534,6 +499,7 @@ def evaluate(params: SKTestParams):
         params (SKTestParams): Testing/evaluation parameters
     """
     params.num_sleep_stages = getattr(params, "num_sleep_stages", 3)
+    params.seed = set_random_seed(params.seed)
 
     logger.info(f"Creating working directory in {params.job_dir}")
     os.makedirs(params.job_dir, exist_ok=True)
@@ -542,17 +508,18 @@ def evaluate(params: SKTestParams):
     handler.setLevel(logging.INFO)
     logger.addHandler(handler)
 
-    params.seed = set_random_seed(params.seed)
     logger.info(f"Random seed {params.seed}")
 
     class_names = get_sleep_stage_class_names(params.num_sleep_stages)
     class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
     ds = load_dataset(
-        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
+        handler=params.ds_handler,
+        ds_path=params.ds_path,
+        frame_size=params.frame_size,
+        params=params.ds_params
     )
-    feat_shape = ds.feature_shape
-    test_true, test_pred = [], []
+    test_true, test_pred, test_prob = [], [], []
     pt_metrics = []
 
     strategy = tfa.get_strategy()
@@ -563,22 +530,24 @@ def evaluate(params: SKTestParams):
         model.summary(print_fn=logger.info)
         logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
-        logger.info("Performing inference")
+        logger.info("Performing full inference")
         for subject_id in tqdm(ds.test_subject_ids, desc="Subject"):
             features, labels, mask = ds.load_subject_data(subject_id=subject_id, normalize=True)
             num_windows = int(features.shape[0] // params.frame_size)
             data_len = params.frame_size * num_windows
 
-            x = features[:data_len, :].reshape((num_windows, params.frame_size) + feat_shape[1:])
+            x = features[:data_len, :].reshape((num_windows, params.frame_size) + ds.feature_shape[1:])
             m = mask[:data_len].reshape((num_windows, params.frame_size))
             # m[:, :64] = 0 # Ignore first N samples
             y_prob = tf.nn.softmax(model.predict(x, verbose=0)).numpy()
             y_pred = np.argmax(y_prob, axis=-1).flatten()
+            y_prob = y_prob.reshape((-1, y_prob.shape[-1]))
             # y_mask = mask[:data_len].flatten()
             y_mask = m.flatten()
             y_true = np.vectorize(class_mapping.get)(labels[:data_len].flatten())
             y_pred = y_pred[y_mask == 1]
             y_true = y_true[y_mask == 1]
+            y_prob = y_prob[y_mask == 1]
 
             # Get subject specific metrics
             pred_sleep_durations = compute_sleep_stage_durations(y_pred)
@@ -588,16 +557,20 @@ def evaluate(params: SKTestParams):
             act_sleep_tst = compute_total_sleep_time(act_sleep_duration, class_mapping)
             act_sleep_eff = compute_sleep_efficiency(act_sleep_duration, class_mapping)
             pt_acc = np.sum(y_pred == y_true) / y_true.size
-            pt_metrics.append([pt_acc, act_sleep_eff, pred_sleep_eff, act_sleep_tst, pred_sleep_tst])
+            pt_metrics.append([subject_id, pt_acc, act_sleep_eff, pred_sleep_eff, act_sleep_tst, pred_sleep_tst])
             test_true.append(y_true)
             test_pred.append(y_pred)
+            test_prob.append(y_prob)
         # END FOR
-
         test_true = np.concatenate(test_true)
         test_pred = np.concatenate(test_pred)
+        test_prob = np.vstack(test_prob)
 
-        df_metrics = pd.DataFrame(pt_metrics, columns=["acc", "act_eff", "pred_eff", "act_tst", "pred_tst"])
+        df_metrics = pd.DataFrame(pt_metrics, columns=["subject", "acc", "act_eff", "pred_eff", "act_tst", "pred_tst"])
         df_metrics.to_csv(params.job_dir / "metrics.csv", header=True, index=False)
+
+        df_results = pd.DataFrame(dict(y_true=test_true, y_pred=test_pred))
+        df_results.to_csv(params.job_dir / "results.csv", header=True, index=False)
 
         confusion_matrix_plot(
             y_true=test_true,
@@ -611,8 +584,10 @@ def evaluate(params: SKTestParams):
         logger.info("Testing Results")
         test_acc = np.sum(test_pred == test_true) / test_true.size
         test_f1 = f1_score(y_true=test_true, y_pred=test_pred, average="weighted")
+        y_scores = test_prob[:, 1] if params.num_sleep_stages == 2 else test_prob
+        test_ap = sklearn.metrics.average_precision_score(y_true=test_true, y_score=y_scores, average="weighted")
         test_iou = compute_iou(test_true, test_pred, average="weighted")
-        logger.info(f"[TEST SET] ACC={test_acc:.2%}, F1={test_f1:.2%} IoU={test_iou:0.2%}")
+        logger.info(f"[TEST SET] ACC={test_acc:.2%}, F1={test_f1:.2%}, AP={test_ap:0.2%}, IoU={test_iou:0.2%}")
     # END WITH
 
 
@@ -624,6 +599,13 @@ def export(params: SKExportParams):
     """
     params.num_sleep_stages = getattr(params, "num_sleep_stages", 3)
 
+    logger.info(f"Creating working directory in {params.job_dir}")
+    os.makedirs(params.job_dir, exist_ok=True)
+
+    handler = logging.FileHandler(params.job_dir / "export.log", mode="w")
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
+
     target_classes = get_sleep_stage_classes(params.num_sleep_stages)
     class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
@@ -634,9 +616,12 @@ def export(params: SKExportParams):
     # class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
     ds = load_dataset(
-        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
+        handler=params.ds_handler,
+        ds_path=params.ds_path,
+        frame_size=params.frame_size,
+        params=params.ds_params
     )
-    feat_shape = ds.feature_shape
+
     class_shape = (params.frame_size, len(target_classes))
 
     test_x, test_y = load_test_dataset(
@@ -644,7 +629,7 @@ def export(params: SKExportParams):
         subject_ids=ds.test_subject_ids,
         samples_per_subject=params.samples_per_subject,
         test_size=params.test_size,
-        feat_shape=feat_shape,
+        feat_shape=ds.feature_shape,
         class_shape=class_shape,
         class_map=class_mapping,
     )
@@ -655,7 +640,7 @@ def export(params: SKExportParams):
         logger.info("Loading trained model")
         model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
 
-        inputs = tf.keras.layers.Input(feat_shape, dtype=tf.float32, batch_size=1)
+        inputs = tf.keras.layers.Input(ds.feature_shape, dtype=tf.float32, batch_size=1)
         outputs = model(inputs)
         if not params.use_logits and not isinstance(model.layers[-1], tf.keras.layers.Softmax):
             outputs = tf.keras.layers.Softmax()(outputs)
@@ -669,14 +654,14 @@ def export(params: SKExportParams):
 
         logger.info(f"Converting model to TFLite (quantization={params.quantization})")
 
-        # if params.quantization:
-        #     _, quant_df = tfa.debug_quant_tflite(
-        #         model=model,
-        #         test_x=test_x,
-        #         input_type=tf.int8 if params.quantization else None,
-        #         output_type=tf.int8 if params.quantization else None,
-        #     )
-        #     quant_df.to_csv(params.job_dir / "quant.csv")
+        if params.quantization:
+            _, quant_df = tfa.debug_quant_tflite(
+                model=model,
+                test_x=test_x,
+                input_type=tf.int8 if params.quantization else None,
+                output_type=tf.int8 if params.quantization else None,
+            )
+            quant_df.to_csv(params.job_dir / "quant.csv")
 
         tflite_model = tfa.convert_tflite(
             model=model,

@@ -8,6 +8,6 @@
         "label_key": "labels",
         "mask_key": "mask"
     },
-    "frame_size": 128,
+    "frame_size": 240,
     "model_file": "./results/sleep-stage-4/model.tf"
 }

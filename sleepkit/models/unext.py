@@ -57,6 +57,7 @@ def se_block(ratio: int = 8, name: str | None = None):
 
 
 def layer_norm(epsilon: float = 1e-3) -> KerasLayer:
+    """Layer normalization"""
     def layer(x: tf.Tensor) -> tf.Tensor:
         # Compute mean for each channel
         mu = tf.math.reduce_mean(x, axis=1, keepdims=True)
@@ -77,7 +78,7 @@ def UNext_block(
     dropout: float|None = 0,
     norm: Literal["batch", "layer"] | None = "batch",
     name: str | None = None,
-):
+) -> KerasLayer:
     """Create UNext block"""
 
     def layer(x: tf.Tensor) -> tf.Tensor:
@@ -230,17 +231,6 @@ def unext_core(
                 name=f"{name}.D{d+1}",
             )(y)
         # END FOR
-
-        # Upsample using transposed conv
-        # y = tf.keras.layers.Conv1DTranspose(
-        #     filters=block.filters,
-        #     kernel_size=block.pool,
-        #     strides=block.strides,
-        #     padding="same",
-        #     kernel_initializer="he_normal",
-        #     kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-        #     name=f"{name}.unpool",
-        # )(y)
 
         y = tf.keras.layers.Conv2D(
             filters=block.filters,

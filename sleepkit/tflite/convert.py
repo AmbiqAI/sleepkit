@@ -67,7 +67,7 @@ def xxd_c_dump(
     Args:
         src_path (PathLike): Binary file source path
         dst_path (PathLike): C file destination path
-        var_name (str, optional): C variable name. Defaults to 'g_model'.
+        var_name (str, optional): C variable name. Defaults to 'tflm_model'.
         chunk_len (int, optional): # of elements per row. Defaults to 12.
         is_header (bool): Write as header or source C file. Defaults to source.
     """
@@ -164,8 +164,9 @@ def debug_quant_tflite(
 
     # Debug model
     debugger = tf.lite.experimental.QuantizationDebugger(converter=converter, debug_dataset=rep_dataset)
-
     debugger.run()
+
+    # Capture layer statistics
     with io.StringIO() as f:
         debugger.layer_statistics_dump(f)
         f.seek(0)
@@ -227,7 +228,6 @@ def predict_tflite(
         outputs = outputs.astype(np.float32)
         outputs = (outputs - output_zero_point[0]) * output_scale[0]
 
-    print(input_zero_point, input_scale, output_zero_point, output_scale)
     return outputs
 
 

@@ -66,7 +66,7 @@ class Hdf5Dataset(SKDataset):
         """
         return self.subject_ids[int(0.8 * len(self.subject_ids)) :]
 
-    @property
+    @functools.cached_property
     def feature_shape(self) -> tuple[int, ...]:
         """Get feature shape.
 
@@ -145,24 +145,25 @@ class Hdf5Dataset(SKDataset):
         epsilon: float = 1e-3
     ) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]:
 
-        mask_x = x[mask == 1, ] if mask is not None else x
+        if self.feat_cols:
+            x = x[:, self.feat_cols]
+
+        mask_x = x[mask == 1] if mask is not None else x
 
         # Impute missing values with median
         if mask is not None:
-            x_med = np.nanmedian(x[mask == 1], axis=0)
+            x_med = np.nanmedian(mask_x, axis=0)
             x[mask == 0, :] = x_med
 
         if normalize:
+            # x = self.normalize_signals(x)
             x_mu = np.nanmean(mask_x, axis=0)
             x_var = np.nanvar(mask_x, axis=0)
-            x_med = np.nanmedian(mask_x, axis=0)
-            x_iqr = np.nanpercentile(mask_x, 75, axis=0) - np.nanpercentile(mask_x, 25, axis=0)
-            # x = self.normalize_signals(x)
-            # x = (x - x_mu) / np.sqrt(x_var + epsilon)
-            x = (x - x_med) / (x_iqr + epsilon)
-
-        if self.feat_cols:
-            x = x[:, self.feat_cols]
+            # x_med = np.nanmedian(mask_x, axis=0)
+            # x_iqr = np.nanpercentile(mask_x, 75, axis=0) - np.nanpercentile(mask_x, 25, axis=0)
+            x = (x - x_mu) / np.sqrt(x_var + epsilon)
+            # x = (x - x_med) / (x_iqr + epsilon)
+        # END IF
 
         return x, y, mask
 
@@ -184,30 +185,6 @@ class Hdf5Dataset(SKDataset):
 
         return self._preprocess_data(subject_id, x, y, mask, normalize, epsilon)
 
-
-    def normalize_signals(self, data):
-        """Temporary"""
-        data[:, 0] = (np.clip(data[:, 0], 30, 100) - 30)/(100 - 30)
-        data[:, 1] = (np.clip(data[:, 1], 500, 1500) - 500)/(1500 - 500)
-        data[:, 2] = (np.clip(data[:, 2], 20, 150) - 20)/(150 - 20)
-        data[:, 3] = (np.clip(data[:, 3], 0.02, 0.15) - 0.02)/(0.15 - 0.02)
-        data[:, 4] = (np.clip(data[:, 4], 500, 1500) - 500)/(1500 - 500)
-        data[:, 5] = data[:, 5]
-        data[:, 6] = data[:, 6]
-        data[:, 7] = data[:, 7]
-        data[:, 8] = (np.clip(data[:, 8], 80, 100) - 80)/(100 - 80)
-        data[:, 9] = data[:, 9]
-        data[:, 10] = (np.clip(data[:, 10], 80, 100) - 80)/(100 - 80)
-        data[:, 11] = (np.clip(data[:, 11], 0, 20) - 0)/(20 - 0)
-        data[:, 12] = (np.clip(data[:, 12], 0.05, 1) - .05)/(1 - 0.05)
-        data[:, 13] = (np.clip(data[:, 13], 0, 1) - 0)/(1 - 0)
-        data[:, 14] = (np.clip(data[:, 14], 0.05, 1) - .05)/(1 - 0.05)
-        data[:, 15] = (np.clip(data[:, 15], 0, 1) - 0)/(1 - 0)
-        data[:, 16] = (np.clip(data[:, 16], 9, 120) - 9)/(120 - 9)
-        data[:, 17] = (np.clip(2 - data[:, 17], 0, 2) - 0)/(2 - 0)
-        data[:, 18] = data[:, 18]
-        data[:, 19] = (np.clip(data[:, 19], 0, 1) - 0)/(1 - 0)
-        return data
 
     def signal_generator(
         self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-3

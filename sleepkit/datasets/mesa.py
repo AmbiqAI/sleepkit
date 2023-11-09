@@ -76,16 +76,12 @@ class MesaDataset:
         return self.subject_ids[int(0.8 * len(self.subject_ids)) :]
 
     @property
-    def signal_names(self) -> list[str]:
-        """Signal names as they appear in the EDF files"""
+    def actigraphy_signal_names(self) -> list[str]:
+        return ["activity", "linetime", "whitelight", "offwrist", "wake"]
+
+    @property
+    def psg_signal_names(self) -> list[str]:
         return [
-            # Actigraphy
-            "activity",
-            "linetime",
-            "whitelight",
-            "offwrist",
-            "wake",
-            # PSG
             "EKG",
             "EOG-L",
             "EOG-R",
@@ -108,6 +104,11 @@ class MesaDataset:
             "HR",
             "DHR",
         ]
+
+    @property
+    def signal_names(self) -> list[str]:
+        """Signal names as they appear in the EDF files"""
+        return self.actigraphy_signal_names + self.psg_signal_names
 
     def set_sleep_mapping(self, mapping: Callable[[int], int]):
         """Set sleep mapping"""
@@ -212,7 +213,10 @@ class MesaDataset:
         return signal[:data_size]
 
     def load_signal_for_subject(
-        self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
+        self, subject_id: str,
+        signal_label: str,
+        start: int = 0,
+        data_size: int | None = None
     ) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
         Args:
@@ -223,7 +227,7 @@ class MesaDataset:
         Returns:
             npt.NDArray[np.float32]: Signal
         """
-        if signal_label in ["activity", "linetime", "whitelight", "offwrist", "wake"]:
+        if signal_label in self.actigraphy_signal_names:
             return self._load_actigraphy_signal_for_subject(subject_id, signal_label, start, data_size)
 
         with pyedflib.EdfReader(self._get_subject_edf_path(subject_id)) as fp:

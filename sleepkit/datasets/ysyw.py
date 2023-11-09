@@ -1,61 +1,40 @@
 import functools
 import glob
 import logging
+import math
 import os
+import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from enum import IntEnum
+from pathlib import Path
 from multiprocessing import Pool
-from typing import Callable, Generator
+from typing import Callable
 
 import boto3
 import h5py
 import numpy as np
 import numpy.typing as npt
+import physiokit as pk
 import scipy.io
 import tensorflow as tf
 from botocore import UNSIGNED
 from botocore.client import Config
 from tqdm import tqdm
 
-logger = logging.getLogger(__name__)
+from .defines import SampleGenerator, SubjectGenerator
 
-SubjectGenerator = Generator[tuple[str, h5py.Group], None, None]
-Preprocessor = Callable[[npt.NDArray], npt.NDArray]
-SampleGenerator = Generator[tuple[npt.NDArray, npt.NDArray], None, None]
+logger = logging.getLogger(__name__)
 
 
 class YsywSleepStage(IntEnum):
-    """Sleep stage enum"""
+    """YSYW sleep stages"""
 
-    nonrem1 = 0
-    nonrem2 = 1
-    nonrem3 = 2
+    nonrem1 = 0 # N1
+    nonrem2 = 1 # N2
+    nonrem3 = 2 # N3/4
     rem = 3
     undefined = 4
     wake = 5
-
-
-signal_names = [
-    # EEG
-    "F3-M2",
-    "F4-M1",
-    "C3-M2",
-    "C4-M1",
-    "O1-M2",
-    "O2-M1",
-    # EOG
-    "E1-M2",
-    # EMG
-    "Chin1-Chin2",
-    # RSP
-    "ABD",
-    "CHEST",
-    "AIRFLOW",
-    # SPO2
-    "SaO2",
-    # ECG
-    "ECG",
-]
 
 
 class YsywDataset:
@@ -63,22 +42,28 @@ class YsywDataset:
 
     def __init__(
         self,
-        ds_path: str,
+        ds_path: Path,
         frame_size: int = 30 * 128,
         target_rate: int = 128,
     ) -> None:
         self.frame_size = frame_size
-        self.block_size = frame_size
-        self.patch_size = frame_size
         self.target_rate = target_rate
-        self.ds_path = os.path.join(ds_path, "ysyw")
+        self.ds_path = ds_path / "ysyw"
+        self.sleep_mapping = lambda v: {
+            YsywSleepStage.wake: 0,
+            YsywSleepStage.nonrem1: 1,
+            YsywSleepStage.nonrem2: 2,
+            YsywSleepStage.nonrem3: 3,
+            YsywSleepStage.rem: 5,
+            YsywSleepStage.undefined: 0
+        }.get(v, 0)
 
     @property
     def sampling_rate(self) -> int:
         """Sampling rate in Hz"""
         return 200
 
-    @property
+    @functools.cached_property
     def subject_ids(self) -> list[str]:
         """Get dataset subject IDs
 
@@ -89,6 +74,16 @@ class YsywDataset:
         pts = [os.path.splitext(os.path.basename(p))[0] for p in pts]
         pts.sort()
         return pts
+
+    @property
+    def train_subject_ids(self) -> list[str]:
+        """Get train subject ids"""
+        return self.subject_ids[: int(0.8 * len(self.subject_ids))]
+
+    @property
+    def test_subject_ids(self) -> list[str]:
+        """Get test subject ids"""
+        return self.subject_ids[int(0.8 * len(self.subject_ids)) :]
 
     @property
     def signal_names(self) -> list[str]:
@@ -108,13 +103,137 @@ class YsywDataset:
             # RSP
             "ABD",
             "CHEST",
-            #
             "AIRFLOW",
             # SPO2
             "SaO2",
             # ECG
             "ECG",
         ]
+
+    def set_sleep_mapping(self, mapping: Callable[[int], int]):
+        """Set sleep mapping"""
+        self.sleep_mapping = mapping
+
+    def uniform_subject_generator(
+        self,
+        subject_ids: list[str] | None = None,
+        repeat: bool = True,
+        shuffle: bool = True,
+    ) -> SubjectGenerator:
+        """Yield Subject IDs uniformly.
+
+        Args:
+            subject_ids (list[str], optional): Array of subject ids. Defaults to None.
+            repeat (bool, optional): Whether to repeat generator. Defaults to True.
+            shuffle (bool, optional): Whether to shuffle subject ids. Defaults to True.
+
+        Returns:
+            SubjectGenerator: Subject generator
+        """
+        if subject_ids is None:
+            subject_ids = self.subject_ids
+        subject_idxs = list(range(len(subject_ids)))
+        while True:
+            if shuffle:
+                random.shuffle(subject_idxs)
+            for subject_idx in subject_idxs:
+                subject_id = subject_ids[subject_idx]
+                yield subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id
+            # END FOR
+            if not repeat:
+                break
+        # END WHILE
+
+    def signal_generator(
+        self, subject_generator: SubjectGenerator, signals: list[str], samples_per_subject: int = 1
+    ) -> SampleGenerator:
+        """Randomly generate frames of sleep data for given subjects.
+        Args:
+            subject_generator (SubjectGenerator): Generator that yields subject ids.
+            samples_per_subject (int): Samples per subject.
+        Returns:
+            SampleGenerator: Generator of input data of shape (frame_size, num_signals)
+        """
+        for subject_id in subject_generator:
+            max_size = int(self.target_rate * self.get_subject_duration(subject_id))
+
+            sleep_mask = self.load_sleep_stages_for_subject(subject_id=subject_id)
+
+            x = np.zeros((self.frame_size, len(signals)), dtype=np.float32)
+            y = np.zeros((self.frame_size,), dtype=np.int32)
+            for _ in range(samples_per_subject):
+                frame_start = random.randint(0, max_size - 2 * self.frame_size)
+                frame_end = frame_start + self.frame_size
+                for i, signal_label in enumerate(signals):
+                    signal_label = signal_label.decode("ascii") if isinstance(signal_label, bytes) else signal_label
+                    signal = self.load_signal_for_subject(
+                        subject_id, signal_label=signal_label, start=frame_start, data_size=self.frame_size
+                    )
+                    signal_len = min(signal.size, x.shape[0])
+                    x[:signal_len, i] = signal[:signal_len]
+                # END FOR
+                y = sleep_mask[frame_start:frame_end]
+                yield x, y
+            # END FOR
+        # END FOR
+
+    def load_signal_for_subject(
+        self, subject_id: str,
+        signal_label: str,
+        start: int = 0,
+        data_size: int | None = None
+    ) -> npt.NDArray[np.float32]:
+        """Load signal into memory for subject at target rate (resampling if needed)
+        Args:
+            subject_id (str): Subject ID
+            signal_label (str): Signal label
+            start (int): Start location @ target rate
+            data_size (int): Data length @ target rate
+        Returns:
+            npt.NDArray[np.float32]: Signal
+        """
+        with h5py.File(self._get_subject_h5_path(subject_id), mode="r") as fp:
+            signal_idx = self.signal_names.index(signal_label)
+            sample_rate = self.sampling_rate
+            sig_start = round(start * (sample_rate / self.target_rate))
+            sig_len = fp["/data"].shape[1]
+            sig_duration = sig_len if data_size is None else math.ceil(data_size * (sample_rate / self.target_rate))
+            signal = fp["/data"][signal_idx, sig_start : sig_start + sig_duration].astype(np.float32)
+        # END WITH
+        if sample_rate != self.target_rate:
+            signal = pk.signal.resample_signal(signal, sample_rate, self.target_rate)
+        if data_size is None:
+            return signal
+        return signal[:data_size]
+
+    def load_sleep_stages_for_subject(
+            self,
+            subject_id: str,
+            start: int = 0,
+            data_size: int | None = None
+        ) -> npt.NDArray[np.int32]:
+        """Load sleep stages for subject
+        Args:
+            subject_id (str): Subject ID
+        Returns:
+            npt.NDArray[np.int32]: Sleep stages
+        """
+        sample_rate = self.sampling_rate
+        with h5py.File(self._get_subject_h5_path(subject_id), mode="r") as fp:
+            sig_start = round(start * (sample_rate / self.target_rate))
+            sig_len = fp["/sleep_stages"].shape[1]
+            sig_duration = sig_len if data_size is None else math.ceil(data_size * (sample_rate / self.target_rate))
+            sleep_stages = fp["/sleep_stages"][:, sig_start : sig_start + sig_duration].astype(np.int32)
+        # END WITH
+        sleep_stages = np.argmax(sleep_stages, axis=0)
+        sleep_stages = np.vectorize(self.sleep_mapping)(sleep_stages)
+        if sample_rate != self.target_rate:
+            sleep_stages = pk.signal.filter.resample_categorical(sleep_stages, sample_rate, self.target_rate)
+
+        if data_size is None:
+            return sleep_stages
+
+        return sleep_stages[:data_size]
 
     def data_generator(
         self,
@@ -139,11 +258,9 @@ class YsywDataset:
                 data = record[block_start:block_end]
                 data = tf.reshape(data, shape=(self.frame_size, self.patch_size, data.shape[1]))
 
-                # Create input ('AccV', 'AccML', 'AccAP')
                 x = data[:, :, 0:3]
                 x = tf.reshape(x, shape=(self.frame_size, -1))
 
-                # Create target+mask ('StartHesitation', 'Turn', 'Walking') + ('Valid', 'Task')
                 y = data[:, :, 3:8]
                 y = tf.transpose(y, perm=[0, 2, 1])
                 y = tf.reduce_max(y, axis=-1)
@@ -228,6 +345,12 @@ class YsywDataset:
 
         logger.info("Finished YSYW subject data")
 
+    def get_subject_duration(self, subject_id: str) -> float:
+        """Get subject duration in seconds"""
+        with h5py.File(self._get_subject_h5_path(subject_id), mode="r") as fp:
+            return fp["/data"].shape[1] / self.sampling_rate
+        # END WITH
+
     def _convert_pt_to_hdf5(self, pt_path: str, force: bool = False):
         """Extract subject data from PhysiUNext.
 
@@ -255,3 +378,7 @@ class YsywDataset:
         h5.create_dataset(name="/arousals", data=arousals, compression="gzip", compression_opts=5)
         h5.create_dataset(name="/sleep_stages", data=sleep_stages, compression="gzip", compression_opts=5)
         h5.close()
+
+    def _get_subject_h5_path(self, subject_id: str) -> Path:
+        """Get subject HDF5 data path"""
+        return self.ds_path / f"{subject_id}.h5"

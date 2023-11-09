@@ -1,3 +1,3 @@
-# Architecture
+# Model Architecture
 
 SleepKit leverages a light weight model...
