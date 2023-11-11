@@ -1,9 +1,17 @@
 # Models
 
-See [Architecture](../architecture.md) for information about overall network architecture and models used.
+A number of custom model architectures are provided in the `sleepkit.models` module. These models are designed to be used with the `sleepkit` package, but can be used independently as well.
 
-::: sleepkit.sleepstage
+::: sleepkit.models.mobileone
 
-::: sleepkit.apnea
+::: sleepkit.models.efficientnet
 
-<!-- ::: sleepkit.arousal -->
+::: sleepkit.models.multiresnet
+
+::: sleepkit.models.resnet
+
+::: sleepkit.models.tcn
+
+::: sleepkit.models.unet
+
+::: sleepkit.models.unext

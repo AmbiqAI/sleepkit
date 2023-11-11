@@ -86,8 +86,8 @@ class Hdf5Dataset(SKDataset):
         Args:
             subject_id (str): Subject ID
 
-                    Returns:
-            tuple[npt.NDArray, npt.NDArray]: Tuple of feature mean and std
+        Returns:
+            tuple[npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray]: Tuple of feature mean and std
         """
         with h5py.File(os.path.join(self.ds_path, f"{subject_id}.h5"), mode="r") as h5:
             features = h5[self.feat_key][:]
@@ -140,11 +140,10 @@ class Hdf5Dataset(SKDataset):
         subject_id: str,
         x: npt.NDArray,
         y: npt.NDArray,
-        mask: npt.NDArray|None = None,
+        mask: npt.NDArray | None = None,
         normalize: bool = False,
-        epsilon: float = 1e-3
+        epsilon: float = 1e-3,
     ) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]:
-
         if self.feat_cols:
             x = x[:, self.feat_cols]
 
@@ -185,7 +184,6 @@ class Hdf5Dataset(SKDataset):
 
         return self._preprocess_data(subject_id, x, y, mask, normalize, epsilon)
 
-
     def signal_generator(
         self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-3
     ) -> SampleGenerator:
@@ -203,7 +201,6 @@ class Hdf5Dataset(SKDataset):
             SampleGenerator: Generator of frames and labels.
         """
         for subject_id, subject_data in subject_generator:
-
             xx = subject_data[self.feat_key][:] if True else subject_data[self.feat_key]
             yy = subject_data[self.label_key][:] if True else subject_data[self.label_key]
             mm: npt.NDArray = subject_data[self.mask_key][:] if self.mask_key else None

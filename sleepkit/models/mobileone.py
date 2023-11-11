@@ -48,16 +48,19 @@ def mobileone_block(
     num_conv_branches: int = 1,
     name: str | None = None,
 ) -> KerasLayer:
-    """MBConv block w/ expansion and SE
+    """MBOne block w/ expansion and SE
 
     Args:
-        output_filters (int): # output filter channels
-        expand_ratio (float, optional): Expansion ratio. Defaults to 1.
+        output_filters (int): Output filter size
         kernel_size (int | tuple[int, int], optional): Kernel size. Defaults to 3.
         strides (int | tuple[int, int], optional): Stride length. Defaults to 1.
-        se_ratio (float, optional): SE ratio. Defaults to 8.
-        droprate (float, optional): Drop rate. Defaults to 0.
-        name (str|None, optional): Block name. Defaults to None.
+        padding (int | tuple[int, int], optional): Padding size. Defaults to 0.
+        groups (int, optional): # groups. Defaults to 1.
+        dilation (int, optional): Dilation rate. Defaults to 1.
+        inference_mode (bool, optional): Inference mode. Defaults to False.
+        se_ratio (int, optional): Squeeze-Excite ratio. Defaults to 0.
+        num_conv_branches (int, optional): # conv branches. Defaults to 1.
+        name (str | None, optional): Layer name. Defaults to None.
 
     Returns:
         KerasLayer: Functional layer
@@ -183,7 +186,7 @@ def MobileOne(
     params: MobileOneParams,
     num_classes: int | None = None,
     inference_mode: bool = False,
-):
+) -> tf.keras.Model:
     """Create MobileOne TF functional model
 
     Args:

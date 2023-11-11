@@ -6,7 +6,7 @@ Quantization
 fp32 int16x8 int8x8 -->
 
 
-## Ablation Studies
+## <span class="sk-h2-span">Ablation Studies</span>
 
 In the following, we perform ablation studies to investigate the impact of different design choices on the performance of the model. All ablation studies are performed using the 4-stage sleep classification model trained on the MESA dataset. Unless otherwise noted, all experiments are carried out with identical training procedures.
 
@@ -20,6 +20,7 @@ A typical night sleep involves 4 or 5 sleep cycles each of which lasts around 90
 --8<-- "assets/ablation-temporal.html"
 </div>
 
+---
 
 ### Model Width
 
@@ -29,6 +30,7 @@ Another important design choice is the width (aka. # channels) of the network. T
 --8<-- "assets/ablation-width.html"
 </div>
 
+---
 
 ### Kernel Size
 
@@ -38,6 +40,7 @@ We further investigate the impact on kernel size on the validation loss. Traditi
 --8<-- "assets/ablation-kernelsize.html"
 </div>
 
+---
 
 ### Squeeze and Excitation Ratio
 
@@ -47,6 +50,7 @@ In the following ablation, we evaluate the impact of the squeeze-and-excitation 
 --8<-- "assets/ablation-se-ratio.html"
 </div>
 
+---
 
 ### Dilated Convolution
 
@@ -56,3 +60,5 @@ Taking inspiration from WaveNet, we evaluate the impact of dilated convolutions 
 <div class="sk-plotly-graph-div">
 --8<-- "assets/ablation-dilation.html"
 </div>
+
+---

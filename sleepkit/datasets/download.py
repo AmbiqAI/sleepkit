@@ -7,6 +7,7 @@ from ..utils import setup_logger
 
 logger = setup_logger(__name__)
 
+
 def download_datasets(params: SKDownloadParams):
     """Download datasets"""
 
@@ -14,7 +15,7 @@ def download_datasets(params: SKDownloadParams):
 def download_mesa(self, args: SKDownloadParams):
     """Download MESA dataset"""
     is_commercial = True
-    token = os.environ.get('NSSR_TOKEN')
+    token = os.environ.get("NSSR_TOKEN")
     if token is None:
         raise ValueError("NSSR_TOKEN is not set")
 
@@ -27,9 +28,10 @@ def download_mesa(self, args: SKDownloadParams):
 
     subprocess.run(
         [
-            "nssr", "d",
+            "nssr",
+            "d",
             "mesa--commercial-use" if is_commercial else "mesa",
             f"--token={os.environ.get('NSSR_TOKEN')}",
         ],
-        cwd=args.ds_path
+        cwd=args.ds_path,
     )

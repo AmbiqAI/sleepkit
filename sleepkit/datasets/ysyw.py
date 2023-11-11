@@ -6,8 +6,8 @@ import os
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from enum import IntEnum
-from pathlib import Path
 from multiprocessing import Pool
+from pathlib import Path
 from typing import Callable
 
 import boto3
@@ -29,9 +29,9 @@ logger = logging.getLogger(__name__)
 class YsywSleepStage(IntEnum):
     """YSYW sleep stages"""
 
-    nonrem1 = 0 # N1
-    nonrem2 = 1 # N2
-    nonrem3 = 2 # N3/4
+    nonrem1 = 0  # N1
+    nonrem2 = 1  # N2
+    nonrem3 = 2  # N3/4
     rem = 3
     undefined = 4
     wake = 5
@@ -55,7 +55,7 @@ class YsywDataset:
             YsywSleepStage.nonrem2: 2,
             YsywSleepStage.nonrem3: 3,
             YsywSleepStage.rem: 5,
-            YsywSleepStage.undefined: 0
+            YsywSleepStage.undefined: 0,
         }.get(v, 0)
 
     @property
@@ -178,10 +178,7 @@ class YsywDataset:
         # END FOR
 
     def load_signal_for_subject(
-        self, subject_id: str,
-        signal_label: str,
-        start: int = 0,
-        data_size: int | None = None
+        self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
     ) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
         Args:
@@ -207,11 +204,8 @@ class YsywDataset:
         return signal[:data_size]
 
     def load_sleep_stages_for_subject(
-            self,
-            subject_id: str,
-            start: int = 0,
-            data_size: int | None = None
-        ) -> npt.NDArray[np.int32]:
+        self, subject_id: str, start: int = 0, data_size: int | None = None
+    ) -> npt.NDArray[np.int32]:
         """Load sleep stages for subject
         Args:
             subject_id (str): Subject ID

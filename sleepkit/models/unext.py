@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from .defines import KerasLayer
 
+
 class UNextBlockParams(BaseModel):
     """UNext block parameters"""
 
@@ -14,7 +15,7 @@ class UNextBlockParams(BaseModel):
     ddepth: int | None = Field(default=None, description="Layer decoder depth")
     kernel: int | tuple[int, int] = Field(default=3, description="Kernel size")
     pool: int | tuple[int, int] = Field(default=2, description="Pool size")
-    strides: int |  tuple[int, int]= Field(default=2, description="Stride size")
+    strides: int | tuple[int, int] = Field(default=2, description="Stride size")
     skip: bool = Field(default=True, description="Add skip connection")
     expand_ratio: float = Field(default=1, description="Expansion ratio")
     se_ratio: float = Field(default=0, description="Squeeze and excite ratio")
@@ -58,6 +59,7 @@ def se_block(ratio: int = 8, name: str | None = None):
 
 def layer_norm(epsilon: float = 1e-3) -> KerasLayer:
     """Layer normalization"""
+
     def layer(x: tf.Tensor) -> tf.Tensor:
         # Compute mean for each channel
         mu = tf.math.reduce_mean(x, axis=1, keepdims=True)
@@ -65,6 +67,7 @@ def layer_norm(epsilon: float = 1e-3) -> KerasLayer:
         # Normalize
         y = (x - mu) / (std)
         return y
+
     # END DEF
     return layer
 
@@ -75,7 +78,7 @@ def UNext_block(
     kernel_size: int | tuple[int, int] = 3,
     strides: int | tuple[int, int] = 1,
     se_ratio: float = 4,
-    dropout: float|None = 0,
+    dropout: float | None = 0,
     norm: Literal["batch", "layer"] | None = "batch",
     name: str | None = None,
 ) -> KerasLayer:
@@ -83,7 +86,7 @@ def UNext_block(
 
     def layer(x: tf.Tensor) -> tf.Tensor:
         input_filters: int = x.shape[-1]
-        strides_len = strides if isinstance(strides, int) else sum(strides)//len(strides)
+        strides_len = strides if isinstance(strides, int) else sum(strides) // len(strides)
         add_residual = input_filters == output_filters and strides_len == 1
         ln_axis = 2 if x.shape[1] == 1 else 1 if x.shape[2] == 1 else (1, 2)
 
@@ -242,10 +245,7 @@ def unext_core(
             kernel_regularizer=tf.keras.regularizers.L2(1e-3),
             name=f"{name}.conv",
         )(y)
-        y = tf.keras.layers.UpSampling2D(
-            size=block.strides,
-            name=f"{name}.unpool"
-        )(y)
+        y = tf.keras.layers.UpSampling2D(size=block.strides, name=f"{name}.unpool")(y)
 
         # Skip connection
         skip_layer = skip_layers.pop()

@@ -8,7 +8,6 @@ from typing import Any
 import numpy as np
 import requests
 import tensorflow as tf
-from rich.console import Console
 from rich.logging import RichHandler
 from tqdm import tqdm
 

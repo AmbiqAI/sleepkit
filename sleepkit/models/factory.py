@@ -1,10 +1,11 @@
 from typing import Any
+
 import tensorflow as tf
 
 from .efficientnet import EfficientNetParams, EfficientNetV2
+from .tcn import Tcn, TcnParams
 from .unet import UNet, UNetParams
 from .unext import UNext, UNextParams
-from  .tcn import Tcn, TcnParams
 
 
 def generate_model(
@@ -28,7 +29,6 @@ def generate_model(
         raise ValueError("Model parameters must be provided")
 
     match name:
-
         case "unet":
             return UNet(x=inputs, params=UNetParams.parse_obj(params), num_classes=num_classes)
 

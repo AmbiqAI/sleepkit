@@ -26,9 +26,6 @@ class NoSignalError(Exception):
 def get_feature_names_001() -> list[str]:
     """Get feature names for feature set 001.
 
-    Args:
-        None
-
     Returns:
         list[str]: Feature names
     """
@@ -61,11 +58,9 @@ def get_feature_names_001() -> list[str]:
         # "rsp_qos",
     ]
 
+
 def get_feature_names_002() -> list[str]:
     """Get feature names for feature set 002.
-
-    Args:
-        None
 
     Returns:
         list[str]: Feature names
@@ -92,11 +87,9 @@ def get_feature_names_002() -> list[str]:
         "hrv_qos",
     ]
 
+
 def get_feature_names_003() -> list[str]:
     """Get feature names for feature set 003.
-
-    Args:
-        None
 
     Returns:
         list[str]: Feature names
@@ -118,8 +111,9 @@ def get_feature_names_003() -> list[str]:
         # 1 RSP
         "rsp_bpm",
         # 1 QOS
-        "qos_win"
+        "qos_win",
     ]
+
 
 def compute_features_001(
     ds_name: str, subject_id: str, args: SKFeatureParams
@@ -416,6 +410,7 @@ def compute_features_002(
 
     return features, labels, masks
 
+
 def compute_features_003(
     ds_name: str, subject_id: str, args: SKFeatureParams
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -436,7 +431,6 @@ def compute_features_003(
 
     # Load dataset specific signals
     if ds_name == "ysyw":
-
         ds = YsywDataset(ds_path=args.ds_path, target_rate=sample_rate)
 
         duration = int(ds.get_subject_duration(subject_id=subject_id) * sample_rate)
@@ -451,7 +445,7 @@ def compute_features_003(
         # Clean signals
         ecg = pk.ppg.clean(ecg, lowcut=0.5, highcut=30, sample_rate=sample_rate)
         mov = pk.signal.filter_signal(rsp, lowcut=2, highcut=11, order=3, sample_rate=sample_rate)
-        spo2 = np.clip(100*spo2/32768, 50, 100)
+        spo2 = np.clip(100 * spo2 / 32768, 50, 100)
     else:
         raise NotImplementedError(f"Dataset {ds_name} not implemented")
     # END IF
@@ -533,7 +527,12 @@ def compute_features_003(
 
 
 def compute_subject_features(ds_subject: tuple[str, str], args: SKFeatureParams):
-    """Compute features for subject."""
+    """Compute features for subject.
+
+    Args:
+        ds_subject (tuple[str, str]): Dataset name and subject ID
+        args (SKFeatureParams): Feature generation parameters
+    """
     ds_name, subject_id = ds_subject
 
     if args.feature_set == "fs001":
@@ -556,8 +555,10 @@ def compute_subject_features(ds_subject: tuple[str, str], args: SKFeatureParams)
     except Exception as err:
         logger.error(f"Error computing features for subject {subject_id}: {err}")
 
+
 def generate_feature_set(args: SKFeatureParams):
     """Generate feature set for all subjects in dataset
+
     Args:
         args (SKFeatureParams): Feature generation parameters
     """

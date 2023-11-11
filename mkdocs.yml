@@ -12,14 +12,13 @@ nav:
   - Results: results.md
   - Sleep Staging:
     - Overview: ./stages/overview.md
-    - Background: ./stages/background.md
     - Methods: ./stages/methods.md
     - Model: ./stages/architecture.md
     - Results: ./stages/results.md
     - Experiments: ./stages/experiments.md
-  - Tutorials:
-    - SleepKit Demo: demo.md
+    - Demo: ./stages/demo.md
   - API:
+    - SleepKit: ./api/sleepkit.md
     - Datasets: ./api/datasets.md
     - Models: ./api/models.md
 
@@ -68,7 +67,7 @@ plugins:
             docstring_style: google
             docstring_section_style: list
             line_length: 120
-            show_root_heading: false
+            show_root_heading: true
 
 extra_css:
   - css/mkdocstrings.css

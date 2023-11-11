@@ -75,10 +75,12 @@ def baseline_wander(y: npt.NDArray, scale: float = 1e-3) -> npt.NDArray:
 
 def augment_pipeline(x: npt.NDArray, augmentations: list[AugmentationParams], sample_rate: float) -> npt.NDArray:
     """Apply augmentation pipeline
+
     Args:
         x (npt.NDArray): Signal
         augmentations (list[AugmentationParams]): Augmentations to apply
         sample_rate: Sampling rate in Hz.
+
     Returns:
         npt.NDArray: Augmented signal
     """

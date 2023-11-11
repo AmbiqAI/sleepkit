@@ -45,11 +45,13 @@ def create_model(
     inputs: tf.Tensor, num_classes: int, name: str | None = None, params: dict[str, Any] | None = None
 ) -> tf.keras.Model:
     """Generate model or use default
+
     Args:
         inputs (tf.Tensor): Model inputs
         num_classes (int): Number of classes
         name (str | None, optional): Architecture type. Defaults to None.
         params (dict[str, Any] | None, optional): Model parameters. Defaults to None.
+
     Returns:
         tf.keras.Model: Model
     """
@@ -90,11 +92,13 @@ def create_model(
 
 def prepare(x: tf.Tensor, y: tf.Tensor, num_classes: int, class_map: dict[int, int]) -> tuple[tf.Tensor, tf.Tensor]:
     """Prepare data for training
+
     Args:
         x (tf.Tensor): Features
         y (tf.Tensor): Labels
         num_classes (int): Number of classes
         class_map (dict[int, int]): Class mapping
+
     Returns:
         tuple[tf.Tensor, tf.Tensor]: Features and labels
     """
@@ -107,10 +111,12 @@ def prepare(x: tf.Tensor, y: tf.Tensor, num_classes: int, class_map: dict[int, i
 
 def load_dataset(ds_path: Path, frame_size: int, feat_cols: list[int] | None = None) -> Hdf5Dataset:
     """Load dataset(s)
+
     Args:
         ds_path (Path): Dataset path
         frame_size (int): Frame size
         feat_cols (list[int] | None, optional): Feature columns. Defaults to None.
+
     Returns:
         Hdf5Dataset: Dataset
     """
@@ -137,6 +143,7 @@ def load_train_dataset(
     num_workers: int = 4,
 ) -> tf.data.Dataset:
     """Load train dataset
+
     Args:
         ds (Hdf5Dataset): Dataset
         subject_ids (list[str]): Subject IDs
@@ -147,6 +154,7 @@ def load_train_dataset(
         class_shape (tuple[int,...]): Class shape
         class_map (dict[int, int]): Class mapping
         num_workers (int, optional): Number of workers. Defaults to 4.
+
     Returns:
         tf.data.Dataset: Train dataset
     """
@@ -211,6 +219,7 @@ def load_validation_dataset(
     class_map: dict[int, int],
 ) -> tf.data.Dataset:
     """Load validation dataset.
+
     Args:
         ds (Hdf5Dataset): Dataset
         subject_ids (list[str]): Subject IDs
@@ -220,6 +229,7 @@ def load_validation_dataset(
         feat_shape (tuple[int,...]): Feature shape
         class_shape (tuple[int,...]): Class shape
         class_map (dict[int, int]): Class mapping
+
     Returns:
         tf.data.Dataset: Validation dataset
     """
@@ -260,6 +270,7 @@ def load_test_dataset(
     class_map: dict[int, int],
 ) -> tf.data.Dataset:
     """Load test dataset.
+
     Args:
         ds (Hdf5Dataset): Dataset
         subject_ids (list[str]): Subject IDs
@@ -269,6 +280,7 @@ def load_test_dataset(
         feat_shape (tuple[int,...]): Feature shape
         class_shape (tuple[int,...]): Class shape
         class_map (dict[int, int]): Class mapping
+
     Returns:
         tf.data.Dataset: Validation dataset
     """
@@ -483,6 +495,7 @@ def train(params: SKTrainParams):
 
 def evaluate(params: SKTestParams):
     """Evaluate sleep apnea model.
+
     Args:
         params (SKTestParams): Testing/evaluation parameters
     """

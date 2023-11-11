@@ -213,10 +213,7 @@ class MesaDataset:
         return signal[:data_size]
 
     def load_signal_for_subject(
-        self, subject_id: str,
-        signal_label: str,
-        start: int = 0,
-        data_size: int | None = None
+        self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
     ) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
         Args:

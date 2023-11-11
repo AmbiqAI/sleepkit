@@ -68,6 +68,7 @@ def f_max(
     thresholds: float | list[float] | None = None,
 ) -> tuple[float, float]:
     """Compute F max (https://github.com/helme/ecg_ptbxl_benchmarking)
+
     Args:
         y_true (npt.NDArray): Y True
         y_prob (npt.NDArray): Y probs
@@ -93,6 +94,7 @@ def confusion_matrix_plot(
     **kwargs,
 ) -> tuple[plt.Figure, plt.Axes] | None:
     """Generate confusion matrix plot via matplotlib/seaborn
+
     Args:
         y_true (npt.NDArray): True y labels
         y_pred (npt.NDArray): Predicted y labels
@@ -127,6 +129,7 @@ def roc_auc_plot(
     **kwargs,
 ):
     """Generate ROC plot via matplotlib/seaborn
+
     Args:
         y_true (npt.NDArray): True y labels
         y_prob (npt.NDArray): Predicted y labels
@@ -194,7 +197,7 @@ def _one_hot(x: npt.NDArray, depth: int) -> npt.NDArray:
     return x_one_hot
 
 
-def multi_f1(y_true: npt.NDArray, y_prob: npt.NDArray):
+def multi_f1(y_true: npt.NDArray, y_prob: npt.NDArray) -> npt.NDArray:
     """Compute multi-class F1
 
     Args:
@@ -209,8 +212,10 @@ def multi_f1(y_true: npt.NDArray, y_prob: npt.NDArray):
 
 def compute_sleep_stage_durations(sleep_mask: npt.NDArray) -> dict[int, int]:
     """Compute sleep stage durations
+
     Args:
         sleep_mask (npt.NDArray): Sleep mask (1D array of sleep stages)
+
     Returns:
         dict[int, int]: Sleep stage durations (class -> duration)
     """
@@ -228,9 +233,11 @@ def compute_sleep_stage_durations(sleep_mask: npt.NDArray) -> dict[int, int]:
 
 def compute_total_sleep_time(sleep_durations: dict[int, int], class_map: dict[int, int]) -> int:
     """Compute total sleep time (# samples).
+
     Args:
         sleep_durations (dict[int, int]): Sleep stage durations (class -> duration)
         class_map (dict[int, int]): Class map (class -> class)
+
     Returns:
         int: Total sleep time (# samples)
     """
@@ -246,9 +253,11 @@ def compute_total_sleep_time(sleep_durations: dict[int, int], class_map: dict[in
 
 def compute_sleep_efficiency(sleep_durations: dict[int, int], class_map: dict[int, int]) -> float:
     """Compute sleep efficiency.
+
     Args:
         sleep_durations (dict[int, int]): Sleep stage durations (class -> duration)
         class_map (dict[int, int]): Class map (class -> class)
+
     Returns:
         float: Sleep efficiency
     """
@@ -264,8 +273,10 @@ def compute_sleep_efficiency(sleep_durations: dict[int, int], class_map: dict[in
 
 def compute_sleep_apnea_durations(apnea_mask: npt.NDArray) -> dict[int, int]:
     """Compute sleep apnea durations
+
     Args:
         apnea_mask (npt.NDArray): Sleep mask (1D array of sleep apnea)
+
     Returns:
         dict[int, int]: Sleep apnea durations (class -> duration)
     """
@@ -283,9 +294,11 @@ def compute_sleep_apnea_durations(apnea_mask: npt.NDArray) -> dict[int, int]:
 
 def compute_apnea_efficiency(apnea_durations: dict[int, int], class_map: dict[int, int]) -> float:
     """Compute apnea efficiency.
+
     Args:
         apnea_durations (dict[int, int]): Sleep apnea durations (class -> duration)
         class_map (dict[int, int]): Class map (class -> class)
+
     Returns:
         float: apnea efficiency
     """
@@ -301,9 +314,12 @@ def compute_apnea_efficiency(apnea_durations: dict[int, int], class_map: dict[in
 
 def compute_apnea_hypopnea_index(apnea_mask: npt.NDArray, min_duration: int, sample_rate: float) -> float:
     """Compute apnea hypopnea index (AHI).
+
     Args:
-        apnea_durations (dict[int, int]): Sleep stage durations (class -> duration)
-        class_map (dict[int, int]): Class map (class -> class)
+        apnea_mask (npt.NDArray): Sleep apnea mask (1D array of sleep apnea)
+        min_duration (int): Minimum duration (in samples) to be considered an event
+        sample_rate (float): Sample rate
+
     Returns:
         float: Sleep efficiency
     """

@@ -1,6 +1,6 @@
 # Datasets
 
-## MESA Dataset
+## <span class="sk-h2-span">MESA Dataset</span>
 
 ### Overview
 
@@ -16,7 +16,9 @@ The Multi-Ethnic Study of Atherosclerosis (MESA) Sleep Ancillary study was funde
 
 The STAGES dataset is available for non-commercial and commercial use.
 
-## STAGES Dataset
+---
+
+## <span class="sk-h2-span">STAGES Dataset</span>
 
 ### Overview
 
@@ -45,11 +47,15 @@ The National Sleep Research Resource was supported by the U.S. National Institut
 
 The STAGES dataset is available for non-commercial and commercial use.
 
-## YSYW Dataset
+---
+
+## <span class="sk-h2-span">YSYW Dataset</span>
 
 ### Overview
 
 A total of 1,983 PSG recordings were provided by the Massachusetts General Hospital’s (MGH) Sleep Lab in the Sleep Division together with the Computational Clinical Neurophysiology Laboratory, and the Clinical Data Ani- mation Center. The Partners Institutional Review Board approved retrospective analysis of the MGH dataset with- out requiring additional consent.
+
+More info available on [PhysioNet website](https://physionet.org/content/challenge-2018/1.0.0)
 
 ### Funding
 

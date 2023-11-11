@@ -3,6 +3,8 @@ from pathlib import Path
 
 import numpy.typing as npt
 
+from .defines import SubjectGenerator
+
 
 class SKDataset(abc.ABC):
     """Base SK dataset."""
@@ -40,7 +42,7 @@ class SKDataset(abc.ABC):
         subject_ids: list[str] | None = None,
         repeat: bool = True,
         shuffle: bool = True,
-    ):
+    ) -> SubjectGenerator:
         """Yield data for each subject in the array.
 
         Args:

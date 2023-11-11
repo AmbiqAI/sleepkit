@@ -2,7 +2,9 @@
 
 __SleepKit__ can be used as either a CLI-based app or as a python package to perform advanced experimentation. In both forms, SleepKit exposes a number of modes and tasks discussed below:
 
-## Modes
+---
+
+## <span class="sk-h2-span">Modes</span>
 
 * `download`: Download datasets
 * `feature`: Extract features from dataset(s)
@@ -11,13 +13,30 @@ __SleepKit__ can be used as either a CLI-based app or as a python package to per
 * `export`: Export a trained model to TensorFlow Lite and TFLM
 * `demo`: Run full demo on PC or EVB
 
-## Tasks
+---
 
-* `stage`: Perform 2, 3, 4, or 5 stage sleep detection
-<!-- * `apnea`: Detect hypopnea/apnea events
-* `arousal`: Detect sleep arousal events -->
+!!! Tasks
 
-## Using CLI
+    === "stage"
+
+        ### Sleep Stage Classification
+
+        Perform 2, 3, 4, or 5 stage sleep detection.
+        Refer to [Sleep Stages](./stages/overview.md) for more details.
+
+    === "apnea"
+
+        ### Sleep Apnea Detection
+        Detect hypopnea/apnea events. __Not yet implemented.__
+
+    === "arousal"
+
+        ### Sleep Arousal Detection
+        Detect sleep arousal events. __Not yet implemented.__
+
+---
+
+## <span class="sk-h2-span">Using CLI</span>
 
 The SleepKit command line interface (CLI) makes it easy to run a variefy of single-line commands without the need for writing any code. You can rull all tasks and modes from the terminal with the `sleepkit` command.
 
@@ -37,11 +56,10 @@ SleepKit CLI Options:
 !!! note
     Before running commands, be sure to activate python environment: `poetry shell`. On Windows using Powershell, use `.venv\Scripts\activate.ps1`.
 
-## __1. Download Datasets__
+## <span class="sk-h2-span">1. Download Datasets</span>
 
 !!! note
-    In order to download MESA and STAGES datasets, permission must be granted by NSSR. Both non-commercial and commercial variants are available for these datasets. Once granted permission, please follow [NSSR documentation](https://github.com/nsrr/nsrr-gem) to install their command line `nssr` tool.
-    Ensure `nssr` command is available on terminal and authorization token has been supplied.
+    In order to download MESA and STAGES datasets, permission must be granted by NSSR. Both non-commercial and commercial variants are available for these datasets. Once granted permission, please follow [NSSR documentation](https://github.com/nsrr/nsrr-gem) to install their command line `nssr` tool. Ensure `nssr` command is available on terminal and authorization token has been supplied.
 
 The `download` command is used to download all datasets specified in the configuration file. Please refer to [Datasets](./datasets.md) for details on the available datasets.
 
@@ -62,13 +80,13 @@ The following example will download and prepare all currently used datasets.
 
         sk.datasets.download_datasets(sk.defines.SKDownloadParams(
             ds_path="./datasets",
-            datasets=["mesa"],
+            datasets=["mesa", "ysyw"],
             progress=True,
             force=False
         ))
         ```
 
-## __2. Extract Features__
+## <span class="sk-h2-span">2. Extract Features</span>
 
 The `feature` command is used to extract features from the downloaded datasets. The following command will extract feature set `001` from the MESA dataset using the reference configuration. Please refer to `sleepkit/defines.py` to see supported options.
 
@@ -90,7 +108,7 @@ The `feature` command is used to extract features from the downloaded datasets. 
         ))
         ```
 
-## __3. Train Model__
+## <span class="sk-h2-span">3. Train Model</span>
 
 The `train` command is used to train a SleepKit model. The following command will train a 2-stage sleep model using the reference configuration. Please refer to `sleepkit/defines.py` to see supported options.
 
@@ -107,12 +125,12 @@ The `train` command is used to train a SleepKit model. The following command wil
         ```python
         import sleepkit as sk
 
-        sk.sleepstages.train(sk.defines.SKTrainParams(
+        sk.sleepstage.train(sk.defines.SKTrainParams(
             ...
         ))
         ```
 
-## __4. Evaluate Model__
+## <span class="sk-h2-span">4. Evaluate Model</span>
 
 The `evaluate` command will evaluate the performance of the model on the reserved test set.
 
@@ -129,12 +147,12 @@ The `evaluate` command will evaluate the performance of the model on the reserve
         ```python
         import sleepkit as sk
 
-        sk.sleepstages.evaluate(sk.defines.SKTestParams(
+        sk.sleepstage.evaluate(sk.defines.SKTestParams(
             ...
         ))
         ```
 
-## __5. Export Model__
+## <span class="sk-h2-span">5. Export Model</span>
 
 The `export` command will convert the trained TensorFlow model into both TensorFlow Lite (TFL) and TensorFlow Lite for microcontroller (TFLM) variants. The command will also verify the models' outputs match. Post-training quantization can also be enabled by setting the `quantization` flag in the configuration.
 
@@ -151,13 +169,13 @@ The `export` command will convert the trained TensorFlow model into both TensorF
         ```python
         import sleepkit as sk
 
-        sk.sleepstages.export(sk.defines.SKExportParams(
+        sk.sleepstage.export(sk.defines.SKExportParams(
             ...
         ))
         ```
 
-Once converted, the TFLM header file will be copied to location specified by `tflm_file`. If parameters were changed (e.g. window size, quantization), `./evb/src/constants.h` will need to be updated accordingly.
+Once converted, the TFLM header file will be copied to the location specified by `tflm_file`.
 
-## __6. Demo__
+## <span class="sk-h2-span">6. Demo</span>
 
 The `demo` command is used to run a full-fledged SleepKit demonstration.

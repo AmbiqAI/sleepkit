@@ -8,8 +8,8 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import sklearn.model_selection
 import sklearn.metrics
+import sklearn.model_selection
 import sklearn.utils
 import tensorflow as tf
 import tensorflow_model_optimization as tfmot
@@ -37,12 +37,7 @@ from .metrics import (
     confusion_matrix_plot,
     f1_score,
 )
-from .models import (
-    generate_model,
-    Tcn,
-    TcnParams,
-    TcnBlockParams
-)
+from .models import Tcn, TcnBlockParams, TcnParams, generate_model
 from .utils import env_flag, set_random_seed, setup_logger
 
 console = Console()
@@ -53,11 +48,13 @@ def create_model(
     inputs: tf.Tensor, num_classes: int, name: str | None = None, params: dict[str, Any] | None = None
 ) -> tf.keras.Model:
     """Generate model or use default
+
     Args:
         inputs (tf.Tensor): Model inputs
         num_classes (int): Number of classes
         name (str | None, optional): Architecture type. Defaults to None.
         params (dict[str, Any] | None, optional): Model parameters. Defaults to None.
+
     Returns:
         tf.keras.Model: Model
     """
@@ -71,30 +68,27 @@ def create_model(
             input_norm="batch",
             blocks=[
                 TcnBlockParams(
-                    filters=64,
-                    kernel=(1, 5),
-                    dilation=(1, 2**d),
-                    dropout=0.1,
-                    ex_ratio=1,
-                    se_ratio=4,
-                    norm="batch"
-                ) for d in range(4)
+                    filters=64, kernel=(1, 5), dilation=(1, 2**d), dropout=0.1, ex_ratio=1, se_ratio=4, norm="batch"
+                )
+                for d in range(4)
             ],
             output_kernel=(1, 5),
             include_top=True,
             use_logits=True,
-            model_name="tcn"
-        )
+            model_name="tcn",
+        ),
     )
 
 
 def prepare(x: tf.Tensor, y: tf.Tensor, num_classes: int, class_map: dict[int, int]) -> tuple[tf.Tensor, tf.Tensor]:
     """Prepare data for training
+
     Args:
         x (tf.Tensor): Features
         y (tf.Tensor): Labels
         num_classes (int): Number of classes
         class_map (dict[int, int]): Class mapping
+
     Returns:
         tuple[tf.Tensor, tf.Tensor]: Features and labels
     """
@@ -107,11 +101,13 @@ def prepare(x: tf.Tensor, y: tf.Tensor, num_classes: int, class_map: dict[int, i
 
 def load_dataset(handler: str, ds_path: Path, frame_size: int, params: dict[str, Any]) -> SKDataset:
     """Load dataset(s)
+
     Args:
         handler (str): Dataset handler
         ds_path (Path): Dataset path
         frame_size (int): Frame size
         params (dict[str, Any]): Dataset arguments
+
     Returns:
         SKDataset: Dataset
     """
@@ -132,6 +128,7 @@ def load_train_dataset(
     num_workers: int = 4,
 ) -> tf.data.Dataset:
     """Load train dataset
+
     Args:
         ds (SKDataset): Dataset
         subject_ids (list[str]): Subject IDs
@@ -142,6 +139,7 @@ def load_train_dataset(
         class_shape (tuple[int,...]): Class shape
         class_map (dict[int, int]): Class mapping
         num_workers (int, optional): Number of workers. Defaults to 4.
+
     Returns:
         tf.data.Dataset: Train dataset
     """
@@ -151,7 +149,7 @@ def load_train_dataset(
         xx = x.copy()
         xx = xx + np.random.normal(0, 0.1, size=x.shape)
         # if np.random.rand() < 0.2:
-            # xx = np.flip(xx, axis=0)
+        # xx = np.flip(xx, axis=0)
         return xx
 
     def train_generator(subject_ids):
@@ -210,6 +208,7 @@ def load_validation_dataset(
     class_map: dict[int, int],
 ) -> tf.data.Dataset:
     """Load validation dataset.
+
     Args:
         ds (SKDataset): Dataset
         subject_ids (list[str]): Subject IDs
@@ -219,6 +218,7 @@ def load_validation_dataset(
         feat_shape (tuple[int,...]): Feature shape
         class_shape (tuple[int,...]): Class shape
         class_map (dict[int, int]): Class mapping
+
     Returns:
         tf.data.Dataset: Validation dataset
     """
@@ -258,11 +258,20 @@ def load_test_dataset(
     class_map: dict[int, int],
 ) -> tuple[npt.NDArray, npt.NDArray]:
     """Load test dataset
+
     Args:
-        params (SKTestParams): Testing parameters
+        ds (SKDataset): Dataset
+        subject_ids (list[str]): Subject IDs
+        samples_per_subject (int): Samples per subject
+        test_size (int): Test size
+        feat_shape (tuple[int,...]): Feature shape
+        class_shape (tuple[int,...]): Class shape
+        class_map (dict[int, int]): Class mapping
+
     Returns:
         tuple[npt.NDArray, npt.NDArray]: Test features and labels
     """
+
     def preprocess(x: npt.NDArray[np.float32]):
         return x
 
@@ -289,6 +298,7 @@ def train(params: SKTrainParams):
 
     Args:
         params (SKTrainParams): Training parameters
+
     """
 
     # Custom parameters (add to SKTrainParams for automatic logging)
@@ -323,10 +333,7 @@ def train(params: SKTrainParams):
     class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
     ds = load_dataset(
-        handler=params.ds_handler,
-        ds_path=params.ds_path,
-        frame_size=params.frame_size,
-        params=params.ds_params
+        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
     )
     feat_shape = ds.feature_shape
     class_shape = (params.frame_size, len(target_classes))
@@ -412,6 +419,7 @@ def train(params: SKTrainParams):
                 if not isinstance(layer, tf.keras.layers.LayerNormalization):
                     return tfmot.quantization.keras.quantize_annotate_layer(layer)
                 return layer
+
             # model = tfmot.quantization.keras.quantize_model(model)
             model = tf.keras.models.clone_model(model, clone_function=apply_quantization_to_non_norm)
             model = tfmot.quantization.keras.quantize_apply(model)
@@ -514,10 +522,7 @@ def evaluate(params: SKTestParams):
     class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
     ds = load_dataset(
-        handler=params.ds_handler,
-        ds_path=params.ds_path,
-        frame_size=params.frame_size,
-        params=params.ds_params
+        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
     )
     test_true, test_pred, test_prob = [], [], []
     pt_metrics = []
@@ -616,10 +621,7 @@ def export(params: SKExportParams):
     # class_mapping = get_sleep_stage_class_mapping(params.num_sleep_stages)
 
     ds = load_dataset(
-        handler=params.ds_handler,
-        ds_path=params.ds_path,
-        frame_size=params.frame_size,
-        params=params.ds_params
+        handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
     )
 
     class_shape = (params.frame_size, len(target_classes))

@@ -7,8 +7,10 @@ from pydantic import BaseModel, Field
 from .blocks import se_block
 from .defines import KerasLayer
 
+
 class TcnBlockParams(BaseModel):
     """TCN block parameters"""
+
     depth: int = Field(default=1, description="Layer depth")
     branch: int = Field(default=1, description="Number of branches")
     filters: int = Field(..., description="# filters")
@@ -19,8 +21,10 @@ class TcnBlockParams(BaseModel):
     dropout: float | None = Field(default=None, description="Dropout rate")
     norm: Literal["batch", "layer"] | None = Field(default="layer", description="Normalization type")
 
+
 class TcnParams(BaseModel):
     """TCN parameters"""
+
     input_kernel: int | tuple[int, int] | None = Field(default=None, description="Input kernel size")
     input_norm: Literal["batch", "layer"] | None = Field(default="layer", description="Input normalization type")
     block_type: Literal["lg", "mb", "sm"] = Field(default="mb", description="Block type")
@@ -41,6 +45,7 @@ def norm_layer(norm: str, name: str) -> KerasLayer:
     Returns:
         KerasLayer: Layer
     """
+
     def layer(x: tf.Tensor) -> tf.Tensor:
         """Functional normalization layer
 
@@ -51,16 +56,11 @@ def norm_layer(norm: str, name: str) -> KerasLayer:
             tf.Tensor: Output tensor
         """
         if norm == "batch":
-            return tf.keras.layers.BatchNormalization(
-                axis=-1,
-                name=f"{name}.BN"
-            )(x)
+            return tf.keras.layers.BatchNormalization(axis=-1, name=f"{name}.BN")(x)
         if norm == "layer":
-            return tf.keras.layers.LayerNormalization(
-                axis=(1, 2),
-                name=f"{name}.LN"
-            )(x)
+            return tf.keras.layers.LayerNormalization(axis=(1, 2), name=f"{name}.LN")(x)
         return x
+
     return layer
 
 
@@ -74,6 +74,7 @@ def tcn_block_lg(params: TcnBlockParams, name: str) -> KerasLayer:
     Returns:
         KerasLayer: Layer
     """
+
     def layer(x: tf.Tensor) -> tf.Tensor:
         """TCN block layer"""
         y = x
@@ -91,7 +92,7 @@ def tcn_block_lg(params: TcnBlockParams, name: str) -> KerasLayer:
                 dilation_rate=params.dilation,
                 kernel_initializer="he_normal",
                 kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-                name=f"{lcl_name}.CN1"
+                name=f"{lcl_name}.CN1",
             )(y)
             y = norm_layer(params.norm, f"{lcl_name}.CN1")(y)
 
@@ -104,38 +105,29 @@ def tcn_block_lg(params: TcnBlockParams, name: str) -> KerasLayer:
                 dilation_rate=params.dilation,
                 kernel_initializer="he_normal",
                 kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-                name=f"{lcl_name}.CN2"
+                name=f"{lcl_name}.CN2",
             )(y)
             y = norm_layer(params.norm, f"{lcl_name}.CN2")(y)
 
             if y_skip.shape[-1] == y.shape[-1]:
-                y = tf.keras.layers.Add(
-                    name=f"{lcl_name}.ADD"
-                )([y, y_skip])
+                y = tf.keras.layers.Add(name=f"{lcl_name}.ADD")([y, y_skip])
 
-            y = tf.keras.layers.Activation(
-                "relu6",
-                name=f"{lcl_name}.RELU"
-            )(y)
+            y = tf.keras.layers.Activation("relu6", name=f"{lcl_name}.RELU")(y)
 
             # Squeeze and excite
             if params.se_ratio > 0:
-                y = se_block(
-                    ratio=params.se_ratio,
-                    name=f"{lcl_name}.SE"
-                )(y)
+                y = se_block(ratio=params.se_ratio, name=f"{lcl_name}.SE")(y)
             # END IF
 
             if params.dropout and params.dropout > 0:
-                y = tf.keras.layers.SpatialDropout2D(
-                    rate=params.dropout,
-                    name=f"{lcl_name}.DROP"
-                )(y)
+                y = tf.keras.layers.SpatialDropout2D(rate=params.dropout, name=f"{lcl_name}.DROP")(y)
             # END IF
 
         # END FOR
         return y
+
     return layer
+
 
 def tcn_block_mb(params: TcnBlockParams, name: str) -> KerasLayer:
     """TCN mbconv block
@@ -146,6 +138,7 @@ def tcn_block_mb(params: TcnBlockParams, name: str) -> KerasLayer:
     Returns:
         KerasLayer: Layer
     """
+
     def layer(x: tf.Tensor) -> tf.Tensor:
         """TCN block layer"""
         y = x
@@ -155,20 +148,17 @@ def tcn_block_mb(params: TcnBlockParams, name: str) -> KerasLayer:
 
             if params.ex_ratio != 1:
                 y = tf.keras.layers.Conv2D(
-                    filters=int(params.filters*params.ex_ratio),
+                    filters=int(params.filters * params.ex_ratio),
                     kernel_size=(1, 1),
                     strides=(1, 1),
                     padding="same",
                     use_bias=params.norm is None,
                     kernel_initializer="he_normal",
                     kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-                    name=f"{lcl_name}.EX.CN"
+                    name=f"{lcl_name}.EX.CN",
                 )(y)
                 y = norm_layer(params.norm, f"{lcl_name}.EX")(y)
-                y = tf.keras.layers.Activation(
-                    "relu6",
-                    name=f"{lcl_name}.EX.RELU"
-                )(y)
+                y = tf.keras.layers.Activation("relu6", name=f"{lcl_name}.EX.RELU")(y)
             # END IF
 
             branches = []
@@ -182,31 +172,23 @@ def tcn_block_mb(params: TcnBlockParams, name: str) -> KerasLayer:
                     dilation_rate=params.dilation,
                     depthwise_initializer="he_normal",
                     depthwise_regularizer=tf.keras.regularizers.L2(1e-3),
-                    name=f"{lcl_name}.DW.B{b+1}.CN"
+                    name=f"{lcl_name}.DW.B{b+1}.CN",
                 )(yb)
                 yb = norm_layer(params.norm, f"{lcl_name}.DW.B{b+1}")(yb)
                 branches.append(yb)
             # END FOR
 
             if params.branch > 1:
-                y = tf.keras.layers.Add(
-                    name=f"{lcl_name}.DW.ADD"
-                )(branches)
+                y = tf.keras.layers.Add(name=f"{lcl_name}.DW.ADD")(branches)
             else:
                 y = branches[0]
             # END IF
 
-            y = tf.keras.layers.Activation(
-                "relu6",
-                name=f"{lcl_name}.DW.RELU"
-            )(y)
+            y = tf.keras.layers.Activation("relu6", name=f"{lcl_name}.DW.RELU")(y)
 
             # Squeeze and excite
             if params.se_ratio > 0:
-                y = se_block(
-                    ratio=params.se_ratio,
-                    name=f"{lcl_name}.SE"
-                )(y)
+                y = se_block(ratio=params.se_ratio, name=f"{lcl_name}.SE")(y)
             # END IF
 
             branches = []
@@ -221,40 +203,32 @@ def tcn_block_mb(params: TcnBlockParams, name: str) -> KerasLayer:
                     use_bias=params.norm is None,
                     kernel_initializer="he_normal",
                     kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-                    name=f"{lcl_name}.PW.B{b+1}.CN"
+                    name=f"{lcl_name}.PW.B{b+1}.CN",
                 )(yb)
                 yb = norm_layer(params.norm, f"{lcl_name}.PW.B{b+1}")(yb)
                 branches.append(yb)
             # END FOR
 
             if params.branch > 1:
-                y = tf.keras.layers.Add(
-                    name=f"{lcl_name}.PW.ADD"
-                )(branches)
+                y = tf.keras.layers.Add(name=f"{lcl_name}.PW.ADD")(branches)
             else:
                 y = branches[0]
             # END IF
 
-            y = tf.keras.layers.Activation(
-                "relu6",
-                name=f"{lcl_name}.PW.RELU"
-            )(y)
+            y = tf.keras.layers.Activation("relu6", name=f"{lcl_name}.PW.RELU")(y)
         # END FOR
 
         # Skip connection
         if y_skip.shape[-1] == y.shape[-1]:
-            y = tf.keras.layers.Add(
-                name=f"{name}.ADD"
-            )([y, y_skip])
+            y = tf.keras.layers.Add(name=f"{name}.ADD")([y, y_skip])
 
         if params.dropout and params.dropout > 0:
-            y = tf.keras.layers.SpatialDropout2D(
-                rate=params.dropout,
-                name=f"{name}.DROP"
-            )(y)
+            y = tf.keras.layers.SpatialDropout2D(rate=params.dropout, name=f"{name}.DROP")(y)
         # END IF
         return y
+
     return layer
+
 
 def tcn_block_sm(params: TcnBlockParams, name: str) -> KerasLayer:
     """TCN small block
@@ -265,6 +239,7 @@ def tcn_block_sm(params: TcnBlockParams, name: str) -> KerasLayer:
     Returns:
         KerasLayer: Layer
     """
+
     def layer(x: tf.Tensor) -> tf.Tensor:
         """TCN block layer"""
         y = x
@@ -282,24 +257,19 @@ def tcn_block_sm(params: TcnBlockParams, name: str) -> KerasLayer:
                     dilation_rate=params.dilation,
                     depthwise_initializer="he_normal",
                     depthwise_regularizer=tf.keras.regularizers.L2(1e-3),
-                    name=f"{lcl_name}.DW.B{b+1}.CN"
+                    name=f"{lcl_name}.DW.B{b+1}.CN",
                 )(yb)
                 yb = norm_layer(params.norm, f"{lcl_name}.DW.B{b+1}")(yb)
                 branches.append(yb)
             # END FOR
 
             if params.branch > 1:
-                y = tf.keras.layers.Add(
-                    name=f"{lcl_name}.DW.ADD"
-                )(branches)
+                y = tf.keras.layers.Add(name=f"{lcl_name}.DW.ADD")(branches)
             else:
                 y = branches[0]
             # END IF
 
-            y = tf.keras.layers.Activation(
-                "relu6",
-                name=f"{lcl_name}.DW.RELU"
-            )(y)
+            y = tf.keras.layers.Activation("relu6", name=f"{lcl_name}.DW.RELU")(y)
 
             branches = []
             for b in range(params.branch):
@@ -313,52 +283,39 @@ def tcn_block_sm(params: TcnBlockParams, name: str) -> KerasLayer:
                     use_bias=params.norm is None,
                     kernel_initializer="he_normal",
                     kernel_regularizer=tf.keras.regularizers.L2(1e-3),
-                    name=f"{lcl_name}.PW.B{b+1}.CN"
+                    name=f"{lcl_name}.PW.B{b+1}.CN",
                 )(yb)
                 yb = norm_layer(params.norm, f"{lcl_name}.PW.B{b+1}")(yb)
                 branches.append(yb)
             # END FOR
 
             if params.branch > 1:
-                y = tf.keras.layers.Add(
-                    name=f"{lcl_name}.PW.ADD"
-                )(branches)
+                y = tf.keras.layers.Add(name=f"{lcl_name}.PW.ADD")(branches)
             else:
                 y = branches[0]
             # END IF
 
-            y = tf.keras.layers.Activation(
-                "relu6",
-                name=f"{lcl_name}.PW.RELU"
-            )(y)
+            y = tf.keras.layers.Activation("relu6", name=f"{lcl_name}.PW.RELU")(y)
         # END FOR
 
         # Squeeze and excite
         if params.se_ratio > 0:
-            y = se_block(
-                ratio=params.se_ratio,
-                name=f"{name}.SE"
-            )(y)
+            y = se_block(ratio=params.se_ratio, name=f"{name}.SE")(y)
         # END IF
 
         # Skip connection
         if y_skip.shape[-1] == y.shape[-1]:
-            y = tf.keras.layers.Add(
-                name=f"{name}.ADD"
-            )([y, y_skip])
+            y = tf.keras.layers.Add(name=f"{name}.ADD")([y, y_skip])
 
         if params.dropout and params.dropout > 0:
-            y = tf.keras.layers.SpatialDropout2D(
-                rate=params.dropout,
-                name=f"{name}.DROP"
-            )(y)
+            y = tf.keras.layers.SpatialDropout2D(rate=params.dropout, name=f"{name}.DROP")(y)
         # END IF
         return y
+
     return layer
 
-def tcn_core(
-    params: TcnParams
-) -> KerasLayer:
+
+def tcn_core(params: TcnParams) -> KerasLayer:
     """TCN core
 
     Args:
@@ -383,6 +340,7 @@ def tcn_core(
             y = tcn_block(params=block, name=name)(y)
         # END IF
         return y
+
     return layer
 
 
@@ -410,10 +368,7 @@ def Tcn(
     # Encode each channel separately
     if params.input_kernel:
         y = tf.keras.layers.DepthwiseConv2D(
-            kernel_size=params.input_kernel,
-            use_bias=params.input_norm is None,
-            name="ENC.CN",
-            padding="same"
+            kernel_size=params.input_kernel, use_bias=params.input_norm is None, name="ENC.CN", padding="same"
         )(y)
         y = norm_layer(params.input_norm, "ENC")(y)
     # END IF
