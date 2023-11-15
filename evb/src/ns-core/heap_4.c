@@ -94,7 +94,8 @@ prvHeapInit(void);
 
 /* The size of the structure placed at the beginning of each allocated memory
 block must by correctly byte aligned. */
-static const size_t xHeapStructSize = (sizeof(BlockLink_t) + ((size_t)(portBYTE_ALIGNMENT - 1))) & ~((size_t)portBYTE_ALIGNMENT_MASK);
+static const size_t xHeapStructSize =
+    (sizeof(BlockLink_t) + ((size_t)(portBYTE_ALIGNMENT - 1))) & ~((size_t)portBYTE_ALIGNMENT_MASK);
 
 /* Create a couple of list links to mark the start and end of the list. */
 static BlockLink_t xStart, *pxEnd = NULL;
@@ -174,7 +175,8 @@ prvPortMalloc(size_t xWantedSize, uint8_t enableSuspendResume) {
                 if (pxBlock != pxEnd) {
                     /* Return the memory space pointed to - jumping over the
                     BlockLink_t structure at its start. */
-                    pvReturn = (void *)(((uint8_t *)pxPreviousBlock->pxNextFreeBlock) + xHeapStructSize);
+                    pvReturn =
+                        (void *)(((uint8_t *)pxPreviousBlock->pxNextFreeBlock) + xHeapStructSize);
 
                     /* This block is being returned for use so must be taken out
                     of the list of free blocks. */
@@ -383,7 +385,8 @@ prvInsertBlockIntoFreeList(BlockLink_t *pxBlockToInsert) {
 
     /* Iterate through the list until a block is found that has a higher address
     than the block being inserted. */
-    for (pxIterator = &xStart; pxIterator->pxNextFreeBlock < pxBlockToInsert; pxIterator = pxIterator->pxNextFreeBlock) {
+    for (pxIterator = &xStart; pxIterator->pxNextFreeBlock < pxBlockToInsert;
+         pxIterator = pxIterator->pxNextFreeBlock) {
         /* Nothing to do here, just iterate to the right position. */
     }
 

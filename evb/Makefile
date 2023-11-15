@@ -4,6 +4,7 @@ include make/neuralspot_toolchain.mk
 include make/jlink.mk
 include autogen.mk
 
+# local_app_name := main <-- moved to autogen
 TARGET = $(local_app_name)
 sources := $(wildcard src/*.c)
 sources += $(wildcard src/*.cc)
@@ -13,7 +14,17 @@ sources += $(wildcard src/ns-core/*.c)
 sources += $(wildcard src/ns-core/*.cc)
 sources += $(wildcard src/ns-core/*.cpp)
 sources += $(wildcard src/ns-core/*.s)
-
+ifeq ($(TOOLCHAIN),arm)
+	sources += $(wildcard src/ns-core/armclang/*.c)
+	sources += $(wildcard src/ns-core/armclang/*.cc)
+	sources += $(wildcard src/ns-core/armclang/*.cpp)
+	sources += $(wildcard src/ns-core/armclang/*.s)
+else
+	sources += $(wildcard src/ns-core/gcc/*.c)
+	sources += $(wildcard src/ns-core/gcc/*.cc)
+	sources += $(wildcard src/ns-core/gcc/*.cpp)
+	sources += $(wildcard src/ns-core/gcc/*.s)
+endif
 
 targets  := $(BINDIR)/$(local_app_name).axf
 targets  += $(BINDIR)/$(local_app_name).bin

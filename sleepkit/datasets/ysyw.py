@@ -280,7 +280,7 @@ class YsywDataset:
                 for future in as_completed(futures):
                     err = future.exception()
                     if err:
-                        print("Failed on file", err)
+                        logger.error(f"Failed on file {err}")
                     pbar.update(1)
                 # END FOR
             # END WITH

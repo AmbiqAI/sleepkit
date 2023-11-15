@@ -1,144 +1,19 @@
-import abc
 import datetime
 import random
-import time
 
-import erpc
 import numpy as np
-import numpy.typing as npt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from tqdm import tqdm
 
-from .. import rpc, tflite
 from ..defines import SKDemoParams
+from ..rpc.backends import EvbBackend, PcBackend
 from ..utils import setup_logger
 from .defines import get_stage_class_mapping, get_stage_class_names, get_stage_classes
 from .metrics import compute_sleep_stage_durations
 from .utils import load_dataset
 
 logger = setup_logger(__name__)
-
-
-class DemoBackend(abc.ABC):
-    """Demo backend base class"""
-
-    def __init__(self, params: SKDemoParams) -> None:
-        self.params = params
-
-    def open(self):
-        """Open backend"""
-        raise NotImplementedError
-
-    def close(self):
-        """Close backend"""
-        raise NotImplementedError
-
-    def set_inputs(self, inputs: npt.NDArray):
-        """Set inputs"""
-        raise NotImplementedError
-
-    def perform_inference(self):
-        """Perform inference"""
-        raise NotImplementedError
-
-    def get_outputs(self) -> npt.NDArray:
-        """Get outputs"""
-        raise NotImplementedError
-
-
-class EvbBackend(DemoBackend):
-    """Demo backend for EVB"""
-
-    def __init__(self, params: SKDemoParams) -> None:
-        super().__init__(params=params)
-        self._transport = None
-        self._client = None
-
-    def open(self):
-        self._transport = rpc.utils.get_serial_transport(vid_pid="51966:16385", baudrate=115200)
-        client_manager = erpc.client.ClientManager(self._transport, erpc.basic_codec.BasicCodec)
-        self._client = rpc.pc2evb.client.pc_to_evbClient(client_manager)
-        self.send_model()
-
-    def close(self):
-        self._transport.close()
-        self._transport = None
-        self._client = None
-
-    def _send_binary(self, name: str, cmd: int, data: bytes, chunk_len: int = 256):
-        """Send binary data to EVB"""
-        for i in range(0, len(data), chunk_len):
-            buffer = data[i : i + chunk_len]
-            self._client.ns_rpc_data_sendBlockToEVB(
-                rpc.pc2evb.common.dataBlock(
-                    description=name,
-                    dType=rpc.pc2evb.common.dataType.uint8_e,
-                    cmd=cmd,
-                    buffer=buffer,
-                    length=len(data),  # Send full length
-                )
-            )
-            time.sleep(0.01)
-
-    def _fetch_binary(self, name: str, cmd: int, chunk_len: int = 256) -> bytes:
-        """Fetch binary data from EVB"""
-        block = rpc.pc2evb.common.dataBlock(description=name, dType=rpc.pc2evb.common.dataType.uint8_e, cmd=cmd)
-        data = bytes()
-        self._client.ns_rpc_data_fetchBlockFromEVB(block)
-        data = block.buffer
-        if len(block.buffer) >= len(block.length):
-            return data
-
-        # Fetch remaining
-        for _ in range(len(block.buffer), len(block.length), chunk_len):
-            self._client.ns_rpc_data_fetchBlockFromEVB(block)
-            data += block.buffer
-            time.sleep(0.01)
-        return data
-
-    def send_model(self):
-        """Send model to EVB"""
-        with open(self.params.model_file, "rb") as fp:
-            model = fp.read()
-        self._send_binary("MODEL", 0, model)
-
-    def set_inputs(self, inputs: npt.NDArray):
-        self._send_binary("INPUT", 1, inputs.tobytes())
-
-    def perform_inference(self):
-        self._send_binary("INFER", 4, bytes([0]))
-        # Check status until done
-
-    def get_outputs(self) -> npt.NDArray:
-        data = self._fetch_binary("OUTPUT", 2)
-        return np.frombuffer(data, dtype=np.float32)
-
-
-class PcBackend(DemoBackend):
-    """Demo backend for PC"""
-
-    def __init__(self, params: SKDemoParams) -> None:
-        super().__init__(params=params)
-        self._inputs = None
-        self._outputs = None
-        self._model = None
-
-    def open(self):
-        with open(self.params.model_file, "rb") as fp:
-            self._model = fp.read()
-
-    def close(self):
-        self._model = None
-
-    def set_inputs(self, inputs: npt.NDArray):
-        self._inputs = inputs
-
-    def perform_inference(self):
-        self._outputs = tflite.predict_tflite(self._model, self._inputs)
-
-    def get_outputs(self) -> npt.NDArray:
-        return self._outputs
 
 
 def get_stage_color_map(num_classes) -> dict[int, str]:
@@ -189,7 +64,7 @@ def demo(params: SKDemoParams):
     )
 
     # Load entire subject's features
-    subject_id = random.choice(ds.train_subject_ids)
+    subject_id = random.choice(ds.subject_ids)
     logger.info(f"Loading subject {subject_id} data")
     features, _, _ = ds.load_subject_data(subject_id=subject_id, normalize=False)
     x, y_true, y_mask = ds.load_subject_data(subject_id=subject_id, normalize=True)

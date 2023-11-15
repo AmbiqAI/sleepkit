@@ -183,7 +183,7 @@ def predict_tflite(
     test_x: npt.NDArray,
     input_name: str | None = None,
     output_name: str | None = None,
-) -> npt.NDArray:
+) -> tuple[npt.NDArray, npt.NDArray]:
     """Perform prediction using tflite model content
 
     Args:
@@ -193,7 +193,7 @@ def predict_tflite(
         output_name (str | None, optional): Output layer name. Defaults to None.
 
     Returns:
-        npt.NDArray: Model outputs
+        tuple[npt.NDArray, npt.NDArray]: Input, Output
     """
     # Prepare the test data
     inputs = test_x.copy()
@@ -215,7 +215,7 @@ def predict_tflite(
     output_scale: list[float] = output_details["quantization_parameters"]["scales"]
     output_zero_point: list[int] = output_details["quantization_parameters"]["zero_points"]
 
-    inputs = inputs.reshape(input_details["shape"])
+    inputs = inputs.reshape(input_details["shape_signature"])
     if len(input_scale) and len(input_zero_point):
         inputs = inputs / input_scale[0] + input_zero_point[0]
         inputs = inputs.astype(input_details["dtype"])
@@ -229,7 +229,7 @@ def predict_tflite(
         outputs = outputs.astype(np.float32)
         outputs = (outputs - output_zero_point[0]) * output_scale[0]
 
-    return outputs
+    return inputs, outputs
 
 
 def evaluate_tflite(
@@ -249,7 +249,7 @@ def evaluate_tflite(
     Returns:
         npt.NDArray: Loss values
     """
-    y_pred = predict_tflite(model_content, test_x=test_x)
+    _, y_pred = predict_tflite(model_content, test_x=test_x)
     loss_function = tf.keras.losses.get(model.loss)
     loss = loss_function(y_true, y_pred).numpy()
     return loss

@@ -91,7 +91,8 @@ def export(params: SKExportParams):
     logger.info("Validating model results")
     y_true = np.argmax(test_y, axis=1)
     y_pred_tf = np.argmax(model.predict(test_x), axis=1)
-    y_pred_tfl = np.argmax(tfa.predict_tflite(model_content=tflite_model, test_x=test_x), axis=1)
+    _, y_pred_tfl = tfa.predict_tflite(model_content=tflite_model, test_x=test_x)
+    y_pred_tfl = np.argmax(y_pred_tfl, axis=1)
 
     tf_acc = np.sum(y_true == y_pred_tf) / y_true.size
     tf_f1 = f1_score(y_true, y_pred_tf, average="weighted")
