@@ -34,4 +34,5 @@ def download_mesa(self, args: SKDownloadParams):
             f"--token={os.environ.get('NSSR_TOKEN')}",
         ],
         cwd=args.ds_path,
+        check=False,
     )

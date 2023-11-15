@@ -1,56 +1,10 @@
 import os
 import tempfile
-from enum import IntEnum, StrEnum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, Extra, Field
-
-
-class SleepStage(IntEnum):
-    """Sleep stage class"""
-
-    wake = 0
-    stage1 = 1
-    stage2 = 2
-    stage3 = 3
-    stage4 = 4
-    rem = 5
-    noise = 6
-
-
-class SleepStageName(StrEnum):
-    """Sleep stage name"""
-
-    wake = "wake"
-    stage1 = "stage1"
-    stage2 = "stage2"
-    stage3 = "stage3"
-    stage4 = "stage4"
-    rem = "rem"
-    noise = "noise"
-
-
-class SleepApnea(IntEnum):
-    """Sleep apnea class"""
-
-    none = 0
-    hypopnea = 1
-    central = 2
-    obstructive = 3
-    mixed = 4
-    noise = 5
-
-
-class SleepApneaName(StrEnum):
-    """Sleep apnea name"""
-
-    none = "none"
-    hypopnea = "hypopnea"
-    central = "central"
-    obstructive = "obstructive"
-    mixed = "mixed"
-    noise = "noise"
 
 
 class SKDownloadParams(BaseModel, extra=Extra.allow):
@@ -166,6 +120,18 @@ class SKExportParams(BaseModel, extra=Extra.allow):
 class SKDemoParams(BaseModel, extra=Extra.allow):
     """Demo command params"""
 
+    job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
+    # Dataset arguments
+    ds_path: Path = Field(default_factory=Path, description="Dataset base directory")
+    ds_handler: str = Field(description="Dataset handler name")
+    ds_params: dict[str, Any] | None = Field(default_factory=dict, description="Dataset parameters")
+    frame_size: int = Field(1250, description="Frame size")
+    # Model arguments
+    model_file: str | None = Field(None, description="Path to model file")
+    backend: Literal["pc", "evb"] = Field("pc", description="Backend")
+    # Extra arguments
+    seed: int | None = Field(None, description="Random state seed")
+
 
 class SKTask(StrEnum):
     """SleepKit task"""
@@ -184,131 +150,3 @@ class SKMode(StrEnum):
     evaluate = "evaluate"
     export = "export"
     demo = "demo"
-
-
-def get_sleep_stage_classes(nstages: int) -> list[int]:
-    """Get target classes for sleep stage classification
-    Args:
-        nstages (int): Number of sleep stages
-    Returns:
-        list[int]: Target classes
-    """
-    if 2 <= nstages <= 5:
-        return list(range(nstages))
-    raise ValueError(f"Invalid number of stages: {nstages}")
-
-
-def get_sleep_apnea_classes(nstages: int) -> list[int]:
-    """Get target classes for sleep apnea classification
-    Args:
-        nstages (int): Number of apnea stages
-    Returns:
-        list[int]: Target classes
-    """
-    if nstages in (2, 3):
-        return list(range(nstages))
-    raise ValueError(f"Invalid number of stages: {nstages}")
-
-
-def get_sleep_apnea_class_mapping(nstages: int) -> dict[int, int]:
-    """Get class mapping for sleep apnea classification
-    Args:
-        nstages (int): Number of sleep apnea stages
-    Returns:
-        dict[int, int]: Class mapping
-    """
-    if nstages == 2:
-        return {
-            SleepApnea.none: 0,
-            SleepApnea.hypopnea: 1,
-            SleepApnea.central: 1,
-            SleepApnea.obstructive: 1,
-            SleepApnea.mixed: 1,
-        }
-    if nstages == 3:
-        return {
-            SleepApnea.none: 0,
-            SleepApnea.central: 1,
-            SleepApnea.obstructive: 1,
-            SleepApnea.mixed: 1,
-            SleepApnea.hypopnea: 2,
-        }
-    raise ValueError(f"Invalid number of stages: {nstages}")
-
-
-def get_sleep_apnea_class_names(nstages: int):
-    """Get class names for sleep apnea classification
-    Args:
-        nstages (int): Number of sleep apnea stages
-    Returns:
-        list[str]: Class names
-    """
-    if nstages == 2:
-        return ["NORM", "APNEA"]
-    if nstages == 3:
-        return ["NORM", "APNEA", "HYPOPNEA"]
-    raise ValueError(f"Invalid number of stages: {nstages}")
-
-
-def get_sleep_stage_class_mapping(nstages: int) -> dict[int, int]:
-    """Get class mapping for sleep stage classification
-    Args:
-        nstages (int): Number of sleep stages
-    Returns:
-        dict[int, int]: Class mapping
-    """
-    if nstages == 2:
-        return {
-            SleepStage.wake: 0,
-            SleepStage.stage1: 1,
-            SleepStage.stage2: 1,
-            SleepStage.stage3: 1,
-            SleepStage.stage4: 1,
-            SleepStage.rem: 1,
-        }
-    if nstages == 3:
-        return {
-            SleepStage.wake: 0,
-            SleepStage.stage1: 1,
-            SleepStage.stage2: 1,
-            SleepStage.stage3: 1,
-            SleepStage.stage4: 1,
-            SleepStage.rem: 2,
-        }
-    if nstages == 4:
-        return {
-            SleepStage.wake: 0,
-            SleepStage.stage1: 1,
-            SleepStage.stage2: 1,
-            SleepStage.stage3: 2,
-            SleepStage.stage4: 2,
-            SleepStage.rem: 3,
-        }
-    if nstages == 5:
-        return {
-            SleepStage.wake: 0,
-            SleepStage.stage1: 1,
-            SleepStage.stage2: 2,
-            SleepStage.stage3: 3,
-            SleepStage.stage4: 3,
-            SleepStage.rem: 4,
-        }
-    raise ValueError(f"Invalid number of stages: {nstages}")
-
-
-def get_sleep_stage_class_names(nstages: int):
-    """Get class names for sleep stage classification
-    Args:
-        nstages (int): Number of sleep stages
-    Returns:
-        list[str]: Class names
-    """
-    if nstages == 2:
-        return ["WAKE", "SLEEP"]
-    if nstages == 3:
-        return ["WAKE", "NREM", "REM"]
-    if nstages == 4:
-        return ["WAKE", "CORE", "DEEP", "REM"]
-    if nstages == 5:
-        return ["WAKE", "N1", "N2", "N3", "REM"]
-    raise ValueError(f"Invalid number of stages: {nstages}")

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy.typing as npt
 
-from .defines import SubjectGenerator
+from .defines import SampleGenerator, SubjectGenerator
 
 
 class SKDataset(abc.ABC):
@@ -62,8 +62,10 @@ class SKDataset(abc.ABC):
         self, subject_id: str, normalize: bool = True, epsilon: float = 1e-6
     ) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]:
         """Load subject data
+
         Args:
             subject_id (str): Subject ID
+
         Returns:
             tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]: Tuple of features and labels
         """
@@ -71,14 +73,13 @@ class SKDataset(abc.ABC):
 
     def signal_generator(
         self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-6
-    ):
-        """
-        Generate frames using subject generator.
-        from the segments in subject data by placing a frame in a random location within one of the segments.
+    ) -> SampleGenerator:
+        """Generate frames using subject generator
+
         Args:
-            subject_generator (SubjectGenerator): Generator that yields a tuple of subject id and subject data.
-                    subject data may contain only signals, since labels are not used.
-            samples_per_subject (int): Samples per subject.
+            subject_generator (SubjectGenerator): Subject generator
+            samples_per_subject (int): # samples per subject
+
         Returns:
             SampleGenerator: Generator of input data of shape (frame_size, 1)
         """

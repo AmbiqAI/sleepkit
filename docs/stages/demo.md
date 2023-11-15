@@ -21,12 +21,10 @@ A [jupyter notebook](https://github.com/AmbiqAI/sleepkit/tree/main/notebooks/sle
 
 ## <span class="sk-h2-span">Outputs</span>
 
-<div class="sk-plotly-graph-div">
---8<-- "assets/sleep-stage-demo-example.html"
-</div>
 
 <div class="sk-plotly-graph-div">
---8<-- "assets/demo-sleep-cycle-pie.html"
+--8<-- "assets/sleep-stage-demo.html"
 </div>
+
 
 ---

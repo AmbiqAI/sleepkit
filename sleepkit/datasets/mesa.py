@@ -77,10 +77,12 @@ class MesaDataset:
 
     @property
     def actigraphy_signal_names(self) -> list[str]:
+        """Actigraphy signal names"""
         return ["activity", "linetime", "whitelight", "offwrist", "wake"]
 
     @property
     def psg_signal_names(self) -> list[str]:
+        """PSG signal names"""
         return [
             "EKG",
             "EOG-L",

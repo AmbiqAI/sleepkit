@@ -86,10 +86,15 @@ line-length = 120
 
 [tool.pylint.master]
 ignore-paths = [
-    "sleepkit/demo/rpc/GenericDataOperations_EvbToPc",
-    "sleepkit/demo/rpc/GenericDataOperations_PcToEvb"
+    "sleepkit/rpc/GenericDataOperations_EvbToPc",
+    "sleepkit/rpc/GenericDataOperations_PcToEvb"
 ]
 extension-pkg-whitelist = "pydantic"
+
+[tool.pylint.TYPECHECK]
+ignored-classes = [
+   "h5py.Group"
+]
 
 [tool.pylint.message_control]
 disable = [
@@ -110,9 +115,9 @@ max-line-length = 140
 [tool.pylint.design]
 max-args = 50
 max-locals = 50
-max-statements = 80
+max-statements = 100
 max-module-lines = 2000
-max-attributes = 10
+max-attributes = 25
 max-branches = 50
 
 [tool.pyright]

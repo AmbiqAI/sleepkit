@@ -10,17 +10,20 @@ nav:
   - Overview: overview.md
   - Datasets: datasets.md
   - Results: results.md
-  - Sleep Staging:
+  - Staging:
     - Overview: ./stages/overview.md
     - Methods: ./stages/methods.md
     - Model: ./stages/architecture.md
     - Results: ./stages/results.md
     - Experiments: ./stages/experiments.md
     - Demo: ./stages/demo.md
+  - Apnea:
+    - Overview: ./apnea/overview.md
   - API:
     - SleepKit: ./api/sleepkit.md
     - Datasets: ./api/datasets.md
     - Models: ./api/models.md
+    - Stage: ./api/stage.md
 
 theme:
   name: material

@@ -200,9 +200,10 @@ class Hdf5Dataset(SKDataset):
         Returns:
             SampleGenerator: Generator of frames and labels.
         """
+        in_mem = True
         for subject_id, subject_data in subject_generator:
-            xx = subject_data[self.feat_key][:] if True else subject_data[self.feat_key]
-            yy = subject_data[self.label_key][:] if True else subject_data[self.label_key]
+            xx = subject_data[self.feat_key][:] if in_mem else subject_data[self.feat_key]
+            yy = subject_data[self.label_key][:] if in_mem else subject_data[self.label_key]
             mm: npt.NDArray = subject_data[self.mask_key][:] if self.mask_key else None
             xx, yy, mm = self._preprocess_data(subject_id, xx, yy, mm, normalize, epsilon)
 

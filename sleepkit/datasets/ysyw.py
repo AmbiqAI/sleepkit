@@ -16,7 +16,6 @@ import numpy as np
 import numpy.typing as npt
 import physiokit as pk
 import scipy.io
-import tensorflow as tf
 from botocore import UNSIGNED
 from botocore.client import Config
 from tqdm import tqdm
@@ -193,8 +192,9 @@ class YsywDataset:
             signal_idx = self.signal_names.index(signal_label)
             sample_rate = self.sampling_rate
             sig_start = round(start * (sample_rate / self.target_rate))
-            sig_len = fp["/data"].shape[1]
+            sig_len = fp["/data"].shape[1]  # pylint: disable=no-member
             sig_duration = sig_len if data_size is None else math.ceil(data_size * (sample_rate / self.target_rate))
+            # pylint: disable=no-member
             signal = fp["/data"][signal_idx, sig_start : sig_start + sig_duration].astype(np.float32)
         # END WITH
         if sample_rate != self.target_rate:
@@ -215,8 +215,9 @@ class YsywDataset:
         sample_rate = self.sampling_rate
         with h5py.File(self._get_subject_h5_path(subject_id), mode="r") as fp:
             sig_start = round(start * (sample_rate / self.target_rate))
-            sig_len = fp["/sleep_stages"].shape[1]
+            sig_len = fp["/sleep_stages"].shape[1]  # pylint: disable=no-member
             sig_duration = sig_len if data_size is None else math.ceil(data_size * (sample_rate / self.target_rate))
+            # pylint: disable=no-member
             sleep_stages = fp["/sleep_stages"][:, sig_start : sig_start + sig_duration].astype(np.int32)
         # END WITH
         sleep_stages = np.argmax(sleep_stages, axis=0)
@@ -228,41 +229,6 @@ class YsywDataset:
             return sleep_stages
 
         return sleep_stages[:data_size]
-
-    def data_generator(
-        self,
-        subject_generator: SubjectGenerator,
-        samples_per_subject: int = 100,
-    ) -> SampleGenerator:
-        """Generate samples from subject generator.
-        Args:
-            subject_generator (SubjectGenerator): Subject generator
-            samples_per_subject (int, optional): # samples per subject. Defaults to 100.
-        Yields:
-            SampleGenerator: Sample generator
-        """
-        for _, records in subject_generator:
-            for _ in range(samples_per_subject):
-                # Randomly choose a record
-                record = records[np.random.choice(list(records.keys()))]
-                if record.shape[0] < self.block_size:
-                    continue
-                block_start = np.random.randint(record.shape[0] - self.block_size)
-                block_end = block_start + self.block_size
-                data = record[block_start:block_end]
-                data = tf.reshape(data, shape=(self.frame_size, self.patch_size, data.shape[1]))
-
-                x = data[:, :, 0:3]
-                x = tf.reshape(x, shape=(self.frame_size, -1))
-
-                y = data[:, :, 3:8]
-                y = tf.transpose(y, perm=[0, 2, 1])
-                y = tf.reduce_max(y, axis=-1)
-                y = tf.cast(y, tf.int32)
-
-                yield x, y
-            # END FOR
-        # END FOR
 
     def download(self, num_workers: int | None = None, force: bool = False):
         """Download dataset
@@ -342,7 +308,7 @@ class YsywDataset:
     def get_subject_duration(self, subject_id: str) -> float:
         """Get subject duration in seconds"""
         with h5py.File(self._get_subject_h5_path(subject_id), mode="r") as fp:
-            return fp["/data"].shape[1] / self.sampling_rate
+            return fp["/data"].shape[1] / self.sampling_rate  # pylint: disable=no-member
         # END WITH
 
     def _convert_pt_to_hdf5(self, pt_path: str, force: bool = False):

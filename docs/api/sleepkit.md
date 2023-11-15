@@ -10,6 +10,4 @@
 
 ::: sleepkit.metrics
 
-::: sleepkit.sleepstage
-
 ::: sleepkit.utils

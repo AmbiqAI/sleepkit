@@ -115,6 +115,24 @@ def get_feature_names_003() -> list[str]:
     ]
 
 
+def get_feature_names(feature_set: str) -> list[str]:
+    """Get feature names for feature set.
+
+    Args:
+        feature_set (str): Feature set name
+
+    Returns:
+        list[str]: Feature names
+    """
+    if feature_set == "fs001":
+        return get_feature_names_001()
+    if feature_set == "fs002":
+        return get_feature_names_002()
+    if feature_set == "fs003":
+        return get_feature_names_003()
+    raise NotImplementedError(f"Feature set {feature_set} not implemented")
+
+
 def compute_features_001(
     ds_name: str, subject_id: str, args: SKFeatureParams
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -203,7 +221,7 @@ def compute_features_001(
         hrv_fd = pk.hrv.compute_hrv_frequency(rpeaks, rri=rri, bands=freq_bands, sample_rate=sample_rate)
 
         # RSP metrics
-        rsp_bpm, rsp_qos = pk.ppg.derive_respiratory_rate(
+        rsp_bpm, _ = pk.ppg.derive_respiratory_rate(
             ppg=ppg_win,
             peaks=rpeaks,
             rri=rri,
@@ -216,12 +234,12 @@ def compute_features_001(
 
         # SpO2 metrics
         spo2_mu, spo2_std = np.nanmean(spo2_win), np.nanstd(spo2_win)
-        spo2_med, spo2_iqr = np.nanmedian(spo2_win), scipy.stats.iqr(spo2_win)
+        spo2_med, _ = np.nanmedian(spo2_win), scipy.stats.iqr(spo2_win)
 
         # Movement metrics
         mov_win = np.abs(mov_win)
         mov_mu, mov_std = np.nanmean(mov_win), np.nanstd(mov_win)
-        mov_med, mov_iqr = np.nanmedian(mov_win), scipy.stats.iqr(mov_win)
+        mov_med, _ = np.nanmedian(mov_win), scipy.stats.iqr(mov_win)
 
         # Circadian metrics
         # ts = time.strptime(tod[0], "%H:%M:%S")
@@ -304,7 +322,7 @@ def compute_features_002(
         spo2 = np.clip(spo2, 50, 100)
 
     elif ds_name == "ysyw":
-        ds = YsywDataset(ds_path=args.ds_path, is_commercial=True, target_rate=sample_rate)
+        ds = YsywDataset(ds_path=args.ds_path, target_rate=sample_rate)
 
         ecg = ds.load_signal_for_subject(subject_id, "ECG", start=0, data_size=duration)
         rsp = ds.load_signal_for_subject(subject_id, "ABD", start=0, data_size=duration)
@@ -552,6 +570,7 @@ def compute_subject_features(ds_subject: tuple[str, str], args: SKFeatureParams)
             h5.create_dataset("/labels", data=labels, compression="gzip", compression_opts=6)
             h5.create_dataset("/mask", data=mask, compression="gzip", compression_opts=6)
         # END WITH
+    # pylint: disable=broad-except
     except Exception as err:
         logger.error(f"Error computing features for subject {subject_id}: {err}")
 

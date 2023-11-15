@@ -125,7 +125,7 @@ The `train` command is used to train a SleepKit model. The following command wil
         ```python
         import sleepkit as sk
 
-        sk.sleepstage.train(sk.defines.SKTrainParams(
+        sk.stage.train(sk.defines.SKTrainParams(
             ...
         ))
         ```
@@ -147,7 +147,7 @@ The `evaluate` command will evaluate the performance of the model on the reserve
         ```python
         import sleepkit as sk
 
-        sk.sleepstage.evaluate(sk.defines.SKTestParams(
+        sk.stage.evaluate(sk.defines.SKTestParams(
             ...
         ))
         ```
@@ -169,7 +169,7 @@ The `export` command will convert the trained TensorFlow model into both TensorF
         ```python
         import sleepkit as sk
 
-        sk.sleepstage.export(sk.defines.SKExportParams(
+        sk.stage.export(sk.defines.SKExportParams(
             ...
         ))
         ```
@@ -178,4 +178,23 @@ Once converted, the TFLM header file will be copied to the location specified by
 
 ## <span class="sk-h2-span">6. Demo</span>
 
-The `demo` command is used to run a full-fledged SleepKit demonstration.
+The `demo` command is used to run a full-fledged SleepKit demonstration for the specific task.
+
+
+!!! example
+
+    === "CLI"
+
+        ```bash
+        sleepkit --task stage --mode demo --config ./configs/demo-stage-4.json
+        ```
+
+    === "Python"
+
+        ```python
+        import sleepkit as sk
+
+        sk.stage.demo(sk.defines.SKDemoParams(
+            ...
+        ))
+        ```

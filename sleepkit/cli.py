@@ -4,9 +4,10 @@ from typing import Type, TypeVar
 import pydantic_argparse
 from pydantic import BaseModel, Field
 
-from . import apnea, sleepstage
+from . import apnea, stage
 from .datasets import download_datasets
 from .defines import (
+    SKDemoParams,
     SKDownloadParams,
     SKExportParams,
     SKFeatureParams,
@@ -57,27 +58,30 @@ def run(inputs: list[str] | None = None):
     )
     args = parser.parse_typed_args(inputs)
 
-    logger.info(f"#STARTED {args.mode} model")
-
     # Download datasets
     if args.mode == SKMode.download:
+        logger.info("#STARTED download")
         download_datasets(parse_content(SKDownloadParams, args.config))
+        logger.info("#FINISHED download")
         return
 
     # Generate feature set
     if args.mode == SKMode.feature:
+        logger.info("#STARTED feature")
         generate_feature_set(parse_content(SKFeatureParams, args.config))
+        logger.info("#FINISHED feature")
         return
 
     # Grab task handler
     match args.task:
         case SKTask.stage:
-            task_handler = sleepstage
+            task_handler = stage
         case SKTask.apnea:
             task_handler = apnea
         case _:
             raise NotImplementedError()
     # END MATCH
+    logger.info(f"#STARTED {args.mode} for task {args.task}")
 
     match args.mode:
         case SKMode.train:
@@ -90,14 +94,13 @@ def run(inputs: list[str] | None = None):
             task_handler.export(parse_content(SKExportParams, args.config))
 
         case SKMode.demo:
-            raise NotImplementedError()
-            # demo(params=parse_content(SKDemoParams, args.config))
+            task_handler.demo(parse_content(SKDemoParams, args.config))
 
         case _:
             logger.error("Error: Unsupported CLI command")
     # END MATCH
 
-    logger.info(f"#FINISHED {args.mode} model")
+    logger.info(f"#FINISHED {args.mode} for task {args.task}")
 
 
 if __name__ == "__main__":
