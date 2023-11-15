@@ -156,7 +156,9 @@ def roc_auc_plot(
     return fig, ax
 
 
-def macro_precision_recall(y_true: npt.NDArray, y_prob: npt.NDArray, thresholds: npt.NDArray):
+def macro_precision_recall(
+    y_true: npt.NDArray, y_prob: npt.NDArray, thresholds: npt.NDArray
+) -> tuple[np.float_, np.float_]:
     """Compute macro precision and recall
     source: https://github.com/helme/ecg_ptbxl_benchmarking
 
@@ -166,7 +168,7 @@ def macro_precision_recall(y_true: npt.NDArray, y_prob: npt.NDArray, thresholds:
         thresholds (npt.NDArray): Thresholds
 
     Returns:
-        tuple[npt.NDArray, npt.NDArray]: Precision and recall
+       tuple[np.float_, np.float_]: Precision and recall
     """
 
     # expand analysis to the number of thresholds

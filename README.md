@@ -30,8 +30,8 @@ SleepKit is a collection of optimized open-source TinyML models purpose-built to
 
 The following are also required to compile/flash the binary for the EVB demo:
 
-* [Arm GNU Toolchain 13.2](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
-* [Segger J-Link v7.92+](https://www.segger.com/downloads/jlink/)
+* [Arm GNU Toolchain ^12.2](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+* [Segger J-Link ^7.92](https://www.segger.com/downloads/jlink/)
 
 !!! note
     A [VSCode Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) is also available and defined in [./.devcontainer](https://github.com/AmbiqAI/sleepkit/tree/main/.devcontainer).

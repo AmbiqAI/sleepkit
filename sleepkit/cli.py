@@ -48,6 +48,7 @@ def parse_content(cls: Type[B], content: str) -> B:
 
 def run(inputs: list[str] | None = None):
     """Main CLI app runner
+
     Args:
         inputs (list[str] | None, optional): App arguments. Defaults to CLI arguments.
     """

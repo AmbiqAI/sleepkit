@@ -89,6 +89,7 @@ def create_predictions_frame(
 
     Returns:
         pd.DataFrame: Predictions matrix.
+
     """
     y_prob = np.squeeze(y_prob)
     if y_prob.ndim == 1:  # binary classification
@@ -139,6 +140,7 @@ def read_predictions(file: str):
 
     Returns:
         Dict[str, any]: Keys: `y_prob`, (optionally) `y_true`, (optionally) `y_pred`, and `classes`.
+
     """
     df = pd.read_csv(file)
     classes = [label[5:] for label in df.columns if label.startswith("prob")]
@@ -160,6 +162,7 @@ def is_multiclass(labels: npt.NDArray) -> bool:
 
     Returns:
         bool: If multiclass
+
     """
     return labels.squeeze().ndim == 2 and any(labels.sum(axis=1) != 1)
 
@@ -174,6 +177,7 @@ def matches_spec(o, spec, ignore_batch_dim: bool = False):
 
     Returns:
         bool: If matches
+
     """
     if isinstance(spec, (list, tuple)):
         if not isinstance(o, (list, tuple)):

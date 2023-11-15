@@ -28,10 +28,10 @@
         "input_kernel": [1, 5],
         "input_norm": "batch",
         "blocks": [
-            {"depth": 1, "branch": 1, "filters": 24, "kernel": [1, 5], "dilation": [1, 1], "dropout": 0.10, "se_ratio": 4, "norm": "batch"},
-            {"depth": 1, "branch": 1, "filters": 32, "kernel": [1, 5], "dilation": [1, 2], "dropout": 0.10, "se_ratio": 4, "norm": "batch"},
-            {"depth": 1, "branch": 1, "filters": 48, "kernel": [1, 5], "dilation": [1, 4], "dropout": 0.10, "se_ratio": 4, "norm": "batch"},
-            {"depth": 1, "branch": 1, "filters": 64, "kernel": [1, 5], "dilation": [1, 8], "dropout": 0.10, "se_ratio": 4, "norm": "batch"}
+            {"depth": 1, "branch": 1, "filters": 24, "kernel": [1, 5], "dilation": [1, 1], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+            {"depth": 1, "branch": 1, "filters": 32, "kernel": [1, 5], "dilation": [1, 2], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+            {"depth": 1, "branch": 1, "filters": 48, "kernel": [1, 5], "dilation": [1, 4], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+            {"depth": 1, "branch": 1, "filters": 64, "kernel": [1, 5], "dilation": [1, 8], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"}
         ],
         "output_kernel": [1, 5],
         "include_top": true,

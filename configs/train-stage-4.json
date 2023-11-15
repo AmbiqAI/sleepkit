@@ -1,6 +1,6 @@
 {
     "num_sleep_stages": 4,
-    "job_dir": "./results/sleep-stage-4-exp",
+    "job_dir": "./results/sleep-stage-4",
     "ds_path": "./datasets/processed/fs001",
     "ds_handler": "hdf5",
     "ds_params": {

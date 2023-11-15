@@ -335,7 +335,7 @@ def demo(params: SKDemoParams):
         legend=dict(groupclick="toggleitem"),
         title=f"Sleep Stage Classification Demo (subject {subject_id})",
     )
-    fig.write_html(params.job_dir / "demo.html")  #, include_plotlyjs='cdn', full_html=False)
+    fig.write_html(params.job_dir / "demo.html")  # , include_plotlyjs='cdn', full_html=False)
     fig.show()
 
     runner.close()

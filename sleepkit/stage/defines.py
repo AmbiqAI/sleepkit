@@ -87,7 +87,7 @@ def get_stage_class_mapping(nstages: int) -> dict[int, int]:
     raise ValueError(f"Invalid number of stages: {nstages}")
 
 
-def get_stage_class_names(nstages: int):
+def get_stage_class_names(nstages: int) -> list[str]:
     """Get class names for sleep stage classification
 
     Args:
