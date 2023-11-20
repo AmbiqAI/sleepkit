@@ -28,12 +28,14 @@ FPU    = fpv4-sp-d16
 #FABI     = softfp
 FABI     = hard
 
+
+
 ##### Extern Library Defaults #####
 ifndef AS_VERSION
 AS_VERSION := R4.4.1
 endif
 ifndef TF_VERSION
-TF_VERSION := d5f819d_Aug_10_2023
+TF_VERSION := 0264234_Nov_15_2023
 endif
 SR_VERSION := R7.70a
 ERPC_VERSION := R1.9.1
@@ -71,8 +73,12 @@ else
 endif
 
 # application stack and heap size
+ifndef STACK_SIZE_IN_32B_WORDS
 STACK_SIZE_IN_32B_WORDS ?= 4096
-NS_MALLOC_HEAP_SIZE_IN_K ?= 24
+endif
+ifndef NS_MALLOC_HEAP_SIZE_IN_K
+NS_MALLOC_HEAP_SIZE_IN_K ?= 32
+endif
 
 ##### TinyUSB Default Config #####
 DEFINES+= CFG_TUSB_MCU=OPT_MCU_APOLLO4
@@ -103,9 +109,24 @@ DEFINES+= AM_DEBUG_PRINTF
 # 1 = load TF library with debug info, turn on TF debug statements
 MLDEBUG ?= 0
 
+ifeq ($(TF_VERSION),d5f819d_Aug_10_2023)
+	DEFINES+= NS_TFSTRUCTURE_RECENT
+endif
+ifeq ($(TF_VERSION),0264234_Nov_15_2023)
+	DEFINES+= NS_TFSTRUCTURE_RECENT
+endif
+ifeq ($(TF_VERSION),fecdd5d)
+	DEFINES+= NS_TFSTRUCTURE_RECENT
+endif
+
+
 # 1 = load optimized TF library with prints enabled, turn on TF profiler
 MLPROFILE := 0
 TFLM_VALIDATOR := 0
 TFLM_VALIDATOR_MAX_EVENTS := 40
 # AUDIO_DEBUG := 0    # 1 = link in RTT, dump audio to RTT console
 # ENERGY_MODE := 0    # 1 = enable energy measurements via UART1
+
+DEFINES+= OPUS_ARM_INLINE_ASM
+# DEFINES+= ARM_MATH_CM4
+DEFINES+= OPUS_ARM_ASM

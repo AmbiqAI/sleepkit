@@ -10,5 +10,5 @@
     },
     "frame_size": 240,
     "model_file": "./results/sleep-stage-4/model.tflite",
-    "backend": "pc"
+    "backend": "evb"
 }
