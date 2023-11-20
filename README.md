@@ -84,7 +84,7 @@ SleepKit leverages modern architectural design strategies to achieve high accura
 
 ---
 
-## >Datasets
+## Datasets
 
 SleepKit uses several open-source datasets for training each of the task's models. In general, we use commercial-use friendly datasets that are publicly available. Check out the [Datasets Guide](./docs/datasets.md) to learn more about the datasets used along with their corresponding licenses and limitations.
 
