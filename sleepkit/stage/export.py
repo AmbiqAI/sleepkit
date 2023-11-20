@@ -74,9 +74,7 @@ def export(params: SKExportParams):
 
         logger.info(f"Converting model to TFLite (quantization={params.quantization})")
         model_func = tf.function(func=model)
-        model_cf = model_func.get_concrete_function(
-            tf.TensorSpec(shape=(1,)+ds.feature_shape, dtype=tf.float32
-        ))
+        model_cf = model_func.get_concrete_function(tf.TensorSpec(shape=(1,) + ds.feature_shape, dtype=tf.float32))
 
         if params.quantization:
             _, quant_df = tfa.debug_quant_tflite(
@@ -98,9 +96,11 @@ def export(params: SKExportParams):
                 converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
                 converter.inference_input_type = tf.int8
                 converter.inference_output_type = tf.int8
+
                 def rep_dataset():
                     for i in range(test_x.shape[0]):
                         yield [test_x[i : i + 1]]
+
                 converter.representative_dataset = rep_dataset
             # END IF
         tflite_model = converter.convert()
