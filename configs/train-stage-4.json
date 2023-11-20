@@ -16,7 +16,7 @@
     "val_size": 14000,
     "batch_size": 128,
     "buffer_size": 60000,
-    "epochs": 150,
+    "epochs": 100,
     "steps_per_epoch": 50,
     "val_metric": "loss",
     "lr_rate": 5e-3,

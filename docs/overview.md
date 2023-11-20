@@ -8,10 +8,11 @@ __SleepKit__ can be used as either a CLI-based app or as a python package to per
 
 * `download`: Download datasets
 * `feature`: Extract features from dataset(s)
-* `train`: Train a model for specified task and features/dataset(s)
-* `evaluate`: Evaluate a model for specified task and features/dataset(s)
-* `export`: Export a trained model to TensorFlow Lite and TFLM
-* `demo`: Run full demo on PC or EVB
+* `train`: Train a model for specified task and dataset(s)
+* `evaluate`: Evaluate a model for specified task and dataset(s)
+* `export`: Export a trained model to TF Lite and TFLM
+* `demo`: Run task-level demo on PC or EVB
+
 
 ---
 
@@ -27,12 +28,14 @@ __SleepKit__ can be used as either a CLI-based app or as a python package to per
     === "apnea"
 
         ### Sleep Apnea Detection
-        Detect hypopnea/apnea events. __Not yet implemented.__
+        Detect hypopnea/apnea events. <br>
+        __Not yet implemented.__
 
     === "arousal"
 
         ### Sleep Arousal Detection
-        Detect sleep arousal events. __Not yet implemented.__
+        Detect sleep arousal events. <br>
+        __Not yet implemented.__
 
 ---
 
@@ -63,9 +66,9 @@ SleepKit CLI Options:
 
 The `download` command is used to download all datasets specified in the configuration file. Please refer to [Datasets](./datasets.md) for details on the available datasets.
 
-The following example will download and prepare all currently used datasets.
-
 !!! example
+
+    The following example will download and prepare all currently used datasets:
 
     === "CLI"
 
@@ -88,9 +91,11 @@ The following example will download and prepare all currently used datasets.
 
 ## <span class="sk-h2-span">2. Extract Features</span>
 
-The `feature` command is used to extract features from the downloaded datasets. The following command will extract feature set `001` from the MESA dataset using the reference configuration. Please refer to `sleepkit/defines.py` to see supported options.
+The `feature` command is used to extract features from the downloaded datasets. In general, we extract physiological features (e.g. heart rate) from the raw signals (e.g. ppg) from a single body location (e.g. wrist). Please refer to `sleepkit/defines.py` to see supported options.
 
 !!! example
+
+    The following command will extract feature set `001` from the MESA dataset using the reference configuration:
 
     === "CLI"
 
@@ -110,9 +115,11 @@ The `feature` command is used to extract features from the downloaded datasets. 
 
 ## <span class="sk-h2-span">3. Train Model</span>
 
-The `train` command is used to train a SleepKit model. The following command will train a 2-stage sleep model using the reference configuration. Please refer to `sleepkit/defines.py` to see supported options.
+The `train` command is used to train a SleepKit model for the specified `task` and `datasets`. Please refer to `sleepkit/defines.py` to see supported options.
 
 !!! example
+
+    The following command will train a 2-stage sleep model using the reference configuration:
 
     === "CLI"
 
@@ -136,6 +143,8 @@ The `evaluate` command will evaluate the performance of the model on the reserve
 
 !!! example
 
+    The following command will test a 2-stage sleep model using the reference configuration:
+
     === "CLI"
 
         ```bash
@@ -154,9 +163,11 @@ The `evaluate` command will evaluate the performance of the model on the reserve
 
 ## <span class="sk-h2-span">5. Export Model</span>
 
-The `export` command will convert the trained TensorFlow model into both TensorFlow Lite (TFL) and TensorFlow Lite for microcontroller (TFLM) variants. The command will also verify the models' outputs match. Post-training quantization can also be enabled by setting the `quantization` flag in the configuration.
+The `export` command will convert the trained TensorFlow model into both TensorFlow Lite (TFL) and TensorFlow Lite for microcontroller (TFLM) variants. The command will also verify the models' outputs match. Post-training quantization can also be enabled by setting the `quantization` flag in the configuration. Once converted, the TFLM header file will be copied to the location specified by `tflm_file`.
 
 !!! example
+
+    The following command will export a 2-stage sleep model to TF Lite and TFLM:
 
     === "CLI"
 
@@ -173,8 +184,6 @@ The `export` command will convert the trained TensorFlow model into both TensorF
             ...
         ))
         ```
-
-Once converted, the TFLM header file will be copied to the location specified by `tflm_file`.
 
 ## <span class="sk-h2-span">6. Demo</span>
 

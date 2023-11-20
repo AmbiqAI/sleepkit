@@ -14,7 +14,7 @@
 
 ---
 
-SleepKit is a collection of optimized open-source TinyML models purpose-built to enable running a variety of real-time sleep-monitoring applications on battery-powered, wearable devices. The objective is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices. SleepKit explores a number of sleep related tasks including sleep staging, sleep apnea detection, and sleep arousal detection. The models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, and wrist/hand. The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
+SleepKit is a collection of optimized open-source TinyML models purpose-built to enable running a variety of real-time sleep-monitoring applications on battery-powered, wearable devices. The objective is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices. SleepKit explores a number of sleep related tasks including sleep staging, sleep apnea detection, and sleep arousal detection. The models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand. The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
 
 
 **Key Features:**
@@ -25,8 +25,8 @@ SleepKit is a collection of optimized open-source TinyML models purpose-built to
 
 ## Requirements
 
-* [Python 3.11+](https://www.python.org)
-* [Poetry 1.2.1+](https://python-poetry.org/docs/#installation)
+* [Python ^3.11](https://www.python.org)
+* [Poetry ^1.6.1](https://python-poetry.org/docs/#installation)
 
 The following are also required to compile/flash the binary for the EVB demo:
 
@@ -57,10 +57,10 @@ __SleepKit__ can be used as either a CLI-based app or as a python package to per
 
 * `download`: Download datasets
 * `feature`: Extract features from dataset(s)
-* `train`: Train a model for specified task and datasets
-* `evaluate`: Evaluate a model for specified task and datasets
-* `export`: Export a trained model to TensorFlow Lite and TFLM
-* `demo`: Run demo on PC or EVB
+* `train`: Train a model for specified task and dataset(s)
+* `evaluate`: Evaluate a model for specified task and dataset(s)
+* `export`: Export a trained model to TF Lite and TFLM
+* `demo`: Run task-level demo on PC or EVB
 
 ---
 
@@ -77,16 +77,17 @@ __SleepKit__ can be used as either a CLI-based app or as a python package to per
 SleepKit leverages modern architectural design strategies to achieve high accuracy while maintaining a small memory footprint and low power consumption. Refer to specific task guides for additional details on the full model design.
 
 * Seperable (depthwise + pointwise) Convolutions
-* Inverted Residual Bottleneck
+* Inverted Residual Bottlenecks
 * Squeeze & Excitation Blocks
 * Over-Parameterized Convolutional Branches
 * Dilated Convolutions
 
 ---
 
-## >Datasets
+## Datasets
 
-SleepKit uses several open-source datasets for training each of the task's models. In general, we use commercial use friendly datasets that are publicly available. Check out the [Datasets Guide](./docs/datasets.md) to learn more about the datasets used along with their corresponding licenses and limitations.
+SleepKit uses several open-source datasets for training each of the task's models. In general, we use commercial-use friendly datasets that are publicly available. Check out the [Datasets Guide](./docs/datasets.md) to learn more about the datasets used along with their corresponding licenses and limitations.
+
 
 ---
 
@@ -96,10 +97,10 @@ The following table provides the latest performance and accuracy results of all 
 
 | Task           | Params   | FLOPS   | Metric     | Cycles/Inf | Time/Inf   |
 | -------------- | -------- | ------- | ---------- | ---------- | ---------- |
-| 2-Stage Sleep  | 10K      | 1.7M/hr | 88.8% F1   |  88M       | 459ms      |
-| 3-Stage Sleep  | 14K      | 2.2M/hr | 84.2% F1   | 123M       | 639ms      |
-| 4-Stage Sleep  | 14K      | 2.3M/hr | 76.4% F1   | 123M       | 642ms      |
-| 5-Stage Sleep  | 17K      | 2.8M/hr | 70.2% F1   | 140M       | 728ms      |
+| 2-Stage Sleep  | 10K      | 1.7M/hr | 88.8% F1   |  11M/hr    | 58ms/hr    |
+| 3-Stage Sleep  | 14K      | 2.2M/hr | 84.2% F1   |  16M/hr    | 80ms/hr    |
+| 4-Stage Sleep  | 14K      | 2.3M/hr | 76.4% F1   |  16M/hr    | 80ms/hr    |
+| 5-Stage Sleep  | 17K      | 2.8M/hr | 70.2% F1   |  18M/hr    | 91ms/hr    |
 | Sleep Apnea    | --K      | --M     | ----% F1   | ---M       | ---ms      |
 | Sleep Arousal  | --K      | --M     | ----% F1   | ---M       | ---ms      |
 
