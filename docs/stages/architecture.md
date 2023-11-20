@@ -6,7 +6,7 @@ The standard TCN architecture consists of several TCN blocks with each block con
 
 Before the TCN, the inputs are encoded using a 1-D seperable convolutional layer. The outputs of the TCN are passed through a 1-D convolutional layer to reduce the number of channels to the number of classes instead of using a fully connected layer. The final output is passed through a softmax layer to produce the final class probabilities.
 
-The below diagram shows the full model architecture for the sleep stage classification.
+<!-- The below diagram shows the full model architecture for the sleep stage classification. -->
 
 <!-- d: dilation rate
 k: kernel size

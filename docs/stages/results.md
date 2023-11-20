@@ -9,33 +9,22 @@
 
 ## <span class="sk-h2-span">Confusion Matrices</span>
 
-### 2-Stage Sleep Classification
+=== "2-Stage"
 
-<figure markdown>
-  ![2-Stage Sleep Stage Confusion Matrix](../assets/sleep-stage-2-cm.png){ width="540" }
-  <figcaption>2-Stage Sleep Classification CM</figcaption>
-</figure>
+    ![2-Stage Sleep Stage Confusion Matrix](../assets/sleep-stage-2-cm.png){ width="480" }
 
-### 3-Stage Sleep Classification
+=== "3-Stage"
 
-<figure markdown>
-  ![3-Stage Sleep Stage Confusion Matrix](../assets/sleep-stage-3-cm.png){ width="540" }
-  <figcaption>3-Stage Sleep Classification CM</figcaption>
-</figure>
+    ![3-Stage Sleep Stage Confusion Matrix](../assets/sleep-stage-3-cm.png){ width="480" }
 
-### 4-Stage Sleep Classification
+=== "4-Stage"
 
-<figure markdown>
-  ![4-Stage Sleep Stage Confusion Matrix](../assets/sleep-stage-4-cm.png){ width="540" }
-  <figcaption>4-Stage Sleep Classification CM</figcaption>
-</figure>
+    ![4-Stage Sleep Stage Confusion Matrix](../assets/sleep-stage-4-cm.png){ width="480" }
 
-### 5-Stage Sleep Classification
+=== "5-Stage"
 
-<figure markdown>
-  ![5-Stage Sleep Stage Confusion Matrix](../assets/sleep-stage-5-cm.png){ width="540" }
-  <figcaption>5-Stage Sleep Classification CM</figcaption>
-</figure>
+    ![5-Stage Sleep Stage Confusion Matrix](../assets/sleep-stage-5-cm.png){ width="480" }
+
 
 ## <span class="sk-h2-span">Sleep Efficiency Plot</span>
 
@@ -67,10 +56,10 @@ python -m ns_autodeploy \
 
 | Task           | Params   | FLOPS   | Metric     | Cycles/Inf | Time/Inf   | Arena | NVM   | RAM   |
 | -------------- | -------- | ------- | ---------- | ---------- | ---------- | ----- | ----- | ----- |
-| 2-Stage Sleep  | 10K      | 1.7M/hr | 88.8% F1   |  88M       | 459ms      |  36KB | 195KB |  53KB |
-| 3-Stage Sleep  | 14K      | 2.2M/hr | 84.2% F1   | 123M       | 639ms      |  40KB | 210KB |  58KB |
-| 4-Stage Sleep  | 14K      | 2.3M/hr | 76.4% F1   | 123M       | 642ms      |  40KB | 211KB |  58KB |
-| 5-Stage Sleep  | 17K      | 2.8M/hr | 70.2% F1   | 140M       | 728ms      |  43KB | 216KB |  61KB |
+| 2-Stage Sleep  | 10K      | 1.7M/hr | 88.8% F1   |  11M/hr    | 58ms/hr    |  35KB | 193KB |  53KB |
+| 3-Stage Sleep  | 14K      | 2.2M/hr | 84.2% F1   |  16M/hr    | 80ms/hr    |  38KB | 208KB |  57KB |
+| 4-Stage Sleep  | 14K      | 2.3M/hr | 76.4% F1   |  16M/hr    | 80ms/hr    |  38KB | 208KB |  57KB |
+| 5-Stage Sleep  | 17K      | 2.8M/hr | 70.2% F1   |  18M/hr    | 91ms/hr    |  43KB | 216KB |  61KB |
 
 
 In addition, we can capture statistics from each layer. The following bar plot provides the latency of each block in the 4-stage sleep classification TCN model. For example, `ENC` refers to initial encoder 1-d seperable convulional layer, `B1.1` refers to all the layers in block 1, depth 1, `B1.2` refers to block 1, depth 2, and so on. We can see that as we go deeper into the network we see an increase in latency due to the increasing number of channels. The final `DEC` layer refers to the decoder layer which is a 1-d convolutional layer with 3 output channels (4 classes).

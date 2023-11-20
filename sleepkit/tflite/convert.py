@@ -215,7 +215,7 @@ def predict_tflite(
     output_scale: list[float] = output_details["quantization_parameters"]["scales"]
     output_zero_point: list[int] = output_details["quantization_parameters"]["zero_points"]
 
-    inputs = inputs.reshape(input_details["shape_signature"])
+    inputs = inputs.reshape([-1] + input_details["shape_signature"].tolist())
     if len(input_scale) and len(input_zero_point):
         inputs = inputs / input_scale[0] + input_zero_point[0]
         inputs = inputs.astype(input_details["dtype"])

@@ -7,7 +7,7 @@ A demo is provided to showcase the capabilities of the sleep stage classifier mo
 1. Load the trained model (e.g. `sleep-stage-4`)
 1. Load random test subject's data
 1. Perform inference either on PC or EVB
-1. Plot results
+1. Generate report
 
 ---
 

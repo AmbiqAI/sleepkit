@@ -73,6 +73,10 @@ def export(params: SKExportParams):
         logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
         logger.info(f"Converting model to TFLite (quantization={params.quantization})")
+        model_func = tf.function(func=model)
+        model_cf = model_func.get_concrete_function(
+            tf.TensorSpec(shape=(1,)+ds.feature_shape, dtype=tf.float32
+        ))
 
         if params.quantization:
             _, quant_df = tfa.debug_quant_tflite(
@@ -83,13 +87,23 @@ def export(params: SKExportParams):
             )
             quant_df.to_csv(params.job_dir / "quant.csv")
 
-        tflite_model = tfa.convert_tflite(
-            model=model,
-            quantize=params.quantization,
-            test_x=test_x,
-            input_type=tf.int8 if params.quantization else None,
-            output_type=tf.int8 if params.quantization else None,
-        )
+        # Following is a workaround for bug (https://github.com/tensorflow/tflite-micro/issues/2319)
+        # Default TFLiteConverter generates equivalent graph w/ SpaceToBatchND operations but losses dilation_rate factor.
+        # Using concrete function instead of model object to avoid this issue.
+        converter = tf.lite.TFLiteConverter.from_concrete_functions([model_cf], model)
+
+        if params.quantization:
+            converter.optimizations = [tf.lite.Optimize.DEFAULT]
+            if test_x is not None:
+                converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+                converter.inference_input_type = tf.int8
+                converter.inference_output_type = tf.int8
+                def rep_dataset():
+                    for i in range(test_x.shape[0]):
+                        yield [test_x[i : i + 1]]
+                converter.representative_dataset = rep_dataset
+            # END IF
+        tflite_model = converter.convert()
 
         # Save TFLite model
         logger.info(f"Saving TFLite model to {tfl_model_path}")
