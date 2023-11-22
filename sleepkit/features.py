@@ -252,7 +252,7 @@ def compute_features_001(
             hrv_td.mean_nn,
             hrv_td.sd_nn,
             # hrv_td.cv_sd,
-            hrv_td.meadian_nn,
+            hrv_td.median_nn,
             # 1 freq-domain
             # hrv_fd.bands[0].total_power / hrv_fd.total_power,
             # hrv_fd.bands[1].total_power / hrv_fd.total_power,
@@ -407,7 +407,7 @@ def compute_features_002(
             hr_bpm,
             hrv_td.mean_nn,
             hrv_td.sd_nn,
-            hrv_td.meadian_nn,
+            hrv_td.median_nn,
             hrv_fd.bands[0].total_power / hrv_fd.bands[1].total_power,
             # 3 SpO2
             spo2_mu,
@@ -523,7 +523,7 @@ def compute_features_003(
             # 4 HRV
             hrv_td.mean_nn,
             hrv_td.sd_nn,
-            hrv_td.meadian_nn,
+            hrv_td.median_nn,
             hrv_fd.bands[0].total_power / hrv_fd.bands[1].total_power,
             # 3 SpO2
             spo2_mu,

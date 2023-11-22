@@ -106,6 +106,7 @@ def demo(params: SKDemoParams):
     )
 
     pred_sleep_durations = compute_sleep_stage_durations(y_pred)
+    class_durations = [30 * pred_sleep_durations.get(c, 0) / 60 for c in sleep_classes]
     # pred_sleep_eff = compute_sleep_efficiency(pred_sleep_durations, class_mapping)
 
     # Sleep Stage Plot
@@ -177,7 +178,7 @@ def demo(params: SKDemoParams):
             # texttemplate = "%{label}: %{percent}",
             textfont_size=15,
             hole=0.3,
-            hoverinfo="label+percent",
+            hoverinfo="none",  # "label+percent",
             showlegend=False,
             marker_colors=[class_colors.get(c, None) for c in sleep_classes],
         ),
@@ -187,11 +188,14 @@ def demo(params: SKDemoParams):
 
     fig.add_trace(
         go.Bar(
-            x=[30 * pred_sleep_durations.get(c, 0) / 3600 for c in sleep_classes],
+            x=class_durations,
             y=class_names,
             marker_color=[class_colors.get(c, "red") for c in sleep_classes],
             showlegend=False,
-            hovertemplate="%{y}: %{x:0.2}H",
+            text=[f"{t:0.0f} min" for t in class_durations],
+            textposition="auto",
+            hoverinfo="none",
+            # hovertemplate="%{y}: %{x:0.2}H",
             orientation="h",
             name="",
         ),
@@ -199,7 +203,7 @@ def demo(params: SKDemoParams):
         col=2,
     )
 
-    fig.update_xaxes(title="Hours", row=2, col=2)
+    fig.update_xaxes(title="Duration (min)", row=2, col=2)
 
     fig.update_layout(
         template=plotly_template,
