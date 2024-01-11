@@ -127,7 +127,7 @@ def roc_auc_plot(
     labels: list[str],
     save_path: str | None = None,
     **kwargs,
-):
+) -> tuple[plt.Figure, plt.Axes] | None:
     """Generate ROC plot via matplotlib/seaborn
 
     Args:
@@ -135,6 +135,9 @@ def roc_auc_plot(
         y_prob (npt.NDArray): Predicted y labels
         labels (list[str]): Label names
         save_path (str | None): Path to save plot. Defaults to None.
+
+    Returns:
+        tuple[plt.Figure, plt.Axes] | None: Figure and axes
     """
 
     fpr, tpr, _ = roc_curve(y_true, y_prob)

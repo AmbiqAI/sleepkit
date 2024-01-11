@@ -1,1 +1,1 @@
-# HeartKit EVB Demo
+# SleepKit EVB Demo
