@@ -1,0 +1,9 @@
+{
+    "ds_path": "./datasets",
+    "feature_set": "fs004",
+    "feature_params": {},
+    "save_path": "./datasets/processed/fs004",
+    "datasets": ["cmidss"],
+    "sample_rate": 0.2,
+    "frame_size": 12
+}

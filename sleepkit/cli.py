@@ -16,7 +16,7 @@ from .defines import (
     SKTestParams,
     SKTrainParams,
 )
-from .features import generate_feature_set
+from .features.factory import generate_feature_set
 from .utils import setup_logger
 
 logger = setup_logger(__name__)

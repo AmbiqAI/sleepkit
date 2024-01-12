@@ -10,15 +10,16 @@ nav:
   - Overview: overview.md
   - Datasets: datasets.md
   - Results: results.md
-  - Staging:
-    - Overview: ./stages/overview.md
-    - Methods: ./stages/methods.md
-    - Model: ./stages/architecture.md
-    - Results: ./stages/results.md
-    - Experiments: ./stages/experiments.md
-    - Demo: ./stages/demo.md
-  - Apnea:
-    - Overview: ./apnea/overview.md
+  - Tasks:
+    - Staging:
+      - Overview: ./stages/overview.md
+      - Methods: ./stages/methods.md
+      - Model: ./stages/architecture.md
+      - Results: ./stages/results.md
+      - Experiments: ./stages/experiments.md
+      - Demo: ./stages/demo.md
+    - Apnea:
+      - Overview: ./apnea/overview.md
   - API:
     - SleepKit: ./api/sleepkit.md
     - Datasets: ./api/datasets.md
