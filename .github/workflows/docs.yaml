@@ -42,7 +42,7 @@ jobs:
           CI: ""
           PUBLIC_URL: "${{ steps.pages.outputs.base_url }}/"
         run: |
-          poetry install --only docs
+          poetry install --no-root --only docs
           poetry run mkdocs build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
