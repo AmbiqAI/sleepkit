@@ -1,0 +1,14 @@
+{
+    "num_classes": 3,
+    "job_dir": "./results/sleep-stage-3",
+    "ds_path": "./datasets/processed/fs001",
+    "ds_handler": "hdf5",
+    "ds_params": {
+        "feat_key": "features",
+        "label_key": "labels",
+        "mask_key": "mask"
+    },
+    "frame_size": 240,
+    "model_file": "./results/sleep-stage-3/model.tflite",
+    "backend": "pc"
+}

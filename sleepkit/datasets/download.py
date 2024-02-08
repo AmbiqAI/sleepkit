@@ -59,6 +59,7 @@ def download_stages(args: SKDownloadParams):
 
 
 def download_cmidss(args: SKDownloadParams):
+    """Download CMIDSS dataset from website"""
     logger.info(
         (
             "Please refer to the CMIDSS dataset website for download instructions.\n"
