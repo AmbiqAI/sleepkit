@@ -14,11 +14,12 @@ def download_datasets(params: SKDownloadParams):
     if "cmidss" in params.datasets:
         download_cmidss(params)
 
-    if  "mesa" in params.datasets:
+    if "mesa" in params.datasets:
         download_mesa(params)
 
     if "stages" in params.datasets:
         download_stages(params)
+
 
 def download_nssr_dataset(dataset: str, save_path: Path):
     """Download dataset from NSSR using nssr CLI tool"""
@@ -44,19 +45,24 @@ def download_nssr_dataset(dataset: str, save_path: Path):
         check=False,
     )
 
+
 def download_mesa(args: SKDownloadParams):
     """Download MESA dataset"""
     is_commercial = True
     dataset = "mesa-commercial-use" if is_commercial else "mesa"
     download_nssr_dataset(dataset, args.ds_path)
 
+
 def download_stages(args: SKDownloadParams):
     """Download STAGES dataset from NSSR"""
     download_nssr_dataset("stages", args.ds_path)
 
+
 def download_cmidss(args: SKDownloadParams):
-    logger.info((
-        "Please refer to the CMIDSS dataset website for download instructions.\n"
-        "Once downloaded, please place the dataset in the datasets folder:\n"
-        f"{args.ds_path.absolute()}{os.path.sep}cmidss"
-    ))
+    logger.info(
+        (
+            "Please refer to the CMIDSS dataset website for download instructions.\n"
+            "Once downloaded, please place the dataset in the datasets folder:\n"
+            f"{args.ds_path.absolute()}{os.path.sep}cmidss"
+        )
+    )
