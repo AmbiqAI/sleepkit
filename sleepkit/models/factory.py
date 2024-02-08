@@ -1,5 +1,6 @@
 from typing import Any
 
+import keras
 import tensorflow as tf
 
 from .efficientnet import EfficientNetParams, EfficientNetV2
@@ -13,7 +14,7 @@ def generate_model(
     num_classes: int,
     name: str,
     params: dict[str, Any],
-) -> tf.keras.Model:
+) -> keras.Model:
     """Model factory: Generates a model based on the provided name and parameters
 
     Args:
@@ -23,7 +24,7 @@ def generate_model(
         params (dict[str, Any]): Model parameters
 
     Returns:
-        tf.keras.Model: Generated model
+        keras.Model: Generated model
     """
     if params is None:
         raise ValueError("Model parameters must be provided")
@@ -43,27 +44,27 @@ def generate_model(
 
         case "rnn":
             y = inputs
-            y = tf.keras.layers.Reshape((1,) + y.shape[1:])(y)
-            y = tf.keras.layers.DepthwiseConv2D(kernel_size=(1, 5), padding="same")(y)
-            y = tf.keras.layers.LayerNormalization(axis=[2])(y)
-            y = tf.keras.layers.Activation("relu6")(y)
+            y = keras.layers.Reshape((1,) + y.shape[1:])(y)
+            y = keras.layers.DepthwiseConv2D(kernel_size=(1, 5), padding="same")(y)
+            y = keras.layers.LayerNormalization(axis=[2])(y)
+            y = keras.layers.Activation("relu6")(y)
 
-            y = tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 5), padding="same")(y)
-            y = tf.keras.layers.LayerNormalization(axis=[2])(y)
-            y = tf.keras.layers.Activation("relu6")(y)
+            y = keras.layers.Conv2D(filters=32, kernel_size=(1, 5), padding="same")(y)
+            y = keras.layers.LayerNormalization(axis=[2])(y)
+            y = keras.layers.Activation("relu6")(y)
 
-            y = tf.keras.layers.Reshape(y.shape[2:])(y)
+            y = keras.layers.Reshape(y.shape[2:])(y)
 
-            y = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=48, return_sequences=True))(y)
-            # y = tf.keras.layers.LSTM(units=48, return_sequences=True)(y)
-            y = tf.keras.layers.LayerNormalization(axis=[1])(y)
+            y = keras.layers.Bidirectional(keras.layers.LSTM(units=48, return_sequences=True))(y)
+            # y = keras.layers.LSTM(units=48, return_sequences=True)(y)
+            y = keras.layers.LayerNormalization(axis=[1])(y)
 
-            y = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(64))(y)
-            y = tf.keras.layers.LayerNormalization(axis=[1])(y)
-            y = tf.keras.layers.Activation("relu6")(y)
+            y = keras.layers.TimeDistributed(keras.layers.Dense(64))(y)
+            y = keras.layers.LayerNormalization(axis=[1])(y)
+            y = keras.layers.Activation("relu6")(y)
 
-            y = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(num_classes))(y)
-            model = tf.keras.models.Model(inputs, y)
+            y = keras.layers.TimeDistributed(keras.layers.Dense(num_classes))(y)
+            model = keras.models.Model(inputs, y)
             return model
 
         case _:

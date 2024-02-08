@@ -1,4 +1,5 @@
 """Sleep Stage Evaluation"""
+
 import logging
 import os
 
@@ -32,7 +33,6 @@ def evaluate(params: SKTestParams):
     Args:
         params (SKTestParams): Testing/evaluation parameters
     """
-    params.num_sleep_stages = getattr(params, "num_sleep_stages", 3)
     params.seed = set_random_seed(params.seed)
 
     logger.info(f"Creating working directory in {params.job_dir}")
@@ -44,8 +44,8 @@ def evaluate(params: SKTestParams):
 
     logger.info(f"Random seed {params.seed}")
 
-    class_names = get_stage_class_names(params.num_sleep_stages)
-    class_mapping = get_stage_class_mapping(params.num_sleep_stages)
+    class_names = get_stage_class_names(params.num_classes)
+    class_mapping = get_stage_class_mapping(params.num_classes)
 
     ds = load_dataset(
         handler=params.ds_handler, ds_path=params.ds_path, frame_size=params.frame_size, params=params.ds_params
@@ -115,7 +115,7 @@ def evaluate(params: SKTestParams):
         logger.info("Testing Results")
         test_acc = np.sum(test_pred == test_true) / test_true.size
         test_f1 = f1_score(y_true=test_true, y_pred=test_pred, average="weighted")
-        y_scores = test_prob[:, 1] if params.num_sleep_stages == 2 else test_prob
+        y_scores = test_prob[:, 1] if params.num_classes == 2 else test_prob
         test_ap = sklearn.metrics.average_precision_score(y_true=test_true, y_score=y_scores, average="weighted")
         test_iou = compute_iou(test_true, test_pred, average="weighted")
         logger.info(f"[TEST SET] ACC={test_acc:.2%}, F1={test_f1:.2%}, AP={test_ap:0.2%}, IoU={test_iou:0.2%}")

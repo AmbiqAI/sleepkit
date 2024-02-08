@@ -9,22 +9,27 @@
         },
         "ghcr.io/devcontainers/features/nvidia-cuda:1": {
             "installCudnn": true,
+            "installCudnnDev": true,
             "installNvtx": true,
             "installToolkit": true,
-            "cudaVersion": "11.8",
-            "cudnnVersion": "8.7.0.84"
+            "cudaVersion": "12.2",
+            "cudnnVersion": "8.9.5.29"
         },
         "ghcr.io/devcontainers-contrib/features/pipenv:2": {
             "version": "latest"
         },
         "ghcr.io/devcontainers-contrib/features/pipx-package:1": {
+            "includeDeps": true,
             "package": "black",
             "version": "latest",
-            "injections": "pylint pytest"
+            "injections": "pylint pytest",
+            "interpreter": "python3"
         }
     },
 
-    "runArgs": [ "--gpus", "all"],
+    "hostRequirements": {
+        "gpu": "optional"
+    },
 
     "mounts": [
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/tensorflow_datasets,target=/home/vscode/tensorflow_datasets,type=bind,consistency=cached",

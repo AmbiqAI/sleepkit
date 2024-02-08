@@ -8,7 +8,9 @@ from ..utils import setup_logger
 
 logger = setup_logger(__name__)
 
+
 class FeatSet01:
+    """Feature set 1."""
 
     @staticmethod
     def name() -> str:

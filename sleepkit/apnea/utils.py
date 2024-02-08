@@ -1,7 +1,9 @@
 """Sleep Apnea Utils"""
+
 from pathlib import Path
 from typing import Any
 
+import keras
 import numpy as np
 import numpy.typing as npt
 import tensorflow as tf
@@ -13,7 +15,7 @@ from ..models import UNet, UNetParams, UNext, UNextBlockParams, UNextParams
 
 def create_model(
     inputs: tf.Tensor, num_classes: int, name: str | None = None, params: dict[str, Any] | None = None
-) -> tf.keras.Model:
+) -> keras.Model:
     """Generate model or use default
 
     Args:
@@ -23,7 +25,7 @@ def create_model(
         params (dict[str, Any] | None, optional): Model parameters. Defaults to None.
 
     Returns:
-        tf.keras.Model: Model
+        keras.Model: Model
     """
     if name and params is None:
         raise ValueError("Model parameters must be provided if model name is provided")

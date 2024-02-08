@@ -13,25 +13,31 @@ __SleepKit__ can be used as either a CLI-based app or as a python package to per
 * `export`: Export a trained model to TF Lite and TFLM
 * `demo`: Run task-level demo on PC or EVB
 
-
 ---
 
 !!! Tasks
 
-    === "stage"
+    === "Detect"
+
+        ### Sleep Detection
+
+        Detect sustained sleep/inactivity bouts. <br>
+        Refer to [Sleep Detect](./detect/overview.md) for more details.
+
+    === "Stage"
 
         ### Sleep Stage Classification
 
         Perform 2, 3, 4, or 5 stage sleep detection.
         Refer to [Sleep Stages](./stages/overview.md) for more details.
 
-    === "apnea"
+    === "Apnea"
 
         ### Sleep Apnea Detection
         Detect hypopnea/apnea events. <br>
         __Not yet implemented.__
 
-    === "arousal"
+    === "Arousal"
 
         ### Sleep Arousal Detection
         Detect sleep arousal events. <br>
@@ -49,7 +55,7 @@ The SleepKit command line interface (CLI) makes it easy to run a variefy of sing
 $ sleepkit --help
 
 SleepKit CLI Options:
-    --task [stage]
+    --task [detect, stage]
     --mode [download, feature, train, evaluate, export, demo]
     --config ["./path/to/config.json", or '{"raw: "json"}']
 ```
@@ -95,7 +101,7 @@ The `feature` command is used to extract features from the downloaded datasets. 
 
 !!! example
 
-    The following command will extract feature set `001` from the MESA dataset using the reference configuration:
+    The following command will generate feature set for training 2-stage sleep model using the reference configuration:
 
     === "CLI"
 
@@ -124,7 +130,7 @@ The `train` command is used to train a SleepKit model for the specified `task` a
     === "CLI"
 
         ```bash
-        sleepkit --task stage --mode train --config ./configs/train-stage-2.json
+        sleepkit --task stage --mode train --config ./configs/sleep-stage-2/train.json
         ```
 
     === "Python"
@@ -148,7 +154,7 @@ The `evaluate` command will evaluate the performance of the model on the reserve
     === "CLI"
 
         ```bash
-        sleepkit --task stage --mode evaluate --config ./configs/test-stage-2.json
+        sleepkit --task stage --mode evaluate --config ./configs/sleep-stage-2/test.json
         ```
 
     === "Python"
@@ -172,7 +178,7 @@ The `export` command will convert the trained TensorFlow model into both TensorF
     === "CLI"
 
         ```bash
-        sleepkit --task stage --mode export --config ./configs/export-stage-2.json
+        sleepkit --task stage --mode export --config ./configs/sleep-stage-2/export.json
         ```
 
     === "Python"
@@ -195,7 +201,7 @@ The `demo` command is used to run a full-fledged SleepKit demonstration for the 
     === "CLI"
 
         ```bash
-        sleepkit --task stage --mode demo --config ./configs/demo-stage-4.json
+        sleepkit --task stage --mode demo --config ./configs/sleep-stage-4/demo.json
         ```
 
     === "Python"

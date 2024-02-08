@@ -1,8 +1,10 @@
 """Sleep Stage Export"""
+
 import logging
 import os
 import shutil
 
+import keras
 import numpy as np
 import tensorflow as tf
 import tensorflow_model_optimization as tfmot
@@ -60,11 +62,11 @@ def export(params: SKExportParams):
         logger.info("Loading trained model")
         model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
 
-        inputs = tf.keras.layers.Input(ds.feature_shape, dtype=tf.float32, batch_size=1)
+        inputs = keras.layers.Input(ds.feature_shape, dtype=tf.float32, batch_size=1)
         outputs = model(inputs)
-        if not params.use_logits and not isinstance(model.layers[-1], tf.keras.layers.Softmax):
-            outputs = tf.keras.layers.Softmax()(outputs)
-            model = tf.keras.Model(inputs, outputs, name=model.name)
+        if not params.use_logits and not isinstance(model.layers[-1], keras.layers.Softmax):
+            outputs = keras.layers.Softmax()(outputs)
+            model = keras.Model(inputs, outputs, name=model.name)
             outputs = model(inputs)
         # END IF
         flops = tfa.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")

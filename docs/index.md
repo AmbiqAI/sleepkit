@@ -19,14 +19,15 @@ title:
 
 ---
 
-SleepKit is a collection of optimized open-source TinyML models purpose-built to enable running a variety of real-time sleep-monitoring applications on battery-powered, wearable devices. The objective is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices. SleepKit explores a number of sleep related tasks including sleep staging, sleep apnea detection, and sleep arousal detection. The models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand. The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
+SleepKit is an AI Development Kit (ADK) that enables developers to easily build and deploy real-time __sleep__ monitoring models on Ambiq's family of ultra-low power SoCs. SleepKit explores a number of sleep related tasks including sleep staging, sleep apnea detection, and sleep arousal detection. The kit includes a variety of datasets, efficient model architectures, and a number of pre-trained models. The objective of the models is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices. Furthermore, the included models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand. The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
 
 
 **Key Features:**
 
-* Efficient: Leverage modern AI techniques coupled with Ambiq's ultra-low power SoCs
-* Generalizable: Multi-modal, multi-task, multi-dataset
-* Accurate: Achieve SoTA results with stringent resource constraints
+* **Real-time**: Inference is performed in real-time on battery-powered, edge devices.
+* **Efficient**: Leverage modern AI techniques coupled with Ambiq's ultra-low power SoCs
+* **Generalizable**: Multi-modal, multi-task, multi-dataset
+* **Accurate**: Achieve SoTA results with stringent resource constraints
 
 ## <span class="sk-h2-span">Requirements</span>
 
@@ -80,7 +81,8 @@ __SleepKit__ can be used as either a CLI-based app or as a python package to per
 
 ## <span class="sk-h2-span">Tasks</span>
 
-* `stage`: Perform 2, 3, 4, or 5 stage sleep detection
+* `detect`: Detect sustained sleep/inactivity bouts
+* `stage`: Perform advanced 2, 3, 4, or 5 stage sleep assessment
 * `apnea`: Detect hypopnea/apnea events
 * `arousal`: Detect sleep arousal events
 
@@ -100,22 +102,13 @@ SleepKit leverages modern architectural design strategies to achieve high accura
 
 ## <span class="sk-h2-span">Datasets</span>
 
-SleepKit uses several open-source datasets for training each of the task's models. In general, we use commercial-use friendly datasets that are publicly available. Check out the [Datasets Guide](./datasets.md) to learn more about the datasets used along with their corresponding licenses and limitations.
+SleepKit uses several open-source datasets for training each of the tasks. In general, we use commercial-use friendly datasets that are publicly available. Check out the [Datasets Guide](./datasets.md) to learn more about the datasets used along with their corresponding licenses and limitations.
 
 ---
 
-## <span class="sk-h2-span">Results</span>
+## <span class="sk-h2-span">Model Zoo</span>
 
-The following table provides the latest performance and accuracy results of all models when running on Apollo4 Plus EVB. Additional result details can be found in [Results Section](./results.md).
-
-| Task           | Params   | FLOPS   | Metric     | Cycles/Inf | Time/Inf   |
-| -------------- | -------- | ------- | ---------- | ---------- | ---------- |
-| 2-Stage Sleep  | 10K      | 1.7M/hr | 88.8% F1   |  11M/hr    | 58ms/hr    |
-| 3-Stage Sleep  | 14K      | 2.2M/hr | 84.2% F1   |  16M/hr    | 80ms/hr    |
-| 4-Stage Sleep  | 14K      | 2.3M/hr | 76.4% F1   |  16M/hr    | 80ms/hr    |
-| 5-Stage Sleep  | 17K      | 2.8M/hr | 70.2% F1   |  18M/hr    | 91ms/hr    |
-| Sleep Apnea    | --K      | --M     | ----% F1   | ---M       | ---ms      |
-| Sleep Arousal  | --K      | --M     | ----% F1   | ---M       | ---ms      |
+A number of pre-trained models are available for each task. These models are trained on a variety of datasets and are optimized for deployment on Ambiq's ultra-low power SoCs. Check out the [Model Zoo](./results.md) to learn more about the available models and their corresponding performance metrics.
 
 ---
 

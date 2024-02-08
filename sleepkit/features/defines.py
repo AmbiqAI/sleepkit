@@ -1,6 +1,9 @@
 import abc
+
 import numpy as np
+
 from ..defines import SKFeatureParams
+
 
 class PoorSignalError(Exception):
     """Poor signal error."""
@@ -9,7 +12,9 @@ class PoorSignalError(Exception):
 class NoSignalError(Exception):
     """No signal error."""
 
+
 class FeatSet(abc.ABC):
+    """Feature set abstract class."""
 
     @staticmethod
     def name() -> str:

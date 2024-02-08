@@ -1,8 +1,8 @@
 import os
 from typing import Type, TypeVar
 
-import pydantic_argparse
-from pydantic import BaseModel, Field
+from argdantic import ArgField, ArgParser
+from pydantic import BaseModel
 
 from . import apnea, stage
 from .datasets import download_datasets
@@ -21,14 +21,7 @@ from .utils import setup_logger
 
 logger = setup_logger(__name__)
 
-
-class CliArgs(BaseModel):
-    """CLI arguments"""
-
-    task: SKTask = Field(default=SKTask.detect)
-    mode: SKMode = Field(default=SKMode.train)
-    config: str = Field(description="JSON config file path or string")
-
+cli = ArgParser()
 
 B = TypeVar("B", bound=BaseModel)
 
@@ -43,65 +36,68 @@ def parse_content(cls: Type[B], content: str) -> B:
     Returns:
         B: Pydantic model subclass instance
     """
-    return cls.parse_file(content) if os.path.isfile(content) else cls.parse_raw(content)
+    if os.path.isfile(content):
+        with open(content, "r", encoding="utf-8") as f:
+            content = f.read()
+    return cls.model_validate_json(json_data=content)
 
 
-def run(inputs: list[str] | None = None):
-    """Main CLI app runner
-
-    Args:
-        inputs (list[str] | None, optional): App arguments. Defaults to CLI arguments.
-    """
-    parser = pydantic_argparse.ArgumentParser(
-        model=CliArgs,
-        prog="SleepKit CLI",
-        description="SleepKit leverages AI for sleep monitoring tasks.",
-    )
-    args = parser.parse_typed_args(inputs)
+@cli.command(name="run")
+def _run(
+    mode: SKMode = ArgField("-m", description="Mode"),
+    task: SKTask = ArgField("-t", description="Task"),
+    config: str = ArgField("-c", description="File path or JSON content"),
+):
+    """ "SleepKit CLI"""
 
     # Download datasets
-    if args.mode == SKMode.download:
+    if mode == SKMode.download:
         logger.info("#STARTED download")
-        download_datasets(parse_content(SKDownloadParams, args.config))
+        download_datasets(parse_content(SKDownloadParams, config))
         logger.info("#FINISHED download")
         return
 
     # Generate feature set
-    if args.mode == SKMode.feature:
+    if mode == SKMode.feature:
         logger.info("#STARTED feature")
-        generate_feature_set(parse_content(SKFeatureParams, args.config))
+        generate_feature_set(parse_content(SKFeatureParams, config))
         logger.info("#FINISHED feature")
         return
 
     # Grab task handler
-    match args.task:
-        case SKTask.stage:
+    match task:
+        case SKTask.stage | SKTask.detect:
             task_handler = stage
         case SKTask.apnea:
             task_handler = apnea
         case _:
             raise NotImplementedError()
     # END MATCH
-    logger.info(f"#STARTED {args.mode} for task {args.task}")
+    logger.info(f"#STARTED {mode} for task {task}")
 
-    match args.mode:
+    match mode:
         case SKMode.train:
-            task_handler.train(parse_content(SKTrainParams, args.config))
+            task_handler.train(parse_content(SKTrainParams, config))
 
         case SKMode.evaluate:
-            task_handler.evaluate(parse_content(SKTestParams, args.config))
+            task_handler.evaluate(parse_content(SKTestParams, config))
 
         case SKMode.export:
-            task_handler.export(parse_content(SKExportParams, args.config))
+            task_handler.export(parse_content(SKExportParams, config))
 
         case SKMode.demo:
-            task_handler.demo(parse_content(SKDemoParams, args.config))
+            task_handler.demo(parse_content(SKDemoParams, config))
 
         case _:
             logger.error("Error: Unsupported CLI command")
     # END MATCH
 
-    logger.info(f"#FINISHED {args.mode} for task {args.task}")
+    logger.info(f"#FINISHED {mode} for task {task}")
+
+
+def run():
+    """Run CLI."""
+    cli()
 
 
 if __name__ == "__main__":

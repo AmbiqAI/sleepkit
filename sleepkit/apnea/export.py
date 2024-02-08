@@ -1,6 +1,8 @@
 """Sleep Apnea Export"""
+
 import shutil
 
+import keras
 import numpy as np
 import tensorflow as tf
 from rich.console import Console
@@ -22,7 +24,6 @@ def export(params: SKExportParams):
     Args:
         params (SKExportParams): Deployment parameters
     """
-    params.num_apnea_stages = getattr(params, "num_apnea_stages", 2)
 
     tfl_model_path = params.job_dir / "model.tflite"
     tflm_model_path = params.job_dir / "model_buffer.h"
@@ -31,19 +32,19 @@ def export(params: SKExportParams):
     logger.info("Loading trained model")
     model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
 
-    target_classes = get_sleep_apnea_classes(params.num_apnea_stages)
-    # class_names = get_sleep_apnea_class_names(params.num_apnea_stages)
-    class_mapping = get_sleep_apnea_class_mapping(params.num_apnea_stages)
+    target_classes = get_sleep_apnea_classes(params.num_classes)
+    # class_names = get_sleep_apnea_class_names(params.num_classes)
+    class_mapping = get_sleep_apnea_class_mapping(params.num_classes)
 
     ds = load_dataset(ds_path=params.ds_path, frame_size=params.frame_size, feat_cols=params.feat_cols)
     feat_shape = ds.feature_shape
     class_shape = (ds.frame_size, len(target_classes))
 
-    inputs = tf.keras.layers.Input(feat_shape, dtype=tf.float32, batch_size=1)
+    inputs = keras.layers.Input(feat_shape, dtype=tf.float32, batch_size=1)
     outputs = model(inputs)
-    if not params.use_logits and not isinstance(model.layers[-1], tf.keras.layers.Softmax):
-        outputs = tf.keras.layers.Softmax()(outputs)
-        model = tf.keras.Model(inputs, outputs, name=model.name)
+    if not params.use_logits and not isinstance(model.layers[-1], keras.layers.Softmax):
+        outputs = keras.layers.Softmax()(outputs)
+        model = keras.Model(inputs, outputs, name=model.name)
         outputs = model(inputs)
     # END IF
     flops = tfa.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")

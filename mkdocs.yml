@@ -9,8 +9,14 @@ nav:
   - SleepKit: index.md
   - Overview: overview.md
   - Datasets: datasets.md
-  - Results: results.md
+  - Model Factory: models.md
+  - Model Zoo: results.md
   - Tasks:
+    - Detect:
+      - Overview: ./detect/overview.md
+      - Methods: ./detect/methods.md
+      - Results: ./detect/results.md
+      - Demo: ./detect/demo.md
     - Staging:
       - Overview: ./stages/overview.md
       - Methods: ./stages/methods.md

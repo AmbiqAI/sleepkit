@@ -1,6 +1,7 @@
 import math
 from typing import Callable
 
+import keras
 import numpy as np
 import tensorflow as tf
 from pydantic import BaseModel, Field
@@ -54,18 +55,18 @@ def encoder(num_heads: int = 2, model_dim: int = 2, dropout: float = 0) -> Calla
     """Encoder layer"""
 
     def layer(x: tf.Tensor):
-        y = tf.keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=model_dim, dropout=dropout)(
+        y = keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=model_dim, dropout=dropout)(
             query=x, key=x, value=x
         )
-        y = tf.keras.layers.Add()([x, y])
-        y = tf.keras.layers.LayerNormalization()(y)
+        y = keras.layers.Add()([x, y])
+        y = keras.layers.LayerNormalization()(y)
         ys = y
-        y = tf.keras.layers.Dense(model_dim)(y)
-        y = tf.keras.layers.Dropout(dropout)(y)
-        y = tf.keras.layers.Dense(model_dim)(y)
-        y = tf.keras.layers.Dropout(dropout)(y)
-        y = tf.keras.layers.Add()([ys, y])
-        y = tf.keras.layers.LayerNormalization()(y)
+        y = keras.layers.Dense(model_dim)(y)
+        y = keras.layers.Dropout(dropout)(y)
+        y = keras.layers.Dense(model_dim)(y)
+        y = keras.layers.Dropout(dropout)(y)
+        y = keras.layers.Add()([ys, y])
+        y = keras.layers.LayerNormalization()(y)
         return y
 
     return layer
@@ -86,7 +87,7 @@ def tflstm_encoder(
 
     def layer(x: tf.Tensor) -> tf.Tensor:
         sequence_len = block_size / patch_size
-        y = tf.keras.layers.Dense(model_dim)(x)
+        y = keras.layers.Dense(model_dim)(x)
         pos_encoding = tf.Variable(
             initial_value=tf.random.normal(shape=(1, sequence_len, model_dim), stddev=0.02), trainable=True
         )
@@ -99,13 +100,13 @@ def tflstm_encoder(
         else:
             pos_encoder = tf.tile(pos_encoding, multiples=[batch_size, 1, 1])
 
-        y = tf.keras.layers.Add()[y, pos_encoder]
-        y = tf.keras.layers.Dropout(dropout)(y)
+        y = keras.layers.Add()[y, pos_encoder]
+        y = keras.layers.Dropout(dropout)(y)
         for _ in range(num_encoders):
             y = encoder(num_heads=num_heads, model_dim=model_dim, dropout=dropout)(y)
         for _ in range(num_lstms):
-            y = tf.keras.layers.LSTM(model_dim, return_sequences=True)(y)
-            y = tf.keras.layers.Bidirectional()(y)
+            y = keras.layers.LSTM(model_dim, return_sequences=True)(y)
+            y = keras.layers.Bidirectional()(y)
         return y
 
     return layer
@@ -124,7 +125,7 @@ def TFLstm(inputs: tf.Tensor, params: TFLstmParams, num_classes: int):
         training=params.training,
         dropout=params.dropout,
     )(inputs)
-    y = tf.keras.layers.Dense(num_classes)(y)
-    y = tf.keras.layers.Activation(tf.keras.activations.hard_sigmoid)(y)
-    model = tf.keras.Model(inputs=inputs, outputs=y)
+    y = keras.layers.Dense(num_classes)(y)
+    y = keras.layers.Activation(keras.activations.hard_sigmoid)(y)
+    model = keras.Model(inputs=inputs, outputs=y)
     return model

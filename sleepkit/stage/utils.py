@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 
+import keras
 import numpy as np
 import numpy.typing as npt
 import tensorflow as tf
@@ -12,7 +13,7 @@ from ..models import Tcn, TcnBlockParams, TcnParams, generate_model
 
 def create_model(
     inputs: tf.Tensor, num_classes: int, name: str | None = None, params: dict[str, Any] | None = None
-) -> tf.keras.Model:
+) -> keras.Model:
     """Generate model or use default
 
     Args:
@@ -22,7 +23,7 @@ def create_model(
         params (dict[str, Any] | None, optional): Model parameters. Defaults to None.
 
     Returns:
-        tf.keras.Model: Model
+        keras.Model: Model
     """
     if name:
         return generate_model(inputs=inputs, num_classes=num_classes, name=name, params=params)

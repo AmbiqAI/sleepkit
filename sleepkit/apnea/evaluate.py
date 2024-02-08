@@ -28,13 +28,12 @@ def evaluate(params: SKTestParams):
     Args:
         params (SKTestParams): Testing/evaluation parameters
     """
-    params.num_apnea_stages = getattr(params, "num_apnea_stages", 2)
     params.seed = set_random_seed(params.seed)
     logger.info(f"Random seed {params.seed}")
 
-    # target_classes = get_sleep_apnea_classes(params.num_apnea_stages)
-    class_names = get_sleep_apnea_class_names(params.num_apnea_stages)
-    class_mapping = get_sleep_apnea_class_mapping(params.num_apnea_stages)
+    # target_classes = get_sleep_apnea_classes(params.num_classes)
+    class_names = get_sleep_apnea_class_names(params.num_classes)
+    class_mapping = get_sleep_apnea_class_mapping(params.num_classes)
 
     ds = load_dataset(ds_path=params.ds_path, frame_size=params.frame_size, feat_cols=params.feat_cols)
     feat_shape = ds.feature_shape

@@ -2,7 +2,7 @@
 
 ## <span class="sk-h2-span">Datasets</span>
 
-For training the model, we utilize the [MESA dataset](../datasets.md/#mesa-dataset). For this dataset, we leverage PPG, SpO2, and leg sensor data. Typically we would compute SpO2 directly from two or more PPG signals but only 1 PPG signal is provided in this dataset. Furthermore, we use the provided leg sensor as a proxy for general body movement. Ideally, capturing accelerometer on the wrist would provide better insights as we can extract movement as well as positioning (e.g. [z-angle](https://doi.org/10.1038/s41598-018-31266-z)).
+For training the included model, we utilize the [MESA dataset](../datasets.md/#mesa-dataset). For this dataset, we leverage PPG, SpO2, and leg sensor data. Typically we would compute SpO2 directly from two or more PPG signals but only 1 PPG signal is provided in this dataset. Furthermore, we use the provided leg sensor as a proxy for general body movement. Ideally, capturing accelerometer on the wrist would provide better insights as we can extract movement as well as positioning (e.g. [2018 Hees](https://doi.org/10.1038/s41598-018-31266-z)).
 
 ---
 
@@ -53,29 +53,29 @@ Below outlines the grouping of sleep stages used for 2, 3, 4, and 5 stage sleep 
 
 === "2-Stage"
 
-    | CLASS | STAGES          |
-    | ---- | ---------------- |
-    | 0- WAKE | W                |
-    | 1- SLEEP | N1, N2, N3, REM |
+    | CLASS    | STAGES           |
+    | -------- | ---------------- |
+    | 0- WAKE  | W                |
+    | 1- SLEEP | N1, N2, N3, REM  |
 
 === "3-Stage"
-    | CLASS | STAGES          |
-    | ---- | ---------------- |
+    | CLASS   | STAGES           |
+    | ------- | ---------------- |
     | 0- WAKE | W                |
     | 1- NREM | N1, N2, N3       |
     | 2- REM  | REM              |
 
 === "4-Stage"
-    | CLASS | STAGES          |
-    | ---- | ---------------- |
+    | CLASS   | STAGES           |
+    | ------- | ---------------- |
     | 0- WAKE | W                |
     | 1- CORE | N1, N2           |
     | 2- DEEP | N3               |
     | 3- REM  | REM              |
 
 === "5-Stage"
-    | CLASS | STAGES          |
-    | ---- | ---------------- |
+    | CLASS   | STAGES           |
+    | ------- | ---------------- |
     | 0- WAKE | W                |
     | 1- N1   | N1               |
     | 2- N2   | N2               |

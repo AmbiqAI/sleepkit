@@ -1,29 +1,34 @@
-import os
-import glob
-import math
-import logging
 import functools
+import glob
+import logging
+import math
+import os
 import random
-from enum import IntEnum
 from datetime import datetime
+from enum import IntEnum
 from pathlib import Path
+
 import h5py
-import pandas as pd
-import physiokit as pk
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
+import physiokit as pk
 from tqdm import tqdm
 
 from .defines import SampleGenerator, SubjectGenerator
 
 logger = logging.getLogger(__name__)
 
+
 class CmidssSleepStage(IntEnum):
     """CMIDSS sleep stages"""
+
     wake = 0
     sleep = 1
 
+
 class CmidssDataset:
+    """CMIDSS dataset"""
 
     def __init__(
         self,
@@ -39,7 +44,7 @@ class CmidssDataset:
     @property
     def sampling_rate(self) -> float:
         """Sampling rate in Hz"""
-        return 1.0/5.0
+        return 1.0 / 5.0
 
     @functools.cached_property
     def subject_ids(self) -> list[str]:
@@ -203,7 +208,11 @@ class CmidssDataset:
         subject_ids: npt.NDArray[np.str_] = df.series_id.unique()
 
         for subject_id in tqdm(subject_ids):
-            self._convert_subject_to_hdf5(subject_id, df=df, df_lbls=df_lbls, )
+            self._convert_subject_to_hdf5(
+                subject_id,
+                df=df,
+                df_lbls=df_lbls,
+            )
 
         logger.info("Finished YSYW subject data")
 
@@ -212,12 +221,12 @@ class CmidssDataset:
         data_path = self.ds_path / "train_series.parquet"
         label_path = self.ds_path / "train_events.csv"
         df = pd.read_parquet(data_path)
-        df['datetime'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%dT%H:%M:%S%z")
+        df["datetime"] = pd.to_datetime(df["timestamp"], format="%Y-%m-%dT%H:%M:%S%z")
         df_lbls = pd.read_csv(label_path)
-        df_lbls['datetime'] = pd.to_datetime(df_lbls['timestamp'], format="%Y-%m-%dT%H:%M:%S%z")
+        df_lbls["datetime"] = pd.to_datetime(df_lbls["timestamp"], format="%Y-%m-%dT%H:%M:%S%z")
         return df, df_lbls
 
-    def _convert_subject_to_hdf5(self, subject_id:str, df: pd.DataFrame, df_lbls: pd.DataFrame, force: bool = False):
+    def _convert_subject_to_hdf5(self, subject_id: str, df: pd.DataFrame, df_lbls: pd.DataFrame, force: bool = False):
         """Extract subject data from parquet.
 
         Args:
@@ -248,10 +257,10 @@ class CmidssDataset:
         labels = np.zeros((duration), dtype=np.int32)
         onsets = sub_lbls[sub_lbls.event == "onset"].step.values
         wakeups = sub_lbls[sub_lbls.event == "wakeup"].step.values
-        for (onset, wakeup) in zip(onsets, wakeups):
+        for onset, wakeup in zip(onsets, wakeups):
             if np.isnan(onset) or np.isnan(wakeup):
                 continue
-            labels[int(onset):int(wakeup)] = CmidssSleepStage.sleep.value
+            labels[int(onset) : int(wakeup)] = CmidssSleepStage.sleep.value
         # END FOR
 
         with h5py.File(sub_h5_path, mode="w") as h5:

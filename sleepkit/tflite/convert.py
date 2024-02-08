@@ -1,6 +1,7 @@
 import io
 import os
 
+import keras
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -90,7 +91,7 @@ def xxd_c_dump(
 
 
 def convert_tflite(
-    model: tf.keras.Model,
+    model: keras.Model,
     quantize: bool = False,
     test_x: npt.NDArray | None = None,
     input_type: tf.DType | None = None,
@@ -99,7 +100,7 @@ def convert_tflite(
     """Convert TF model into TFLite model content
 
     Args:
-        model (tf.keras.Model): TF model
+        model (keras.Model): TF model
         quantize (bool, optional): Enable PTQ. Defaults to False.
         test_x (npt.NDArray | None, optional): Enables full integer PTQ. Defaults to None.
         input_type (tf.DType | None): Input type data format. Defaults to None.
@@ -131,7 +132,7 @@ def convert_tflite(
 
 
 def debug_quant_tflite(
-    model: tf.keras.Model,
+    model: keras.Model,
     test_x: npt.NDArray | None = None,
     input_type: tf.DType | None = None,
     output_type: tf.DType | None = None,
@@ -139,7 +140,7 @@ def debug_quant_tflite(
     """Debug quantized TFLite model content
 
     Args:
-        model (tf.keras.Model): TF model
+        model (keras.Model): TF model
         quantize (bool, optional): Enable PTQ. Defaults to False.
         test_x (npt.NDArray | None, optional): Enables full integer PTQ. Defaults to None.
         input_type (tf.DType | None): Input type data format. Defaults to None.
@@ -250,6 +251,6 @@ def evaluate_tflite(
         npt.NDArray: Loss values
     """
     _, y_pred = predict_tflite(model_content, test_x=test_x)
-    loss_function = tf.keras.losses.get(model.loss)
+    loss_function = keras.losses.get(model.loss)
     loss = loss_function(y_true, y_pred).numpy()
     return loss

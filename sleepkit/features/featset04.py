@@ -1,6 +1,4 @@
 import numpy as np
-import physiokit as pk
-import scipy.signal
 
 from ..datasets import CmidssDataset
 from ..defines import SKFeatureParams
@@ -8,7 +6,9 @@ from ..utils import setup_logger
 
 logger = setup_logger(__name__)
 
+
 class FeatSet04:
+    """Feature set 4."""
 
     @staticmethod
     def name() -> str:
@@ -19,7 +19,6 @@ class FeatSet04:
     def feature_names() -> list[str]:
         """Feature names."""
         return ["tod", "mov_mu", "mov_std", "angle_mu", "angle_std"]
-
 
     @staticmethod
     def compute_features(
@@ -71,17 +70,13 @@ class FeatSet04:
             anglez_win = anglez[start:stop]
 
             # Features
-            tod_norm = np.nanmean(ts_win/(24*60*60))
-            tod_cos = np.cos(2*np.pi*tod_norm)
+            tod_norm = np.nanmean(ts_win / (24 * 60 * 60))
+            tod_cos = np.cos(2 * np.pi * tod_norm)
             # mov_win = np.abs(mov_win)
             mov_mu, mov_std = np.nanmean(enmo_win), np.nanstd(enmo_win)
             angle_mu, angle_std = np.nanmean(anglez_win), np.nanstd(anglez_win)
 
-            features[i] = [
-                tod_cos,
-                mov_mu, mov_std,
-                angle_mu, angle_std
-            ]
+            features[i] = [tod_cos, mov_mu, mov_std, angle_mu, angle_std]
             labels[i] = sleep_labels[start:stop][-1]
         # END FOR
 

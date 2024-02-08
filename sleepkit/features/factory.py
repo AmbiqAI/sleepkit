@@ -5,14 +5,14 @@ from multiprocessing import Pool
 import h5py
 from tqdm import tqdm
 
-from ..datasets import MesaDataset, YsywDataset, CmidssDataset
+from ..datasets import CmidssDataset, MesaDataset, YsywDataset
+from ..defines import SKFeatureParams
+from ..utils import setup_logger
+from .defines import FeatSet
 from .featset01 import FeatSet01
 from .featset02 import FeatSet02
 from .featset03 import FeatSet03
 from .featset04 import FeatSet04
-from ..defines import SKFeatureParams
-from .defines import FeatSet
-from ..utils import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -22,6 +22,7 @@ feat_factory_map: dict[str, FeatSet] = {
     FeatSet03.name(): FeatSet03,
     FeatSet04.name(): FeatSet04,
 }
+
 
 def compute_subject_features(ds_subject: tuple[str, str], args: SKFeatureParams):
     """Compute features for subject.

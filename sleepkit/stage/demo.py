@@ -46,10 +46,10 @@ def demo(params: SKDemoParams):
     bg_color = "rgba(38,42,50,1.0)"
     plotly_template = "plotly_dark"
 
-    sleep_classes = get_stage_classes(params.num_sleep_stages)
-    class_names = get_stage_class_names(params.num_sleep_stages)
-    class_mapping = get_stage_class_mapping(params.num_sleep_stages)
-    class_colors = get_stage_color_map(params.num_sleep_stages)
+    sleep_classes = get_stage_classes(params.num_classes)
+    class_names = get_stage_class_names(params.num_classes)
+    class_mapping = get_stage_class_mapping(params.num_classes)
+    class_colors = get_stage_color_map(params.num_classes)
 
     logger.info("Setting up")
 
@@ -212,9 +212,9 @@ def demo(params: SKDemoParams):
         paper_bgcolor=bg_color,
         margin=dict(l=10, r=10, t=40, b=20),
         legend=dict(groupclick="toggleitem"),
-        title=f"Sleep Stage Classification Demo (subject {subject_id})",
+        title=f"Sleep {'Detect' if params.num_classes else 'Stage'} Demo (subject {subject_id})",
     )
-    fig.write_html(params.job_dir / "demo.html")  # , include_plotlyjs='cdn', full_html=False)
+    fig.write_html(params.job_dir / "demo.html", include_plotlyjs="cdn", full_html=False)
     fig.show()
 
     runner.close()

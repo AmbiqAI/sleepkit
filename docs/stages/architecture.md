@@ -1,6 +1,6 @@
 # Model Architecture
 
-For sleep stage classification, we leverage a modified Temporal Convolutional Network (TCN) architecture. During preliminary exploration we also tried various 1-D CNN, RNN (LSTM and GRU), and U-NET based architectures but found them to either require too much memory, computation, or suffer significant accuracy degredation when quantizing to 8-bit.
+For sleep staging, the pre-trained models leverage a modified Temporal Convolutional Network (TCN) architecture. During preliminary exploration we also tried various 1-D CNN, RNN (LSTM and GRU), and U-NET based architectures but found them to either require too much memory, computation, or suffer significant accuracy degredation when quantizing to 8-bit.
 <!-- Please refer to [Experiments](./experiments.md) for more details on architecture exploration. -->
 
 

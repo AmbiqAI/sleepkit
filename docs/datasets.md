@@ -64,3 +64,22 @@ Funding was from the National Institutes of Health, grant R01-GM104987. We are a
 ### Licensing
 
 The YSYW dataset is available commercial use under [Open Data Commons Attribution License](https://physionet.org/content/challenge-2018/view-license/1.0.0/).
+
+
+---
+
+## <span class="sk-h2-span">CMIDSS Dataset</span>
+
+### Overview
+
+This dataset comes from the Child Mind Institute - Detect Sleep States (CMIDSS) Kaggle competition. The dataset comprises 300 subjects with over 500 multi-day recordings of wrist-worn accelerometer data annotated with two event types: onset, the beginning of sleep, and wakeup, the end of sleep. While the original data contains 3-axis accelerometer data, this dataset only contains the euclidean norm minus one (ENMO) and z-angle reported every 5 seconds.
+
+More info available on [PhysioNet website](https://physionet.org/content/challenge-2018/1.0.0)
+
+### Funding
+
+The data was provided by the Healthy Brain Network, a landmark mental health study based in New York City that will help children around the world. In the Healthy Brain Network, families, community leaders, and supporters are partnering with the Child Mind Institute to unlock the secrets of the developing brain. In addition to generous support provided by the Kaggle team, financial support has been provided by the Stavros Niarchos Foundation (SNF) as part of its Global Health Initiative (GHI) through the SNF Global Center for Child and Adolescent Mental Health at the Child Mind Institute.
+
+### Licensing
+
+The CMIDSS dataset is available for non-commercial use under [Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/).

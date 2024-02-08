@@ -1,6 +1,8 @@
 """Sleep Apnea"""
+
 import os
 
+import keras
 import numpy as np
 import sklearn.model_selection
 import sklearn.utils
@@ -37,7 +39,6 @@ def train(params: SKTrainParams):
     """
 
     # Custom parameters (add to SKTrainParams for automatic logging)
-    params.num_apnea_stages = getattr(params, "num_apnea_stages", 2)
     params.feat_cols = getattr(params, "feat_cols", None)
     params.lr_rate: float = getattr(params, "lr_rate", 1e-3)
     params.lr_cycles: int = getattr(params, "lr_cycles", 3)
@@ -53,15 +54,15 @@ def train(params: SKTrainParams):
 
     if env_flag("WANDB"):
         wandb.init(
-            project=f"sk-apnea-{params.num_apnea_stages}",
+            project=f"sk-apnea-{params.num_classes}",
             entity="ambiq",
             dir=params.job_dir,
         )
         wandb.config.update(params.dict())
 
-    target_classes = get_sleep_apnea_classes(params.num_apnea_stages)
-    class_names = get_sleep_apnea_class_names(params.num_apnea_stages)
-    class_mapping = get_sleep_apnea_class_mapping(params.num_apnea_stages)
+    target_classes = get_sleep_apnea_classes(params.num_classes)
+    class_names = get_sleep_apnea_class_names(params.num_classes)
+    class_mapping = get_sleep_apnea_class_mapping(params.num_classes)
 
     logger.info("Loading dataset(s)")
     ds = load_dataset(ds_path=params.ds_path, frame_size=params.frame_size, feat_cols=params.feat_cols)
@@ -103,32 +104,32 @@ def train(params: SKTrainParams):
     strategy = tfa.get_strategy()
     with strategy.scope():
         logger.info("Building model")
-        inputs = tf.keras.Input(feat_shape, batch_size=None, dtype=tf.float32)
+        inputs = keras.Input(feat_shape, batch_size=None, dtype=tf.float32)
         model = create_model(inputs, num_classes=len(target_classes))
         flops = tfa.get_flops(model, batch_size=1, fpath=str(params.job_dir / "model_flops.log"))
 
         if params.lr_cycles == 1:
-            scheduler = tf.keras.optimizers.schedules.CosineDecay(
+            scheduler = keras.optimizers.schedules.CosineDecay(
                 initial_learning_rate=params.lr_rate,
                 decay_steps=int(params.steps_per_epoch * params.epochs),
             )
         else:
-            scheduler = tf.keras.optimizers.schedules.CosineDecayRestarts(
+            scheduler = keras.optimizers.schedules.CosineDecayRestarts(
                 initial_learning_rate=params.lr_rate,
                 first_decay_steps=int(0.1 * params.steps_per_epoch * params.epochs),
                 t_mul=1.65 / (0.1 * params.lr_cycles * (params.lr_cycles - 1)),
                 m_mul=0.4,
             )
-        optimizer = tf.keras.optimizers.Adam(scheduler)
-        loss = tf.keras.losses.CategoricalFocalCrossentropy(
+        optimizer = keras.optimizers.Adam(scheduler)
+        loss = keras.losses.CategoricalFocalCrossentropy(
             from_logits=True,
             alpha=class_weights,
             label_smoothing=params.label_smoothing,
         )
         metrics = [
-            tf.keras.metrics.CategoricalAccuracy(name="acc"),
+            keras.metrics.CategoricalAccuracy(name="acc"),
             tfa.MultiF1Score(name="f1", dtype=tf.float32, average="weighted"),
-            tf.keras.metrics.OneHotIoU(
+            keras.metrics.OneHotIoU(
                 num_classes=len(target_classes),
                 target_class_ids=target_classes,
                 name="iou",
@@ -145,13 +146,13 @@ def train(params: SKTrainParams):
         params.weights_file = params.job_dir / "model.weights"
 
         model_callbacks = [
-            tf.keras.callbacks.EarlyStopping(
+            keras.callbacks.EarlyStopping(
                 monitor=f"val_{params.val_metric}",
                 patience=max(int(0.25 * params.epochs), 1),
                 mode="max" if params.val_metric == "f1" else "auto",
                 restore_best_weights=True,
             ),
-            tf.keras.callbacks.ModelCheckpoint(
+            keras.callbacks.ModelCheckpoint(
                 filepath=params.weights_file,
                 monitor=f"val_{params.val_metric}",
                 save_best_only=True,
@@ -159,8 +160,8 @@ def train(params: SKTrainParams):
                 mode="max" if params.val_metric == "f1" else "auto",
                 verbose=1,
             ),
-            tf.keras.callbacks.CSVLogger(params.job_dir / "history.csv"),
-            tf.keras.callbacks.TensorBoard(
+            keras.callbacks.CSVLogger(params.job_dir / "history.csv"),
+            keras.callbacks.TensorBoard(
                 log_dir=params.job_dir / "logs",
                 write_steps_per_second=True,
             ),
