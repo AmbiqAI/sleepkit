@@ -5,7 +5,6 @@ import os
 import random
 from enum import IntEnum
 from pathlib import Path
-from typing import Callable
 from xml.dom.minidom import Element as XmlElement
 from xml.dom.minidom import Node as XmlNode
 from xml.dom.minidom import parse as xml_parse
@@ -16,7 +15,10 @@ import pandas as pd
 import physiokit as pk
 import pyedflib
 
+from ..tasks import SleepApnea, SleepStage
+from .dataset import SKDataset
 from .defines import SampleGenerator, SubjectGenerator
+from .nsrr import download_nsrr
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,31 @@ class MesaSleepStage(IntEnum):
     UNSCORED = 9
 
 
-class MesaDataset:
+MesaStageMap = {
+    MesaSleepStage.WAKE: SleepStage.wake,
+    MesaSleepStage.N1: SleepStage.stage1,
+    MesaSleepStage.N2: SleepStage.stage2,
+    MesaSleepStage.N3: SleepStage.stage3,
+    MesaSleepStage.N4: SleepStage.stage4,
+    MesaSleepStage.REM: SleepStage.rem,
+    MesaSleepStage.MOVEMENT: SleepStage.noise,
+    MesaSleepStage.UNSCORED: SleepStage.noise,
+}
+
+# Mesa respiratory events
+# 'Central apnea|Central Apnea',
+# 'Hypopnea|Hypopnea',
+# 'Mixed apnea|Mixed Apnea',
+# 'Obstructive apnea|Obstructive Apnea',
+# 'Periodic breathing|Periodic Breathing',
+# 'Respiratory artifact|Respiratory artifact',
+# 'Respiratory effort related arousal|RERA',
+# 'SpO2 artifact|SpO2 artifact',
+# 'SpO2 desaturation|SpO2 desaturation',
+# 'Unsure|Unsure'
+
+
+class MesaDataset(SKDataset):
     """MESA dataset"""
 
     def __init__(
@@ -46,11 +72,10 @@ class MesaDataset:
         target_rate: int = 128,
         is_commercial: bool = True,
     ) -> None:
+        super().__init__(ds_path=ds_path, frame_size=frame_size)
         self.frame_size = frame_size
         self.target_rate = target_rate
         self.ds_path = ds_path / ("mesa-commercial-use" if is_commercial else "mesa")
-        self.sleep_mapping = lambda v: {0: 0, 1: 1, 2: 2, 3: 3, 4: 3, 5: 5, 6: 0, 9: 0}.get(v, 0)
-        self.is_commercial = is_commercial
 
     @property
     def subject_ids(self) -> list[str]:
@@ -112,10 +137,6 @@ class MesaDataset:
         """Signal names as they appear in the EDF files"""
         return self.actigraphy_signal_names + self.psg_signal_names
 
-    def set_sleep_mapping(self, mapping: Callable[[int], int]):
-        """Set sleep mapping"""
-        self.sleep_mapping = mapping
-
     def uniform_subject_generator(
         self,
         subject_ids: list[str] | None = None,
@@ -146,13 +167,22 @@ class MesaDataset:
                 break
         # END WHILE
 
-    def signal_generator(
-        self, subject_generator: SubjectGenerator, signals: list[str], samples_per_subject: int = 1
+    def signal_generator2(
+        self,
+        subject_generator: SubjectGenerator,
+        signals: list[str], samples_per_subject: int = 1,
+        normalize: bool = True,
+        epsilon: float = 1e-6
     ) -> SampleGenerator:
         """Randomly generate frames of sleep data for given subjects.
+
         Args:
             subject_generator (SubjectGenerator): Generator that yields subject ids.
             samples_per_subject (int): Samples per subject.
+            signals (list[str]): List of signal names.
+            normalize (bool): Normalize signals.
+            epsilon (float): Small value to avoid division by zero.
+
         Returns:
             SampleGenerator: Generator of input data of shape (frame_size, num_signals)
         """
@@ -244,7 +274,7 @@ class MesaDataset:
             return signal
         return signal[:data_size]
 
-    def extract_sleep_apneas(self, subject_id: str) -> list[tuple[int, float, float]]:
+    def extract_sleep_events(self, subject_id: str) -> set[str]:
         """Extract sleep apnea events for subject
         Args:
             subject_id (str): Subject ID
@@ -282,16 +312,64 @@ class MesaDataset:
         doc = xml_parse(xml_path)
         events = doc.getElementsByTagName("ScoredEvent")
         events = [event for event in events if is_apnea_event(event)]
+        event_labels = set()
+        for event in events:
+            event_label: str = get_first_element_by_tag_name(event, "EventConcept").childNodes[0].nodeValue
+            event_labels.add(event_label)
+        return event_labels
+
+    def extract_sleep_apneas(self, subject_id: str) -> list[tuple[int, float, float]]:
+        """Extract sleep apnea events for subject
+        Args:
+            subject_id (str): Subject ID
+        Returns:
+            list[tuple[int, float, float]]: Apnea events (apnea, start_time, duration)
+        """
+
+        def get_first_element_by_tag_name(element: XmlElement, tag_name: str) -> XmlNode | None:
+            """Get first element matching tag name"""
+            elements = element.getElementsByTagName(tag_name)
+            return elements[0] if elements else None
+
+        def has_element_by_tag_name(element: XmlElement, tag_name: str) -> bool:
+            """Check if element has child element matching tag name"""
+            return bool(get_first_element_by_tag_name(element, tag_name))
+
+        def element_has_node_value(element: XmlElement, node_value) -> bool:
+            """Check if element has child node with value"""
+            return any((node for node in element.childNodes if node.nodeValue == node_value))
+
+        def is_apnea_event(event: XmlElement) -> bool:
+            """Determine if event is an apnea event"""
+            event_type = get_first_element_by_tag_name(event, "EventType")
+            return all(
+                (
+                    event_type is not None,
+                    element_has_node_value(event_type, "Respiratory|Respiratory"),
+                    has_element_by_tag_name(event, "EventConcept"),
+                    has_element_by_tag_name(event, "Duration"),
+                    has_element_by_tag_name(event, "Start"),
+                )
+            )
+
+        apnea_label_map = {
+            "Hypopnea|Hypopnea": SleepApnea.hypopnea,  # Hypopnea refers to hypopnea w/ >30% reduction in airflow
+            "Unsure|Unsure": SleepApnea.hypopnea,  # Unsure refers to hypopnea w/ >50% reduction in airflow
+            "Central apnea|Central Apnea": SleepApnea.central,
+            "Obstructive apnea|Obstructive Apnea": SleepApnea.obstructive,
+            "Mixed apnea|Mixed Apnea": SleepApnea.mixed,
+        }
+
+        xml_path = self._get_subject_xml_path(subject_id=subject_id)
+        doc = xml_parse(xml_path)
+        events = doc.getElementsByTagName("ScoredEvent")
+        events = [event for event in events if is_apnea_event(event)]
         apneas = []
         for event in events:
             event_label = get_first_element_by_tag_name(event, "EventConcept").childNodes[0].nodeValue
             start_time = float(get_first_element_by_tag_name(event, "Start").childNodes[0].nodeValue)
             duration = float(get_first_element_by_tag_name(event, "Duration").childNodes[0].nodeValue)
-            apnea_labels = ["Hypopnea|Hypopnea", "Unsure|Unsure", "Obstructive apnea|Obstructive Apnea"]
-            try:
-                apnea = apnea_labels.index(event_label) + 1
-            except ValueError:
-                continue
+            apnea = apnea_label_map.get(event_label, SleepApnea.none)
             apneas.append((apnea, start_time, duration))
         return apneas
 
@@ -329,6 +407,16 @@ class MesaDataset:
                 )
             )
 
+        stage_label_map = {
+            0: SleepStage.wake,
+            1: SleepStage.stage1,
+            2: SleepStage.stage2,
+            3: SleepStage.stage3,
+            4: SleepStage.stage4,
+            5: SleepStage.rem,
+            6: SleepStage.noise,
+            9: SleepStage.noise,
+        }
         xml_path = self._get_subject_xml_path(subject_id=subject_id)
         doc = xml_parse(xml_path)
         events = doc.getElementsByTagName("ScoredEvent")
@@ -338,7 +426,7 @@ class MesaDataset:
             stage_label = get_first_element_by_tag_name(event, "EventConcept").childNodes[0].nodeValue
             start_time = float(get_first_element_by_tag_name(event, "Start").childNodes[0].nodeValue)
             duration = float(get_first_element_by_tag_name(event, "Duration").childNodes[0].nodeValue)
-            sleep_stage = self.sleep_mapping(int(stage_label.split("|")[-1]))
+            sleep_stage = stage_label_map.get(int(stage_label.split("|")[-1]), 0)
             sleep_stages.append((sleep_stage, start_time, duration))
         return sleep_stages
 
@@ -394,3 +482,20 @@ class MesaDataset:
             apnea_mask[left_idx : right_idx + 1] = apnea_event
         # END FOR
         return apnea_mask
+
+    def download(self, num_workers: int | None = None, force: bool = False):
+        """Download STAGES dataset from the NSRR website.
+
+        Args:
+            num_workers (int | None, optional): # parallel workers. Defaults to None.
+            force (bool, optional): Force redownload. Defaults to False.
+        """
+
+        download_nsrr(
+            db_slug=self.ds_path.stem,
+            subfolder="",
+            pattern="*",
+            data_dir=self.ds_path.parent,
+            checksum_type="size",
+            num_workers=num_workers,
+        )

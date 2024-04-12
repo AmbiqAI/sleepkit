@@ -46,6 +46,7 @@ erpc = {git = "https://github.com/AmbiqAI/erpc.git", rev = "develop", subdirecto
 pyserial = "^3.5"
 tensorflow-model-optimization = "^0.7.5"
 argdantic = {extras = ["all"], version = "^1.0.0"}
+kaggle = "^1.6.6"
 
 
 [tool.poetry.group.ci.dependencies]
@@ -105,7 +106,8 @@ disable = [
     "duplicate-code",
     "use-dict-literal",
     "unnecessary-lambda-assignment",
-    "cell-var-from-loop"
+    "cell-var-from-loop",
+    "cyclic-import"
 ]
 
 [tool.pylint.format]

@@ -14,6 +14,7 @@ class UNetBlockParams(BaseModel):
 
     filters: int = Field(..., description="# filters")
     depth: int = Field(default=1, description="Layer depth")
+    ddepth: int | None = Field(default=None, description="Decoder depth")
     kernel: int | tuple[int, int] = Field(default=3, description="Kernel size")
     pool: int | tuple[int, int] = Field(default=3, description="Pool size")
     strides: int | tuple[int, int] = Field(default=1, description="Stride size")
@@ -33,7 +34,6 @@ class UNetParams(BaseModel):
     model_name: str = Field(default="UNet", description="Model name")
     output_kernel_size: int | tuple[int, int] = Field(default=3, description="Output kernel size")
     output_kernel_stride: int | tuple[int, int] = Field(default=1, description="Output kernel stride")
-    include_rnn: bool = Field(default=False, description="Include RNN")
 
 
 def UNet(
@@ -56,6 +56,7 @@ def UNet(
         y = keras.layers.Reshape((1,) + x.shape[1:])(x)
     else:
         y = x
+    # END IF
 
     #### ENCODER ####
     skip_layers: list[keras.layers.Layer | None] = []
@@ -123,18 +124,10 @@ def UNet(
         y = keras.layers.MaxPooling2D(block.pool, strides=block.strides, padding="same", name=f"{name}.pool")(y)
     # END FOR
 
-    if params.include_rnn:
-        if requires_reshape:
-            y = keras.layers.Reshape(y.shape[2:])(y)
-            y = keras.layers.LSTM(units=params.blocks[-1].filters, return_sequences=True)(y)
-            y = keras.layers.Reshape((1,) + y.shape[1:])(y)
-        else:
-            y = keras.layers.ConvLSTM1D(params.blocks[-1].filters, padding="same", return_sequences=True)(y)
-
     #### DECODER ####
     for i, block in enumerate(reversed(params.blocks)):
         name = f"DEC{i+1}"
-        for d in range(block.depth):
+        for d in range(block.ddepth or block.depth):
             dname = f"{name}.D{d+1}"
             if block.seperable:
                 y = keras.layers.SeparableConv2D(
@@ -251,8 +244,28 @@ def UNet(
             y = keras.layers.Softmax()(y)
         # END IF
     # END IF
+
     if requires_reshape:
         y = keras.layers.Reshape(y.shape[2:])(y)
+    # END IF
     # Define the model
     model = keras.Model(x, y, name=params.model_name)
     return model
+
+
+def unet_from_object(
+    x: tf.Tensor,
+    params: dict,
+    num_classes: int,
+) -> keras.Model:
+    """Create model from object
+
+    Args:
+        x (tf.Tensor): Input tensor
+        params (dict): Model parameters.
+        num_classes (int, optional): # classes.
+
+    Returns:
+        keras.Model: Model
+    """
+    return UNet(x=x, params=UNetParams(**params), num_classes=num_classes)

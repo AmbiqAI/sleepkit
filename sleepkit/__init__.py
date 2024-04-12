@@ -1,7 +1,22 @@
 import os
 from importlib.metadata import version
 
-from . import cli, datasets, defines, features, metrics, models, stage, tflite
+from . import cli, datasets, metrics, models, rpc, tasks, tflite
+from .datasets import DatasetFactory, SKDataset
+from .defines import (
+    DatasetParams,
+    ModelArchitecture,
+    SKDemoParams,
+    SKDownloadParams,
+    SKExportParams,
+    SKFeatureParams,
+    SKMode,
+    SKTestParams,
+    SKTrainParams,
+)
+from .features import FeatureStore, SKFeatureSet, generate_feature_set
+from .models import ModelFactory
+from .tasks import TaskFactory
 from .utils import setup_logger
 
 __version__ = version(__name__)

@@ -125,6 +125,7 @@ def MultiresNet(
 ):
     """MultiresNet architecture"""
     y = x
+
     # Apply stem
     y = keras.layers.Conv1D(params.d_model, kernel_size=1)(y)
 
@@ -154,3 +155,21 @@ def MultiresNet(
         y = keras.layers.Dense(num_classes, name=name)(y)
     model = keras.Model(x, y, name=params.model_name)
     return model
+
+
+def multiresnet_from_object(
+    x: tf.Tensor,
+    params: dict,
+    num_classes: int,
+) -> keras.Model:
+    """Create model from object
+
+    Args:
+        x (tf.Tensor): Input tensor
+        params (dict): Model parameters.
+        num_classes (int, optional): # classes.
+
+    Returns:
+        keras.Model: Model
+    """
+    return MultiresNet(x=x, params=MultiresNetParams(**params), num_classes=num_classes)

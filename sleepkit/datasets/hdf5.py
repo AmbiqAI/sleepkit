@@ -1,5 +1,4 @@
 import functools
-import glob
 import os
 import random
 from pathlib import Path
@@ -42,9 +41,8 @@ class Hdf5Dataset(SKDataset):
         Returns:
             list[str]: Subject IDs
         """
-        subj_paths = glob.glob(str(self.ds_path / "*.h5"), recursive=True)
-        subjs = [os.path.splitext(os.path.basename(p))[0] for p in subj_paths]
-        subjs.sort()
+        # spaths[0].relative_to(dpath).with_suffix("")
+        subjs = sorted([p.stem for p in self.ds_path.rglob("*.h5")])
         return subjs
 
     @property
@@ -64,6 +62,216 @@ class Hdf5Dataset(SKDataset):
             list[str]: Test subject ids
 
         """
+        # subjects = [
+        #     1,
+        #     21,
+        #     33,
+        #     52,
+        #     77,
+        #     81,
+        #     101,
+        #     111,
+        #     225,
+        #     310,
+        #     314,
+        #     402,
+        #     416,
+        #     445,
+        #     465,
+        #     483,
+        #     505,
+        #     554,
+        #     572,
+        #     587,
+        #     601,
+        #     620,
+        #     648,
+        #     702,
+        #     764,
+        #     771,
+        #     792,
+        #     797,
+        #     800,
+        #     807,
+        #     860,
+        #     892,
+        #     902,
+        #     904,
+        #     921,
+        #     1033,
+        #     1080,
+        #     1121,
+        #     1140,
+        #     1148,
+        #     1161,
+        #     1164,
+        #     1219,
+        #     1224,
+        #     1271,
+        #     1324,
+        #     1356,
+        #     1391,
+        #     1463,
+        #     1483,
+        #     1497,
+        #     1528,
+        #     1531,
+        #     1539,
+        #     1672,
+        #     1693,
+        #     1704,
+        #     1874,
+        #     1876,
+        #     1900,
+        #     1914,
+        #     2039,
+        #     2049,
+        #     2096,
+        #     2100,
+        #     2109,
+        #     2169,
+        #     2172,
+        #     2183,
+        #     2208,
+        #     2239,
+        #     2243,
+        #     2260,
+        #     2269,
+        #     2317,
+        #     2362,
+        #     2388,
+        #     2470,
+        #     2472,
+        #     2488,
+        #     2527,
+        #     2556,
+        #     2602,
+        #     2608,
+        #     2613,
+        #     2677,
+        #     2680,
+        #     2685,
+        #     2727,
+        #     2729,
+        #     2802,
+        #     2811,
+        #     2828,
+        #     2877,
+        #     2881,
+        #     2932,
+        #     2934,
+        #     2993,
+        #     2999,
+        #     3044,
+        #     3066,
+        #     3068,
+        #     3111,
+        #     3121,
+        #     3153,
+        #     3275,
+        #     3298,
+        #     3324,
+        #     3369,
+        #     3492,
+        #     3543,
+        #     3554,
+        #     3557,
+        #     3561,
+        #     3684,
+        #     3689,
+        #     3777,
+        #     3793,
+        #     3801,
+        #     3815,
+        #     3839,
+        #     3886,
+        #     3997,
+        #     4110,
+        #     4137,
+        #     4171,
+        #     4227,
+        #     4285,
+        #     4332,
+        #     4406,
+        #     4460,
+        #     4462,
+        #     4497,
+        #     4501,
+        #     4552,
+        #     4577,
+        #     4649,
+        #     4650,
+        #     4667,
+        #     4732,
+        #     4794,
+        #     4888,
+        #     4892,
+        #     4895,
+        #     4912,
+        #     4918,
+        #     4998,
+        #     5006,
+        #     5075,
+        #     5077,
+        #     5148,
+        #     5169,
+        #     5203,
+        #     5232,
+        #     5243,
+        #     5287,
+        #     5316,
+        #     5357,
+        #     5366,
+        #     5395,
+        #     5397,
+        #     5457,
+        #     5472,
+        #     5479,
+        #     5496,
+        #     5532,
+        #     5568,
+        #     5580,
+        #     5659,
+        #     5692,
+        #     5706,
+        #     5737,
+        #     5754,
+        #     5805,
+        #     5838,
+        #     5847,
+        #     5890,
+        #     5909,
+        #     5957,
+        #     5983,
+        #     6015,
+        #     6039,
+        #     6047,
+        #     6123,
+        #     6224,
+        #     6263,
+        #     6266,
+        #     6281,
+        #     6291,
+        #     6482,
+        #     6491,
+        #     6502,
+        #     6516,
+        #     6566,
+        #     6567,
+        #     6583,
+        #     6619,
+        #     6629,
+        #     6646,
+        #     6680,
+        #     6722,
+        #     6730,
+        #     6741,
+        #     6788,
+        # ]
+        # tgt_subjects = [str(subject).zfill(4) for subject in subjects]
+        # # Get union of self.subject_ids and tgt_subjects
+        # subjects = list(set(self.subject_ids) & set(tgt_subjects))
+        # return subjects
         return self.subject_ids[int(0.8 * len(self.subject_ids)) :]
 
     @functools.cached_property
@@ -194,6 +402,7 @@ class Hdf5Dataset(SKDataset):
             subject_generator (SubjectGenerator): Generator that yields a tuple of subject id and subject data.
                     subject data may contain only signals, since labels are not used.
             samples_per_subject (int): Samples per subject.
+
         Yields:
             Iterator[SampleGenerator]: Iterator of frames and labels.
 
@@ -228,3 +437,11 @@ class Hdf5Dataset(SKDataset):
                 # END IF
             # END WHILE
         # END FOR
+
+    def download(self, num_workers: int | None = None, force: bool = False):
+        """Download dataset
+
+        Args:
+            num_workers (int | None, optional): # parallel workers. Defaults to None.
+            force (bool, optional): Force redownload. Defaults to False.
+        """

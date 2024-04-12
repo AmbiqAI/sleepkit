@@ -77,7 +77,7 @@ def create_predictions_frame(
     y_pred: npt.NDArray | None = None,
     class_names: list[str] | None = None,
     record_ids: list[str] | None = None,
-):
+) -> pd.DataFrame:
     """Create predictions matrix.
 
     Args:
@@ -132,7 +132,7 @@ def create_predictions_frame(
     return predictions_frame
 
 
-def read_predictions(file: str):
+def read_predictions(file: str) -> dict[str, any]:
     """Read predictions matrix.
 
     Args:
@@ -167,13 +167,16 @@ def is_multiclass(labels: npt.NDArray) -> bool:
     return labels.squeeze().ndim == 2 and any(labels.sum(axis=1) != 1)
 
 
-def matches_spec(o, spec, ignore_batch_dim: bool = False):
+SpecType = list[npt.ArrayLike] | tuple[npt.ArrayLike] | dict[str, npt.ArrayLike] | npt.ArrayLike
+
+
+def matches_spec(o: SpecType, spec: SpecType, ignore_batch_dim: bool = False) -> bool:
     """Test whether data object matches the desired spec.
 
     Args:
-        o: Data object.
-        spec: Metadata for describing the the data object.
-        ignore_batch_dim: Ignore first dimension when checking shapes.
+        o (SpecType): Data object.
+        spec (SpecType): Metadata for describing the the data object.
+        ignore_batch_dim (bool, optional): Ignore first dimension when checking shapes. Defaults to False.
 
     Returns:
         bool: If matches

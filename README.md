@@ -14,14 +14,14 @@
 
 ---
 
-SleepKit is an AI Development Kit (ADK) that enables developers to easily build and deploy real-time __sleep__ monitoring models on Ambiq's family of ultra-low power SoCs. SleepKit explores a number of sleep related tasks including sleep staging, sleep apnea detection, and sleep arousal detection. The kit includes a variety of datasets, efficient model architectures, and a number of pre-trained models. The objective of the models is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices. Furthermore, the included models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand. The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
+SleepKit is an AI Development Kit (ADK) that enables developers to easily build and deploy real-time __sleep-monitoring__ models on Ambiq's family of ultra-low power SoCs. SleepKit explores a number of sleep related tasks including sleep staging, and sleep apnea detection. The kit includes a variety of datasets, efficient model architectures, and a number of pre-trained models. The objective of the models is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices. Furthermore, the included models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand. The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
 
 
 **Key Features:**
 
 * **Real-time**: Inference is performed in real-time on battery-powered, edge devices.
 * **Efficient**: Leverage modern AI techniques coupled with Ambiq's ultra-low power SoCs
-* **Generalizable**: Multi-modal, multi-task, multi-dataset
+* **Extensible**: Easily add new tasks, models, and datasets to the framework.
 * **Accurate**: Achieve SoTA results with stringent resource constraints
 
 ## <span class="sk-h2-span">Requirements</span>
@@ -49,61 +49,54 @@ poetry install
 
 ## <span class="sk-h2-span">Usage</span>
 
-__SleepKit__ can be used as either a CLI-based app or as a python package to perform advanced experimentation. In both forms, SleepKit exposes a number of modes and tasks discussed below. Refer to the [Overview Guide](https://ambiqai.github.io/sleepkit/overview) to learn more about available options and configurations.
+__SleepKit__ can be used as either a CLI-based app or as a python package to perform advanced experimentation. In both forms, SleepKit exposes a number of modes and tasks discussed below. Refer to the [Overview Guide](https://ambiqai.github.io/sleepkit/quickstart) to learn more about available options and configurations.
 
 ---
 
 ## <span class="sk-h2-span">Modes</span>
 
-* `download`: Download datasets
-* `feature`: Extract features from dataset(s)
-* `train`: Train a model for specified task and dataset(s)
-* `evaluate`: Evaluate a model for specified task and dataset(s)
-* `export`: Export a trained model to TF Lite and TFLM
-* `demo`: Run task-level demo on PC or EVB
+__SleepKit__ provides a number of **modes** that can be invoked for a given task. These modes can be accessed via the CLI or directly from the `task` within the Python package.
+
+- **Download**: Download specified datasets
+- **Feature**: Extract features from dataset(s)
+- **Train**: Train a model for specified task and datasets
+- **Evaluate**: Evaluate a model for specified task and datasets
+- **Export**: Export a trained model to TF Lite and TFLM
+- **Demo**: Run task-level demo on PC or EVB
 
 ---
 
 ## <span class="sk-h2-span">Tasks</span>
 
-* `detect`: Detect sustained sleep/inactivity bouts
-* `stage`: Perform advanced 2, 3, 4, or 5 stage sleep assessment
-* `apnea`: Detect hypopnea/apnea events
-* `arousal`: Detect sleep arousal events
+__SleepKit__ includes a number of built-in **tasks**. Each task provides reference routines for training, evaluating, and exporting the model. The routines can be customized by providing a configuration file or by setting the parameters directly in the code. Additional tasks can be easily added to the __SleepKit__ framework by creating a new task class and registering it to the __task factory__.
+
+- **Detect**: Detect sustained sleep/inactivity bouts
+- **Stage**: Perform advanced 2, 3, 4, or 5 stage sleep assessment
+- **Apnea**: Detect hypopnea/apnea events
 
 ---
 
-## <span class="sk-h2-span">Architecture</span>
+## <span class="sk-h2-span">Model Factory</span>
 
-SleepKit leverages modern architectural design strategies to achieve high accuracy while maintaining a small memory footprint and low power consumption. Refer to specific task guides for additional details on the full model design.
-
-* Seperable (depthwise + pointwise) Convolutions
-* Inverted Residual Bottlenecks
-* Squeeze & Excitation Blocks
-* Over-Parameterized Convolutional Branches
-* Dilated Convolutions
+__SleepKit__ provides a __model factory__ that allows you to easily create and train customized models. The model factory includes a number of modern networks well suited for efficient, real-time edge applications. Each model architecture exposes a number of high-level parameters that can be used to customize the network for a given application. These parameters can be set as part of the configuration accessible via the CLI and Python package.
 
 ---
 
-## <span class="sk-h2-span">Datasets</span>
 
-SleepKit uses several open-source datasets for training each of the tasks. In general, we use commercial-use friendly datasets that are publicly available. Check out the [Datasets Guide](https://ambiqai.github.io/sleepkit/datasets) to learn more about the datasets used along with their corresponding licenses and limitations.
+## <span class="sk-h2-span">Dataset Factory</span>
+
+__SleepKit__ exposes several open-source datasets for training each of the SleepKit tasks via a __dataset factory__. For certain tasks, we also provide synthetic data provided by [PhysioKit](https://ambiqai.github.io/physiokit) to help improve model generalization. Each dataset has a corresponding Python class to aid in downloading and generating data for the given task. Additional datasets can be easily added to the SleepKit framework by creating a new dataset class and registering it to the dataset factory.
+
+- **MESA**: A large-scale polysomnography dataset with 6,814 subjects collected from 6 field centers.
+
+- **CMIDSS**: A dataset of 300 subjects with over 500 multi-day recordings of wrist-worn accelerometer data annotated with two event types: onset, the beginning of sleep, and wakeup, the end of sleep.
+
+- **YSYW**: A dataset of 1,983 polysomnography recordings provided by the Massachusetts General Hospital’s (MGH) Sleep Lab.
+
+- **STAGES**: A dataset from the Stanford Technology Analytics and Genomics in Sleep (STAGES) study involving 20 data collection sites from six centers.
 
 ---
 
 ## <span class="sk-h2-span">Model Zoo</span>
 
-A number of pre-trained models are available for each task. These models are trained on a variety of datasets and are optimized for deployment on Ambiq's ultra-low power SoCs. Check out the [Model Zoo](https://ambiqai.github.io/sleepkit/results) to learn more about the available models and their corresponding performance metrics.
-
----
-
-## <span class="sk-h2-span">References</span>
-
-* [U-Sleep: Resilient High-Frequency Sleep Staging](https://doi.org/10.1038/s41746-021-00440-5)
-* [U-Time: A Fully Convolutional Network for Time Series Segmentation Applied to Sleep Staging](https://doi.org/10.48550/arXiv.1910.11162)
-* [DeepSleepNet: a Model for Automatic Sleep Stage Scoring based on Raw Single-Channel EEG](https://doi.org/10.48550/arXiv.1703.04046)
-* [AI-Driven sleep staging from actigraphy and heart rate](https://doi.org/10.1371/journal.pone.0285703)
-* [TimesNet: Temporal 2D-Variation Modeling for General Time Series Analysis](https://doi.org/10.48550/arXiv.2210.02186)
-* [The Promise of Sleep: A Multi-Sensor Approach for Accurate Sleep Stage Detection Using the Oura Ring](https://doi.org/10.3390/s21134302)
-* [Interrater reliability of sleep stage scoring: a meta-analysis](https://doi.org/10.5664/jcsm.9538)
-* [Development of generalizable automatic sleep staging using heart rate and movement based on large databases](https://doi.org/10.1007/s13534-023-00288-6)
+A number of pre-trained models are available for each task. These models are trained on a variety of datasets and are optimized for deployment on Ambiq's ultra-low power SoCs. In addition to providing links to download the models, __SleepKit__ provides the corresponding configuration files and performance metrics. The configuration files allow you to easily retrain the models or use them as a starting point for a custom model. Furthermore, the performance metrics provide insights into the model's accuracy, precision, recall, and F1 score. For a number of the models, we provide experimental and ablation studies to showcase the impact of various design choices. Check out the [Model Zoo](https://ambiqai.github.io/sleepkit/zoo) to learn more about the available models and their corresponding performance metrics.

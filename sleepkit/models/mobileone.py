@@ -50,19 +50,14 @@ def mobileone_block(
     num_conv_branches: int = 1,
     name: str | None = None,
 ) -> KerasLayer:
-    """MBOne block w/ expansion and SE
+    """MBConv block w/ expansion and SE
 
     Args:
-        output_filters (int): Output filter size
+        output_filters (int): # output filter channels
         kernel_size (int | tuple[int, int], optional): Kernel size. Defaults to 3.
         strides (int | tuple[int, int], optional): Stride length. Defaults to 1.
-        padding (int | tuple[int, int], optional): Padding size. Defaults to 0.
-        groups (int, optional): # groups. Defaults to 1.
-        dilation (int, optional): Dilation rate. Defaults to 1.
-        inference_mode (bool, optional): Inference mode. Defaults to False.
-        se_ratio (int, optional): Squeeze-Excite ratio. Defaults to 0.
-        num_conv_branches (int, optional): # conv branches. Defaults to 1.
-        name (str | None, optional): Layer name. Defaults to None.
+        se_ratio (float, optional): SE ratio. Defaults to 8.
+        name (str|None, optional): Block name. Defaults to None.
 
     Returns:
         KerasLayer: Functional layer
@@ -315,3 +310,21 @@ def MobileOneU0(x, num_classes):
         num_classes=num_classes,
         inference_mode=False,
     )
+
+
+def mobileone_from_object(
+    x: tf.Tensor,
+    params: dict,
+    num_classes: int,
+) -> keras.Model:
+    """Create model from object
+
+    Args:
+        x (tf.Tensor): Input tensor
+        params (dict): Model parameters.
+        num_classes (int, optional): # classes.
+
+    Returns:
+        keras.Model: Model
+    """
+    return MobileOne(x=x, params=MobileOneParams(**params), num_classes=num_classes)

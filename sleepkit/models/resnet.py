@@ -122,16 +122,23 @@ def ResNet(
     Returns:
         keras.Model: Model
     """
+
+    requires_reshape = len(x.shape) == 3
+    if requires_reshape:
+        y = keras.layers.Reshape((1,) + x.shape[1:])(x)
+    else:
+        y = x
+    # END IF
+
     if params.input_filters:
         y = conv2d(
             params.input_filters,
             kernel_size=params.input_kernel_size,
             strides=params.input_strides,
-        )(x)
+        )(y)
         y = batch_norm()(y)
         y = relu6()(y)
-    else:
-        y = x
+    # END IF
 
     for stage, block in enumerate(params.blocks):
         for d in range(block.depth):
@@ -150,3 +157,21 @@ def ResNet(
 
     model = keras.Model(x, y, name="model")
     return model
+
+
+def resnet_from_object(
+    x: tf.Tensor,
+    params: dict,
+    num_classes: int,
+) -> keras.Model:
+    """Create model from object
+
+    Args:
+        x (tf.Tensor): Input tensor
+        params (dict): Model parameters.
+        num_classes (int, optional): # classes.
+
+    Returns:
+        keras.Model: Model
+    """
+    return ResNet(x=x, params=ResNetParams(**params), num_classes=num_classes)

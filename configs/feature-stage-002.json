@@ -1,9 +1,0 @@
-{
-    "ds_path": "./datasets",
-    "feature_set": "fs002",
-    "feature_params": {},
-    "save_path": "./datasets/processed/fs002",
-    "datasets": ["ysyw", "mesa"],
-    "sample_rate": 200,
-    "frame_size": 6000
-}

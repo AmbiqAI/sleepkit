@@ -1,19 +1,23 @@
 # Datasets
 
-See [Datasets](../datasets.md) for information about available datasets.
+See [Datasets](../datasets/index.md) for information about available datasets.
 
-::: sleepkit.datasets.dataset
+::: sleepkit.datasets.factory
 
 ::: sleepkit.datasets.defines
 
 ::: sleepkit.datasets.download
 
-::: sleepkit.datasets.hdf5
-
 ::: sleepkit.datasets.mesa
 
 ::: sleepkit.datasets.stages
 
-::: sleepkit.datasets.utils
+::: sleepkit.datasets.cmidss
 
 ::: sleepkit.datasets.ysyw
+
+::: sleepkit.datasets.hdf5
+
+::: sleepkit.datasets.utils
+
+::: sleepkit.datasets.dataset

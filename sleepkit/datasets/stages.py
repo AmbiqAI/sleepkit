@@ -5,7 +5,6 @@ import os
 import random
 from enum import IntEnum
 from pathlib import Path
-from typing import Callable
 from xml.dom.minidom import Element as XmlElement
 from xml.dom.minidom import Node as XmlNode
 from xml.dom.minidom import parse as xml_parse
@@ -16,7 +15,10 @@ import pandas as pd
 import physiokit as pk
 import pyedflib
 
+from ..tasks import SleepStage
+from .dataset import SKDataset
 from .defines import SampleGenerator, SubjectGenerator
+from .nsrr import download_nsrr
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ class StagesSleepStage(IntEnum):
     UNSCORED = 9
 
 
-class StagesDataset:
+class StagesDataset(SKDataset):
     """STAGES dataset"""
 
     def __init__(
@@ -44,12 +46,11 @@ class StagesDataset:
         ds_path: Path,
         frame_size: int = 30 * 128,
         target_rate: int = 128,
-        is_commercial: bool = True,
     ) -> None:
+        super().__init__(ds_path=ds_path, frame_size=frame_size)
         self.frame_size = frame_size
         self.target_rate = target_rate
         self.ds_path = ds_path / "stages"
-        self.sleep_mapping = lambda v: {0: 0, 1: 1, 2: 2, 3: 3, 4: 3, 5: 5, 6: 0, 9: 0}.get(v, 0)
 
     @property
     def subject_ids(self) -> list[str]:
@@ -108,10 +109,6 @@ class StagesDataset:
             "DHR",
         ]
 
-    def set_sleep_mapping(self, mapping: Callable[[int], int]):
-        """Set sleep mapping"""
-        self.sleep_mapping = mapping
-
     def uniform_subject_generator(
         self,
         subject_ids: list[str] | None = None,
@@ -142,13 +139,15 @@ class StagesDataset:
                 break
         # END WHILE
 
-    def signal_generator(
+    def signal_generator2(
         self, subject_generator: SubjectGenerator, signals: list[str], samples_per_subject: int = 1
     ) -> SampleGenerator:
         """Randomly generate frames of sleep data for given subjects.
+
         Args:
             subject_generator (SubjectGenerator): Generator that yields subject ids.
             samples_per_subject (int): Samples per subject.
+
         Returns:
             SampleGenerator: Generator of input data of shape (frame_size, num_signals)
         """
@@ -214,11 +213,13 @@ class StagesDataset:
         self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
     ) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
+
         Args:
             subject_id (str): Subject ID
             signal_label (str): Signal label
             start (int): Start location @ target rate
             data_size (int): Data length @ target rate
+
         Returns:
             npt.NDArray[np.float32]: Signal
         """
@@ -242,8 +243,10 @@ class StagesDataset:
 
     def extract_sleep_apneas(self, subject_id: str) -> list[tuple[int, float, float]]:
         """Extract sleep apnea events for subject
+
         Args:
             subject_id (str): Subject ID
+
         Returns:
             list[tuple[int, float, float]]: Apnea events (apnea, start_time, duration)
         """
@@ -293,8 +296,10 @@ class StagesDataset:
 
     def extract_sleep_stages(self, subject_id: str) -> list[tuple[int, float, float]]:
         """Extract sleep stages for subject
+
         Args:
             subject_id (str): Subject ID
+
         Returns:
             list[tuple[int, float, float]]: Sleep stages (stage, start_time, duration)
         """
@@ -325,6 +330,17 @@ class StagesDataset:
                 )
             )
 
+        stage_label_map = {
+            0: SleepStage.wake,
+            1: SleepStage.stage1,
+            2: SleepStage.stage2,
+            3: SleepStage.stage3,
+            4: SleepStage.stage4,
+            5: SleepStage.rem,
+            6: SleepStage.noise,
+            9: SleepStage.noise,
+        }
+
         xml_path = self._get_subject_xml_path(subject_id=subject_id)
         doc = xml_parse(xml_path)
         events = doc.getElementsByTagName("ScoredEvent")
@@ -334,7 +350,7 @@ class StagesDataset:
             stage_label = get_first_element_by_tag_name(event, "EventConcept").childNodes[0].nodeValue
             start_time = float(get_first_element_by_tag_name(event, "Start").childNodes[0].nodeValue)
             duration = float(get_first_element_by_tag_name(event, "Duration").childNodes[0].nodeValue)
-            sleep_stage = self.sleep_mapping(int(stage_label.split("|")[-1]))
+            sleep_stage = stage_label_map.get(int(stage_label.split("|")[-1]), 0)
             sleep_stages.append((sleep_stage, start_time, duration))
         return sleep_stages
 
@@ -359,9 +375,11 @@ class StagesDataset:
         self, sleep_stages: list[tuple[int, float, float]], data_size: int
     ) -> npt.NDArray[np.int32]:
         """Convert sleep stages to mask array
+
         Args:
             sleep_stages (list[tuple[int, float, float]]): Sleep stages
             data_size (int): Data size
+
         Returns:
             npt.NDArray[np.int32]: Sleep mask
         """
@@ -377,9 +395,11 @@ class StagesDataset:
         self, apnea_events: list[tuple[int, float, float]], data_size: int
     ) -> npt.NDArray[np.int32]:
         """Convert apnea events to mask array
+
         Args:
             apnea_events (list[tuple[int, float, float]]): Apnea events
             data_size (int): Data size
+
         Returns:
             npt.NDArray[np.int32]: Apnea mask
         """
@@ -390,3 +410,21 @@ class StagesDataset:
             apnea_mask[left_idx : right_idx + 1] = apnea_event
         # END FOR
         return apnea_mask
+
+    def download(self, num_workers: int | None = None, force: bool = False):
+        """Download STAGES dataset from the NSRR website.
+
+        Args:
+            num_workers (int | None, optional): # parallel workers. Defaults to None.
+            force (bool, optional): Force redownload. Defaults to False.
+        """
+
+        download_nsrr(
+            db_slug=self.ds_path.stem,
+            # subfolder will be URL-encoded
+            subfolder="original/STAGES PSGs",
+            pattern="*",
+            data_dir=self.ds_path.parent,
+            checksum_type="size",
+            num_workers=num_workers,
+        )

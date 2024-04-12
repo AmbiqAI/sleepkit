@@ -8,7 +8,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from enum import IntEnum
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Callable
 
 import boto3
 import h5py
@@ -20,6 +19,8 @@ from botocore import UNSIGNED
 from botocore.client import Config
 from tqdm import tqdm
 
+from ..tasks import SleepStage
+from .dataset import SKDataset
 from .defines import SampleGenerator, SubjectGenerator
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class YsywSleepStage(IntEnum):
     wake = 5
 
 
-class YsywDataset:
+class YsywDataset(SKDataset):
     """YSYW dataset"""
 
     def __init__(
@@ -45,17 +46,10 @@ class YsywDataset:
         frame_size: int = 30 * 128,
         target_rate: int = 128,
     ) -> None:
+        super().__init__(ds_path=ds_path, frame_size=frame_size)
         self.frame_size = frame_size
         self.target_rate = target_rate
         self.ds_path = ds_path / "ysyw"
-        self.sleep_mapping = lambda v: {
-            YsywSleepStage.wake: 0,
-            YsywSleepStage.nonrem1: 1,
-            YsywSleepStage.nonrem2: 2,
-            YsywSleepStage.nonrem3: 3,
-            YsywSleepStage.rem: 5,
-            YsywSleepStage.undefined: 0,
-        }.get(v, 0)
 
     @property
     def sampling_rate(self) -> int:
@@ -109,10 +103,6 @@ class YsywDataset:
             "ECG",
         ]
 
-    def set_sleep_mapping(self, mapping: Callable[[int], int]):
-        """Set sleep mapping"""
-        self.sleep_mapping = mapping
-
     def uniform_subject_generator(
         self,
         subject_ids: list[str] | None = None,
@@ -143,13 +133,15 @@ class YsywDataset:
                 break
         # END WHILE
 
-    def signal_generator(
+    def signal_generator2(
         self, subject_generator: SubjectGenerator, signals: list[str], samples_per_subject: int = 1
     ) -> SampleGenerator:
         """Randomly generate frames of sleep data for given subjects.
+
         Args:
             subject_generator (SubjectGenerator): Generator that yields subject ids.
             samples_per_subject (int): Samples per subject.
+
         Returns:
             SampleGenerator: Generator of input data of shape (frame_size, num_signals)
         """
@@ -180,11 +172,13 @@ class YsywDataset:
         self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
     ) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
+
         Args:
             subject_id (str): Subject ID
             signal_label (str): Signal label
             start (int): Start location @ target rate
             data_size (int): Data length @ target rate
+
         Returns:
             npt.NDArray[np.float32]: Signal
         """
@@ -207,8 +201,10 @@ class YsywDataset:
         self, subject_id: str, start: int = 0, data_size: int | None = None
     ) -> npt.NDArray[np.int32]:
         """Load sleep stages for subject
+
         Args:
             subject_id (str): Subject ID
+
         Returns:
             npt.NDArray[np.int32]: Sleep stages
         """
@@ -221,7 +217,17 @@ class YsywDataset:
             sleep_stages = fp["/sleep_stages"][:, sig_start : sig_start + sig_duration].astype(np.int32)
         # END WITH
         sleep_stages = np.argmax(sleep_stages, axis=0)
-        sleep_stages = np.vectorize(self.sleep_mapping)(sleep_stages)
+
+        stage_label_map = lambda v: {
+            YsywSleepStage.wake: SleepStage.wake,
+            YsywSleepStage.nonrem1: SleepStage.stage1,
+            YsywSleepStage.nonrem2: SleepStage.stage2,
+            YsywSleepStage.nonrem3: SleepStage.stage3,
+            YsywSleepStage.rem: SleepStage.rem,
+            YsywSleepStage.undefined: SleepStage.wake,
+        }.get(v, 0)
+
+        sleep_stages = np.vectorize(stage_label_map)(sleep_stages)
         if sample_rate != self.target_rate:
             sleep_stages = pk.signal.filter.resample_categorical(sleep_stages, sample_rate, self.target_rate)
 
@@ -231,7 +237,7 @@ class YsywDataset:
         return sleep_stages[:data_size]
 
     def download(self, num_workers: int | None = None, force: bool = False):
-        """Download dataset
+        """Download dataset from S3
 
         Args:
             num_workers (int | None, optional): # parallel workers. Defaults to None.

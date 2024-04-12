@@ -17,6 +17,7 @@ def array_dump(
     is_header: bool = False,
 ):
     """Generate C array of values from flattened numpy array.
+
     Args:
         data (npt.NDArray): Data array
         dst_path (PathLike): C file destination path
@@ -65,10 +66,11 @@ def xxd_c_dump(
 ):
     """Generate C like char array of hex values from binary source. Equivalent to `xxd -i src_path > dst_path`
         but with added features to provide # columns and variable name.
+
     Args:
         src_path (PathLike): Binary file source path
         dst_path (PathLike): C file destination path
-        var_name (str, optional): C variable name. Defaults to 'tflm_model'.
+        var_name (str, optional): C variable name. Defaults to 'g_model'.
         chunk_len (int, optional): # of elements per row. Defaults to 12.
         is_header (bool): Write as header or source C file. Defaults to source.
     """
@@ -90,36 +92,50 @@ def xxd_c_dump(
     # END WITH
 
 
-def convert_tflite(
+def create_tflite_converter(
     model: keras.Model,
     quantize: bool = False,
     test_x: npt.NDArray | None = None,
-    input_type: tf.DType | None = None,
-    output_type: tf.DType | None = None,
-) -> bytes:
+    input_type: str | None = None,
+    output_type: str | None = None,
+    supported_ops: list | None = None,
+    use_concrete: bool = False,
+    feat_shape: tuple[int, int] = (1, 128),
+) -> tf.lite.TFLiteConverter:
     """Convert TF model into TFLite model content
 
     Args:
         model (keras.Model): TF model
         quantize (bool, optional): Enable PTQ. Defaults to False.
         test_x (npt.NDArray | None, optional): Enables full integer PTQ. Defaults to None.
-        input_type (tf.DType | None): Input type data format. Defaults to None.
-        output_type (tf.DType | None): Output type data format. Defaults to None.
+        input_type (str | None): Input type data format. Defaults to None.
+        output_type (str | None): Output type data format. Defaults to None.
+        supported_ops (list | None): Supported ops. Defaults to None.
+        use_concrete (bool): Use concrete function. Defaults to False.
 
     Returns:
         bytes: TFLite content
 
     """
 
-    converter = tf.lite.TFLiteConverter.from_keras_model(model=model)
+    # Following is a workaround for bug (https://github.com/tensorflow/tflite-micro/issues/2319)
+    # Default TFLiteConverter generates equivalent graph w/ SpaceToBatchND operations but losses dilation_rate factor.
+    if use_concrete:
+        input_spec = tf.TensorSpec(shape=(1,) + feat_shape, dtype=tf.float32)
+        model_func = tf.function(func=model)
+        model_cf = model_func.get_concrete_function(input_spec)
+        converter = tf.lite.TFLiteConverter.from_concrete_functions([model_cf], model)
+    else:
+        converter = tf.lite.TFLiteConverter.from_keras_model(model=model)
 
     # Optionally quantize model
     if quantize:
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
+
         if test_x is not None:
-            converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-            converter.inference_input_type = input_type
-            converter.inference_output_type = output_type
+            converter.target_spec.supported_ops = supported_ops or [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            converter.inference_input_type = tf.dtypes.as_dtype(input_type) if input_type else None
+            converter.inference_output_type = tf.dtypes.as_dtype(output_type) if output_type else None
 
             def rep_dataset():
                 for i in range(test_x.shape[0]):
@@ -127,47 +143,31 @@ def convert_tflite(
 
             converter.representative_dataset = rep_dataset
         # END IF
+    # END IF
+
     # Convert model
-    return converter.convert()
+    return converter
 
 
 def debug_quant_tflite(
-    model: keras.Model,
-    test_x: npt.NDArray | None = None,
-    input_type: tf.DType | None = None,
-    output_type: tf.DType | None = None,
+    converter: tf.lite.TFLiteConverter,
 ) -> tuple[tf.lite.experimental.QuantizationDebugger, pd.DataFrame]:
     """Debug quantized TFLite model content
 
     Args:
-        model (keras.Model): TF model
-        quantize (bool, optional): Enable PTQ. Defaults to False.
-        test_x (npt.NDArray | None, optional): Enables full integer PTQ. Defaults to None.
-        input_type (tf.DType | None): Input type data format. Defaults to None.
-        output_type (tf.DType | None): Output type data format. Defaults to None.
+        converter (tf.lite.TFLiteConverter): TFLite converter
 
     Returns:
         tuple[tf.lite.experimental.QuantizationDebugger, pd.DataFrame]: TFlite debugger, Layer statistics
 
     """
-    converter = tf.lite.TFLiteConverter.from_keras_model(model=model)
-
-    def rep_dataset():
-        for i in range(test_x.shape[0]):
-            yield [test_x[i : i + 1]]
-
-    # Quantize model
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-    converter.inference_input_type = input_type
-    converter.inference_output_type = output_type
-    converter.representative_dataset = rep_dataset
 
     # Debug model
-    debugger = tf.lite.experimental.QuantizationDebugger(converter=converter, debug_dataset=rep_dataset)
+    debugger = tf.lite.experimental.QuantizationDebugger(
+        converter=converter, debug_dataset=converter.representative_dataset
+    )
     debugger.run()
 
-    # Capture layer statistics
     with io.StringIO() as f:
         debugger.layer_statistics_dump(f)
         f.seek(0)
@@ -184,7 +184,7 @@ def predict_tflite(
     test_x: npt.NDArray,
     input_name: str | None = None,
     output_name: str | None = None,
-) -> tuple[npt.NDArray, npt.NDArray]:
+) -> npt.NDArray:
     """Perform prediction using tflite model content
 
     Args:
@@ -194,7 +194,7 @@ def predict_tflite(
         output_name (str | None, optional): Output layer name. Defaults to None.
 
     Returns:
-        tuple[npt.NDArray, npt.NDArray]: Input, Output
+        npt.NDArray: Model outputs
     """
     # Prepare the test data
     inputs = test_x.copy()
@@ -216,7 +216,7 @@ def predict_tflite(
     output_scale: list[float] = output_details["quantization_parameters"]["scales"]
     output_zero_point: list[int] = output_details["quantization_parameters"]["zero_points"]
 
-    inputs = inputs.reshape([-1] + input_details["shape_signature"].tolist())
+    inputs = inputs.reshape([-1] + input_details["shape_signature"].tolist()[1:])
     if len(input_scale) and len(input_zero_point):
         inputs = inputs / input_scale[0] + input_zero_point[0]
         inputs = inputs.astype(input_details["dtype"])
@@ -230,7 +230,7 @@ def predict_tflite(
         outputs = outputs.astype(np.float32)
         outputs = (outputs - output_zero_point[0]) * output_scale[0]
 
-    return inputs, outputs
+    return outputs
 
 
 def evaluate_tflite(
@@ -250,7 +250,7 @@ def evaluate_tflite(
     Returns:
         npt.NDArray: Loss values
     """
-    _, y_pred = predict_tflite(model_content, test_x=test_x)
+    y_pred = predict_tflite(model_content, test_x=test_x)
     loss_function = keras.losses.get(model.loss)
     loss = loss_function(y_true, y_pred).numpy()
     return loss

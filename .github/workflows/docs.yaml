@@ -26,14 +26,14 @@ jobs:
 
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
       - name: Install Poetry
         run: pipx install poetry
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           cache: 'poetry'

@@ -18,8 +18,10 @@ class EfficientNetParams(BaseModel):
     input_strides: int | tuple[int, int] = Field(default=2, description="Input stride")
     output_filters: int = Field(default=0, description="Output filters")
     include_top: bool = Field(default=True, description="Include top")
-    dropout: float = Field(default=0.2, description="Dropout rate")
-    drop_connect_rate: float = Field(default=0.2, description="Drop connect rate")
+    dropout: float = Field(default=0, description="Dropout rate")
+    drop_connect_rate: float = Field(default=0, description="Drop connect rate")
+    use_logits: bool = Field(default=True, description="Use logits")
+    activation: str = Field(default="relu6", description="Activation function")
     model_name: str = Field(default="EfficientNetV2", description="Model name")
 
 
@@ -75,14 +77,16 @@ def EfficientNetV2(
     Returns:
         keras.Model: Model
     """
+
     # Force input to be 4D (add dummy dimension)
     requires_reshape = len(x.shape) == 3
     if requires_reshape:
         y = keras.layers.Reshape((1,) + x.shape[1:])(x)
     else:
         y = x
-
     # END IF
+
+    # Stem
     if params.input_filters > 0:
         name = "stem"
         filters = make_divisible(params.input_filters, 8)
@@ -91,11 +95,10 @@ def EfficientNetV2(
             kernel_size=params.input_kernel_size,
             strides=params.input_strides,
             name=name,
-        )(x)
+        )(y)
         y = batch_norm(name=name)(y)
         y = relu6(name=name)(y)
-    else:
-        y = x
+    # END IF
 
     y = efficientnet_core(blocks=params.blocks, drop_connect_rate=params.drop_connect_rate)(y)
 
@@ -112,5 +115,25 @@ def EfficientNetV2(
         if 0 < params.dropout < 1:
             y = keras.layers.Dropout(params.dropout)(y)
         y = keras.layers.Dense(num_classes, name=name)(y)
+        if not params.use_logits:
+            y = keras.layers.Softmax()(y)
     model = keras.Model(x, y, name=params.model_name)
     return model
+
+
+def efficientnetv2_from_object(
+    x: tf.Tensor,
+    params: dict,
+    num_classes: int,
+) -> keras.Model:
+    """Create model from object
+
+    Args:
+        x (tf.Tensor): Input tensor
+        params (dict): Model parameters.
+        num_classes (int, optional): # classes.
+
+    Returns:
+        keras.Model: Model
+    """
+    return EfficientNetV2(x=x, params=EfficientNetParams(**params), num_classes=num_classes)

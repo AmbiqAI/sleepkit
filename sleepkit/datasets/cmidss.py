@@ -15,6 +15,7 @@ import pandas as pd
 import physiokit as pk
 from tqdm import tqdm
 
+from .dataset import SKDataset
 from .defines import SampleGenerator, SubjectGenerator
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class CmidssSleepStage(IntEnum):
     sleep = 1
 
 
-class CmidssDataset:
+class CmidssDataset(SKDataset):
     """CMIDSS dataset"""
 
     def __init__(
@@ -36,6 +37,7 @@ class CmidssDataset:
         frame_size: int = 30,
         target_rate: int = 1,
     ) -> None:
+        super().__init__(ds_path, frame_size)
         self.frame_size = frame_size
         self.target_rate = target_rate
         self.ds_path = ds_path / "cmidss"
@@ -103,7 +105,7 @@ class CmidssDataset:
                 break
         # END WHILE
 
-    def signal_generator(
+    def signal_generator2(
         self, subject_generator: SubjectGenerator, signals: list[str], samples_per_subject: int = 1
     ) -> SampleGenerator:
         """Randomly generate frames of data for given subjects.
@@ -171,8 +173,10 @@ class CmidssDataset:
         self, subject_id: str, start: int = 0, data_size: int | None = None
     ) -> npt.NDArray[np.int32]:
         """Load sleep stages for subject
+
         Args:
             subject_id (str): Subject ID
+
         Returns:
             npt.NDArray[np.int32]: Sleep stages
         """
@@ -184,8 +188,7 @@ class CmidssDataset:
             # pylint: disable=no-member
             sleep_stages = fp["/sleep_stages"][sig_start : sig_start + sig_duration].astype(np.int32)
         # END WITH
-        # sleep_stages = np.argmax(sleep_stages, axis=0)
-        sleep_stages = np.vectorize(self.sleep_mapping)(sleep_stages)
+
         if sample_rate != self.target_rate:
             sleep_stages = pk.signal.filter.resample_categorical(sleep_stages, sample_rate, self.target_rate)
 
@@ -194,12 +197,38 @@ class CmidssDataset:
 
         return sleep_stages[:data_size]
 
-    def download_raw_dataset(self, src_path: str, num_workers: int | None = None, force: bool = False):
+    def download(self, num_workers: int | None = None, force: bool = False):
+        """Download dataset
+
+        This will download preprocessed HDF5 files from S3.
+
+        Args:
+            num_workers (int | None, optional): # parallel workers. Defaults to None.
+            force (bool, optional): Force redownload. Defaults to False.
+        """
+        self.download_raw_dataset(num_workers=num_workers, force=force)
+
+    def download_raw_dataset(self, num_workers: int | None = None, force: bool = False):
         """Download raw dataset"""
+
+        # kaggle import will raise OSError if config is not set...
+        import zipfile  # pylint: disable=import-outside-toplevel
+
+        import kaggle  # pylint: disable=import-outside-toplevel
+
         os.makedirs(self.ds_path, exist_ok=True)
 
         # 1. Download source data
-        # NOTE: Skip for now
+        logger.info("Downloading CMIDSS dataset")
+        competiton_name = "child-mind-institute-detect-sleep-states"
+        kaggle.api.competition_download_files(competiton_name, path=self.ds_path, force=force, quiet=False)
+
+        logger.info("Extracting CMIDSS dataset")
+        zp_path = self.ds_path / f"{competiton_name}.zip"
+        with zipfile.ZipFile(zp_path, "r") as zp:
+            zp.extractall(self.ds_path)
+        os.remove(zp_path)
+        logger.info("CMIDSS dataset downloaded and extracted")
 
         # 2. Extract and convert subject data to H5 files
         logger.info("Generating CMIDSS subject data")

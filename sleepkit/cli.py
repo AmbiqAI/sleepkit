@@ -4,7 +4,6 @@ from typing import Type, TypeVar
 from argdantic import ArgField, ArgParser
 from pydantic import BaseModel
 
-from . import apnea, stage
 from .datasets import download_datasets
 from .defines import (
     SKDemoParams,
@@ -12,11 +11,11 @@ from .defines import (
     SKExportParams,
     SKFeatureParams,
     SKMode,
-    SKTask,
     SKTestParams,
     SKTrainParams,
 )
-from .features.factory import generate_feature_set
+from .features import generate_feature_set
+from .tasks import TaskFactory
 from .utils import setup_logger
 
 logger = setup_logger(__name__)
@@ -44,36 +43,32 @@ def parse_content(cls: Type[B], content: str) -> B:
 
 @cli.command(name="run")
 def _run(
-    mode: SKMode = ArgField("-m", description="Mode"),
-    task: SKTask = ArgField("-t", description="Task"),
-    config: str = ArgField("-c", description="File path or JSON content"),
+    mode: SKMode = ArgField("-m", description="Mode", default="train"),
+    task: str = ArgField("-t", description="Task", default=""),
+    config: str = ArgField("-c", description="File path or JSON content", default="{}"),
 ):
     """ "SleepKit CLI"""
 
     # Download datasets
     if mode == SKMode.download:
-        logger.info("#STARTED download")
+        logger.info("#STARTED MODE=download")
         download_datasets(parse_content(SKDownloadParams, config))
-        logger.info("#FINISHED download")
+        logger.info("#FINISHED MODE=download")
         return
 
     # Generate feature set
     if mode == SKMode.feature:
-        logger.info("#STARTED feature")
+        logger.info("#STARTED MODE=feature")
         generate_feature_set(parse_content(SKFeatureParams, config))
-        logger.info("#FINISHED feature")
+        logger.info("#FINISHED MODE=feature")
         return
 
-    # Grab task handler
-    match task:
-        case SKTask.stage | SKTask.detect:
-            task_handler = stage
-        case SKTask.apnea:
-            task_handler = apnea
-        case _:
-            raise NotImplementedError()
-    # END MATCH
-    logger.info(f"#STARTED {mode} for task {task}")
+    if not TaskFactory.has(task):
+        raise ValueError(f"Unknown task {task}")
+
+    logger.info(f"#STARTED MODE={mode} TASK={task}")
+
+    task_handler = TaskFactory.get(task)
 
     match mode:
         case SKMode.train:
@@ -92,7 +87,7 @@ def _run(
             logger.error("Error: Unsupported CLI command")
     # END MATCH
 
-    logger.info(f"#FINISHED {mode} for task {task}")
+    logger.info(f"#FINISHED MODE={mode} TASK={task}")
 
 
 def run():

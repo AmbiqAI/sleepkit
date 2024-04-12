@@ -79,8 +79,21 @@ class SKDataset(abc.ABC):
         Args:
             subject_generator (SubjectGenerator): Subject generator
             samples_per_subject (int): # samples per subject
+            normalize (bool, optional): Normalize data. Defaults to True.
+            epsilon (float, optional): Epsilon for normalization. Defaults to 1e-6.
 
         Returns:
             SampleGenerator: Generator of input data of shape (frame_size, 1)
+        """
+        raise NotImplementedError()
+
+    def download(self, num_workers: int | None = None, force: bool = False):
+        """Download dataset
+
+        This will download preprocessed HDF5 files from S3.
+
+        Args:
+            num_workers (int | None, optional): # parallel workers. Defaults to None.
+            force (bool, optional): Force redownload. Defaults to False.
         """
         raise NotImplementedError()

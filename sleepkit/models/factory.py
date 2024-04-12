@@ -1,72 +1,77 @@
-from typing import Any
+from typing import Callable
 
 import keras
 import tensorflow as tf
 
-from .efficientnet import EfficientNetParams, EfficientNetV2
-from .tcn import Tcn, TcnParams
-from .unet import UNet, UNetParams
-from .unext import UNext, UNextParams
+_models: dict[str, Callable[[tf.Tensor, dict, int], keras.models.Model]] = {}
 
 
-def generate_model(
-    inputs: tf.Tensor,
-    num_classes: int,
-    name: str,
-    params: dict[str, Any],
-) -> keras.Model:
-    """Model factory: Generates a model based on the provided name and parameters
+class ModelFactory:
+    """Model factory enables registering, creating, and listing models. It is a singleton class."""
 
-    Args:
-        inputs (tf.Tensor): Input tensor
-        num_classes (int): Number of classes
-        name (str): Model name
-        params (dict[str, Any]): Model parameters
+    @staticmethod
+    def register(name: str, model: Callable[[tf.Tensor, dict, int], keras.models.Model]) -> None:
+        """Register a model
 
-    Returns:
-        keras.Model: Generated model
-    """
-    if params is None:
-        raise ValueError("Model parameters must be provided")
+        Args:
+            name (str): model name
+            model (Callable[[tf.Tensor, dict, int], keras.models.Model]): model
+        """
+        _models[name] = model
 
-    match name:
-        case "unet":
-            return UNet(x=inputs, params=UNetParams.parse_obj(params), num_classes=num_classes)
+    @staticmethod
+    def unregister(name: str) -> None:
+        """Unregister a model
 
-        case "unext":
-            return UNext(x=inputs, params=UNextParams.parse_obj(params), num_classes=num_classes)
+        Args:
+            name (str): model name
+        """
+        _models.pop(name, None)
 
-        case "efficientnetv2":
-            return EfficientNetV2(x=inputs, params=EfficientNetParams.parse_obj(params), num_classes=num_classes)
+    @staticmethod
+    def create(name: str, params: dict, inputs: tf.Tensor, num_classes: int) -> keras.models.Model:
+        """Create a model
 
-        case "tcn":
-            return Tcn(x=inputs, params=TcnParams.parse_obj(params), num_classes=num_classes)
+        Args:
+            name (str): model name
+            params (dict): model parameters
+            inputs (tf.Tensor): input tensor
+            num_classes (int): number of classes
 
-        case "rnn":
-            y = inputs
-            y = keras.layers.Reshape((1,) + y.shape[1:])(y)
-            y = keras.layers.DepthwiseConv2D(kernel_size=(1, 5), padding="same")(y)
-            y = keras.layers.LayerNormalization(axis=[2])(y)
-            y = keras.layers.Activation("relu6")(y)
+        Returns:
+            keras.models.Model: model
+        """
+        return _models[name](inputs, params, num_classes)
 
-            y = keras.layers.Conv2D(filters=32, kernel_size=(1, 5), padding="same")(y)
-            y = keras.layers.LayerNormalization(axis=[2])(y)
-            y = keras.layers.Activation("relu6")(y)
+    @staticmethod
+    def list() -> list[str]:
+        """List registered models
 
-            y = keras.layers.Reshape(y.shape[2:])(y)
+        Returns:
+            list[str]: model names
+        """
+        return list(_models.keys())
 
-            y = keras.layers.Bidirectional(keras.layers.LSTM(units=48, return_sequences=True))(y)
-            # y = keras.layers.LSTM(units=48, return_sequences=True)(y)
-            y = keras.layers.LayerNormalization(axis=[1])(y)
+    @staticmethod
+    def get(name: str) -> Callable[[tf.Tensor, dict, int], keras.models.Model]:
+        """Get a model
 
-            y = keras.layers.TimeDistributed(keras.layers.Dense(64))(y)
-            y = keras.layers.LayerNormalization(axis=[1])(y)
-            y = keras.layers.Activation("relu6")(y)
+        Args:
+            name (str): model name
 
-            y = keras.layers.TimeDistributed(keras.layers.Dense(num_classes))(y)
-            model = keras.models.Model(inputs, y)
-            return model
+        Returns:
+            Callable[[tf.Tensor, dict, int], keras.models.Model]: model
+        """
+        return _models[name]
 
-        case _:
-            raise NotImplementedError()
-    # END MATCH
+    @staticmethod
+    def has(name: str) -> bool:
+        """Check if a model is registered
+
+        Args:
+            name (str): model name
+
+        Returns:
+            bool: True if the model is registered
+        """
+        return name in _models

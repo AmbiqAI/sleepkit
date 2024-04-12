@@ -1,6 +1,6 @@
 # Sleep Stage Classification
 
-::: sleepkit.stage
+<!-- ::: sleepkit.stage
 
 ::: sleepkit.stage.defines
 
@@ -14,4 +14,4 @@
 
 ::: sleepkit.stage.train
 
-::: sleepkit.stage.utils
+::: sleepkit.stage.utils -->

@@ -1,0 +1,14 @@
+{
+    "job_dir": "./results/fs-w-p-40-10",
+    "ds_path": "./datasets",
+    "datasets": [{
+        "name": "mesa",
+        "param": {}
+    }],
+    "feature_set": "FS-W-P-40",
+    "feature_params": {
+    },
+    "save_path": "./datasets/store/fs-w-p-40-10",
+    "sampling_rate": 64,
+    "frame_size": 640
+}

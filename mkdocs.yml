@@ -1,36 +1,113 @@
 site_name: SleepKit
 site_dir: "site"
+site_url: "https://ambiqai.github.io/sleepkit"
 site_description: SleepKit, perform AI-based sleep monitoring tasks
 repo_name: AmbiqAI/sleepkit
 repo_url: https://github.com/AmbiqAI/sleepkit
 copyright: Copyright &copy; 2023 Ambiq
 
 nav:
-  - SleepKit: index.md
-  - Overview: overview.md
-  - Datasets: datasets.md
-  - Model Factory: models.md
-  - Model Zoo: results.md
+  - Home:
+    - Home: index.md
+    - Quickstart: quickstart.md
+    - Modes:
+      - modes/index.md
+      - Download: modes/download.md
+      - Feature: features/index.md
+      - Train: modes/train.md
+      - Evaluate: modes/evaluate.md
+      - Export: modes/export.md
+      - Demo: modes/demo.md
+    - Tasks:
+      - tasks/index.md
+      - Detect: tasks/detect.md
+      - Stage: tasks/stage.md
+      - Apnea: tasks/apnea.md
+      # - Arousal: tasks/arousal.md
+      - BYOT: tasks/byot.md
+    - Model Zoo:
+      - zoo/index.md
+    - Models:
+      - models/index.md
+    - Datasets:
+      - datasets/index.md
+    - "Feature Store":
+      - features/index.md
+    - Experiments:
+      - experiments/index.md
+    - Guides:
+      - guides/index.md
+
+  - Quickstart:
+    - quickstart.md
+    - Usage:
+      - CLI: usage/cli.md
+      - Python: usage/python.md
+
+  - Modes:
+    - modes/index.md
+    - Download: modes/download.md
+    - Feature: features/index.md
+    - Train: modes/train.md
+    - Evaluate: modes/evaluate.md
+    - Export: modes/export.md
+    - Demo: modes/demo.md
+
   - Tasks:
-    - Detect:
-      - Overview: ./detect/overview.md
-      - Methods: ./detect/methods.md
-      - Results: ./detect/results.md
-      - Demo: ./detect/demo.md
-    - Staging:
-      - Overview: ./stages/overview.md
-      - Methods: ./stages/methods.md
-      - Model: ./stages/architecture.md
-      - Results: ./stages/results.md
-      - Experiments: ./stages/experiments.md
-      - Demo: ./stages/demo.md
-    - Apnea:
-      - Overview: ./apnea/overview.md
-  - API:
-    - SleepKit: ./api/sleepkit.md
-    - Datasets: ./api/datasets.md
-    - Models: ./api/models.md
-    - Stage: ./api/stage.md
+    - tasks/index.md
+    - Detect: tasks/detect.md
+    - Stage: tasks/stage.md
+    - Apnea: tasks/apnea.md
+    # - Arousal: tasks/arousal.md
+    - BYOT: tasks/byot.md
+
+  - Model Zoo:
+    - zoo/index.md
+    - Detect: zoo/detect.md
+    - Stage: zoo/stage.md
+    - Apnea: zoo/apnea.md
+    # - Arousal: zoo/arousal.md
+
+  - Models:
+    - models/index.md
+    - TCN: models/tcn.md
+    - EfficientNetV2: models/efficientnet.md
+    - MobileOne: models/mobileone.md
+    - UNet: models/unet.md
+    - UNeXt: models/unext.md
+    - ResNet: models/resnet.md
+
+  - Datasets:
+    - datasets/index.md
+    - CMIDSS: datasets/cmidss.md
+    - MESA: datasets/mesa.md
+    - YSYW: datasets/ysyw.md
+    - STAGES: datasets/stages.md
+    - Synthetic: datasets/synthetic.md
+    - BYOD: datasets/byod.md
+
+  - "Feature Store":
+    - features/index.md
+    - FS-W-PA-14: features/featset01.md
+    - FS-C-EAR-9: features/featset02.md
+    - FS-W-A-5: features/featset03.md
+    - FS-H-E-10: features/featset04.md
+    - FS-W-P-5: features/featset05.md
+    - BYOFS: features/byofs.md
+
+  - Experiments:
+    - experiments/index.md
+    - "Sleep Staging Ablation": experiments/stage-ablation.md
+
+  - Guides:
+    - guides/index.md
+    - "Train Sleep Detection": guides/train-detect-model.md
+
+  - Reference:
+    - SleepKit: api/sleepkit.md
+    - Datasets: api/datasets.md
+    - Models: api/models.md
+    - Tasks: api/tasks.md
 
 theme:
   name: material
@@ -63,7 +140,24 @@ theme:
         icon: material/brightness-4
         name: Switch to dark theme
   features:
-    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - navigation.top
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.prune
+    - navigation.footer
+    - navigation.tracking
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.indexes
+    - navigation.sections  # navigation.expand or navigation.sections
+    - content.tabs.link # all code tabs change simultaneously
 
 plugins:
   - search
@@ -76,7 +170,7 @@ plugins:
           options:
             docstring_style: google
             docstring_section_style: list
-            line_length: 120
+            line_length: 92
             show_root_heading: true
 
 extra_css:
@@ -110,3 +204,4 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - tables
   - md_in_html
+  - sane_lists

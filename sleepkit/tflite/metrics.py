@@ -15,6 +15,8 @@ def get_flops(model: keras.Model, batch_size: int | None = None, fpath: os.PathL
     Ignore operations used in only training mode such as Initialization.
     Use tf.profiler of tensorflow v2 api.
 
+    Known Limitations: Does not support LSTM and GRU.
+
     Args:
         model (keras.Model|keras.Sequential): Model
         batch_size (int, optional): Batch size. Defaults to None.

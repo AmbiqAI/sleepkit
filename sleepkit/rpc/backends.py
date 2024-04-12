@@ -171,9 +171,17 @@ class PcBackend(DemoBackend):
         self._outputs = None
         self._model = None
 
+    def _is_tf_model(self) -> bool:
+
+        ext = self.params.model_file.suffix
+        return ext in [".h5", ".hdf5", ".keras", ".tf"]
+
     def open(self):
-        with open(self.params.model_file, "rb") as fp:
-            self._model = fp.read()
+        if self._is_tf_model():
+            self._model = tflite.load_model(self.params.model_file)
+        else:
+            with open(self.params.model_file, "rb") as fp:
+                self._model = fp.read()
 
     def close(self):
         self._model = None
@@ -182,7 +190,10 @@ class PcBackend(DemoBackend):
         self._inputs = inputs
 
     def perform_inference(self):
-        _, self._outputs = tflite.predict_tflite(self._model, self._inputs)
+        if self._is_tf_model():
+            self._outputs = self._model.predict(np.expand_dims(self._inputs, 0)).squeeze(0)
+        else:
+            self._outputs = tflite.predict_tflite(self._model, self._inputs)
 
     def get_outputs(self) -> npt.NDArray:
         return self._outputs

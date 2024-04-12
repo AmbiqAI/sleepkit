@@ -1,0 +1,13 @@
+{
+    "job_dir": "./results/fs-w-a-5-60",
+    "ds_path": "./datasets",
+    "datasets": [{
+        "name": "cmidss",
+        "params": {}
+    }],
+    "feature_set": "FS-W-A-5",
+    "feature_params": {},
+    "save_path": "./datasets/store/fs-w-a-5-60",
+    "sampling_rate": 0.2,
+    "frame_size": 12
+}

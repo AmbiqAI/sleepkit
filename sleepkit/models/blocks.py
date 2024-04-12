@@ -43,6 +43,7 @@ def relu6(name: str | None = None) -> KerasLayer:
 
 def mish(name: str | None = None) -> KerasLayer:
     """Mish activation layer"""
+    name = name + ".act" if name else None
     return keras.layers.Activation(keras.activations.mish, name=name)
 
 
@@ -186,6 +187,7 @@ def mbconv_block(
         stride_len = strides if isinstance(strides, int) else sum(strides) / len(strides)
         is_downsample = stride_len > 1
         add_residual = input_filters == output_filters and not is_downsample
+
         # Expand: narrow -> wide
         if expand_ratio != 1:
             name_ex = f"{name}.exp" if name else None

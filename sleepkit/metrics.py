@@ -64,7 +64,8 @@ def f_max(
     y_prob: npt.NDArray,
     thresholds: float | list[float] | None = None,
 ) -> tuple[float, float]:
-    """Compute F max (https://github.com/helme/ecg_ptbxl_benchmarking)
+    """Compute F max
+    source: https://github.com/helme/ecg_ptbxl_benchmarking
 
     Args:
         y_true (npt.NDArray): Y True
@@ -86,7 +87,7 @@ def confusion_matrix_plot(
     y_true: npt.NDArray,
     y_pred: npt.NDArray,
     labels: list[str],
-    save_path: str | None = None,
+    save_path: os.PathLike | None = None,
     normalize: Literal["true", "pred", "all"] | None = False,
     **kwargs,
 ) -> tuple[plt.Figure, plt.Axes] | None:
@@ -101,6 +102,7 @@ def confusion_matrix_plot(
     Returns:
         tuple[plt.Figure, plt.Axes] | None: Figure and axes
     """
+
     cm = confusion_matrix(y_true, y_pred)
     cmn = cm
     ann = True
@@ -111,7 +113,7 @@ def confusion_matrix_plot(
         fmt = ""
     # END IF
     fig, ax = plt.subplots(figsize=kwargs.get("figsize", (10, 8)))
-    sns.heatmap(cmn, xticklabels=labels, yticklabels=labels, annot=ann, fmt=fmt, ax=ax, vmin=0, vmax=0.9)
+    sns.heatmap(cmn, xticklabels=labels, yticklabels=labels, annot=ann, fmt=fmt, ax=ax)
     ax.set_xlabel("Prediction")
     ax.set_ylabel("Label")
     if save_path:
@@ -125,7 +127,7 @@ def roc_auc_plot(
     y_true: npt.NDArray,
     y_prob: npt.NDArray,
     labels: list[str],
-    save_path: str | None = None,
+    save_path: os.PathLike | None = None,
     **kwargs,
 ) -> tuple[plt.Figure, plt.Axes] | None:
     """Generate ROC plot via matplotlib/seaborn
@@ -173,8 +175,6 @@ def macro_precision_recall(
     Returns:
        tuple[np.float_, np.float_]: Precision and recall
     """
-
-    # expand analysis to the number of thresholds
     y_true = np.repeat(y_true[None, :, :], len(thresholds), axis=0)
     y_prob = np.repeat(y_prob[None, :, :], len(thresholds), axis=0)
     y_pred = y_prob >= thresholds[:, None, None]
@@ -213,7 +213,7 @@ def _one_hot(x: npt.NDArray, depth: int) -> npt.NDArray:
     return x_one_hot
 
 
-def multi_f1(y_true: npt.NDArray, y_prob: npt.NDArray) -> npt.NDArray:
+def multi_f1(y_true: npt.NDArray, y_prob: npt.NDArray) -> npt.NDArray | float:
     """Compute multi-class F1
 
     Args:
