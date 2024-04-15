@@ -8,26 +8,26 @@ The following table provides the latest pre-trained models for sleep apnea. Belo
 
 ## <span class="sk-h2-span">Model Details</span>
 
-=== "SA-2-UNET-LG"
+=== "SA-2-TCN-SM"
 
-    The __SA-2-UNET-LG__ model is a 2-stage sleep apnea detection model that uses a U-Net architecture. The model is trained on PPG sensor data collected from the wrist and is able to locate apnea/hypopnea events.
+    The __SA-2-TCN-SM__ model is a 2-stage sleep apnea detection model that uses a Temporal convolutional network (TCN). The model is trained on PPG sensor data collected from the wrist and is able to locate apnea/hypopnea events.
 
     - **Location**: Wrist
     - **Classes**: Normal, Apnea
-    - **Frame Size**: 30 minutes
+    - **Frame Size**: 10 minutes
     - **Datasets**: [MESA](../datasets/mesa.md)
     - **Feature Generator**: [FS-W-P-5](../features/featset01.md)
     - **Feature Set**: [FS-W-P-5-1]()
 
 ## <span class="sk-h2-span">Model Performance</span>
 
-=== "SA-2-UNET-LG"
+=== "SA-2-TCN-SM"
 
     The following plots show the model's performance in detecting apnea/hypopnea events. The first plot shows the confusion matrix for apnea detection.
 
 
     <div class="sk-plotly-graph-div">
-    --8<-- "assets/zoo/apnea/sa-2-unet-lg-cm.html"
+    --8<-- "assets/zoo/apnea/SA-2-TCN-SM-cm.html"
     </div>
 
     The following plot shows the model's ability to detect AHI (Apnea-Hypopnea Index) compared to the ground truth AHI values. The x-axis represents the true AHI values, while the y-axis represents the predicted AHI values. The plot shows a strong correlation between the true and predicted AHI values.

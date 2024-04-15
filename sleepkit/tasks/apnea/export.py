@@ -113,14 +113,15 @@ def export(params: SKExportParams):
         )
     # END WITH
 
-    y_pred_tf = np.argmax(model.predict(test_x), axis=1).flatten()
+    y_pred_tf = model.predict(test_x)
+    y_pred_tf = np.argmax(y_pred_tf, axis=-1).flatten()
 
     # Verify TFLite results match TF results on example data
     logger.info("Validating model results")
-    y_true = np.argmax(test_y, axis=1)
+    y_true = np.argmax(test_y, axis=-1).flatten()
 
-    _, y_pred_tfl = tfa.predict_tflite(model_content=tflite_model, test_x=test_x)
-    y_pred_tfl = np.argmax(y_pred_tfl, axis=1)
+    y_pred_tfl = tfa.predict_tflite(model_content=tflite_model, test_x=test_x)
+    y_pred_tfl = np.argmax(y_pred_tfl, axis=-1).flatten()
 
     tf_acc = np.sum(y_true == y_pred_tf) / y_true.size
     tf_f1 = f1_score(y_true, y_pred_tf, average="weighted")

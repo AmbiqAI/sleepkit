@@ -1,6 +1,6 @@
 {
-    "name": "ss-4-tcn-lg",
-    "job_dir": "./results/ss-4-tcn-lg",
+    "name": "ss-4-tcn-sm",
+    "job_dir": "./results/ss-4-tcn-sm",
     "ds_path": "./datasets/store/fs-w-pa-14-60/mesa",
     "dataset": {
         "name": "hdf5",
@@ -10,7 +10,7 @@
             "mask_key": "mask"
         }
     },
-    "sampling_rate": 32,
+    "sampling_rate": 0.03333,
     "frame_size": 240,
     "model_file": "model.keras",
     "num_classes": 4,

@@ -1,3 +1,3 @@
 | NAME             | LOCATION | # CLASSES | MODEL   | PARAMS | FLOPS   | ACCURACY | F1    |
 | ---------------- | -------- | --------- | ------- | ------ | ------- | -------- | ----- |
-| __SA-2-UNET-LG__  | Wrist    | 2         | U-NET   | 61K    | 33M/hr  | 91.0%    | 91.0% |
+| __SA-2-TCN-SM__  | Wrist    | 2         | TCN     | 5K     | 20M/hr  | 91.0%    | 91.0% |

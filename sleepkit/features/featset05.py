@@ -65,6 +65,8 @@ class FeatSet05(SKFeatureSet):
 
                 spo2 = ds.load_signal_for_subject(subject_id, "SpO2", start=0, data_size=duration)
                 ppg = ds.load_signal_for_subject(subject_id, "Pleth", start=0, data_size=duration)
+                spo2_qos = ds.load_signal_for_subject(subject_id, "OxStatus", start=0, data_size=duration)
+
                 ppg = pk.ppg.clean(ppg, lowcut=0.5, highcut=3.0, sample_rate=sample_rate)
 
                 sleep_apnea = ds.extract_sleep_apneas(subject_id=subject_id)
@@ -93,7 +95,7 @@ class FeatSet05(SKFeatureSet):
                 piiv = ppg[nn_ppeaks[1:]] - ppg[nn_ppeaks[:-1]]  # Peak to Peak delta
                 piiv = np.hstack((piiv[0], piiv))
                 pifv = nn_ipi.copy()  # Peak to Peak interval
-                qos = pk.signal.signal_smooth_boxzen(1.0 - ipi_mask, size=ds.target_rate * 5)
+                ppg_qos = pk.signal.signal_smooth_boxzen(1.0 - ipi_mask, size=ds.target_rate * 5)
 
                 spo2 = np.clip(spo2, 50, 100)
                 piav = scipy.interpolate.interp1d(
@@ -105,7 +107,7 @@ class FeatSet05(SKFeatureSet):
                 pifv = scipy.interpolate.interp1d(
                     nn_ppeaks, pifv, kind="linear", bounds_error=False, fill_value=np.nanmedian(pifv)
                 )(ts)
-                qos = scipy.interpolate.interp1d(ppeaks, qos, kind="linear", bounds_error=False, fill_value=0)(ts)
+                ppg_qos = scipy.interpolate.interp1d(ppeaks, ppg_qos, kind="linear", bounds_error=False, fill_value=0)(ts)
             else:
                 raise NotImplementedError(f"Dataset {ds_name} not implemented")
             # END IF
@@ -125,17 +127,23 @@ class FeatSet05(SKFeatureSet):
                 piav_win = np.nanmean(piav[start:stop])
                 piiv_win = np.nanmean(piiv[start:stop])
                 pifv_win = np.nanmean(pifv[start:stop])
-                qos_win = np.nanmean(qos[start:stop])
+                ppg_qos_win = np.nanmean(ppg_qos[start:stop])
+                spo2_qos_win = np.nanmean(spo2_qos[start:stop])
+
+                if np.any(spo2_qos_win >= 2.8):
+                    masks[i] = 0
+                    continue
+                # END IF
 
                 features[i] = [
                     spo2_win,
                     piav_win,
                     piiv_win,
                     pifv_win,
-                    qos_win,
+                    ppg_qos_win,
                 ]
 
-                if qos_win <= 0.4:
+                if ppg_qos_win <= 0.4:
                     masks[i] = 0
 
                 alabels[i] = apnea_labels[start:stop][-1]

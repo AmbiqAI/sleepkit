@@ -10,7 +10,7 @@
             "mask_key": "mask"
         }
     },
-    "sampling_rate": 32,
+    "sampling_rate": 0.03333,
     "frame_size": 240,
     "model_file": "model.keras",
     "num_classes": 5,

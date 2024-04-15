@@ -96,7 +96,7 @@ def demo(params: SKDemoParams):
     y_true = y_true[y_mask == 1]
 
     tod = datetime.datetime(2025, 5, 24, random.randint(12, 23), 00)
-    ts = [tod + datetime.timedelta(seconds=30 * i) for i in range(y_pred.size)]
+    ts = [tod + datetime.timedelta(seconds=(1.0/params.sampling_rate) * i) for i in range(y_pred.size)]
 
     # Report
     logger.info("Generating report")

@@ -11,7 +11,7 @@
         }
     },
     "sampling_rate": 1,
-    "frame_size": 3600,
+    "frame_size": 600,
     "model_file": "model.keras",
     "num_classes": 2,
     "class_map": {
@@ -22,17 +22,17 @@
         "4": 1
     },
     "class_names": ["NONE", "APNEA"],
-    "samples_per_subject": 40,
-    "val_samples_per_subject": 40,
+    "samples_per_subject": 80,
+    "val_samples_per_subject": 80,
     "val_subjects": 0.20,
-    "val_size": 12000,
+    "val_size": 24000,
     "val_acc_threshold": 0.98,
-    "test_size": 15000,
-    "test_samples_per_subject": 40,
+    "test_size": 30000,
+    "test_samples_per_subject": 80,
     "batch_size": 256,
-    "buffer_size": 40000,
+    "buffer_size": 80000,
     "epochs": 125,
-    "steps_per_epoch": 50,
+    "steps_per_epoch": 100,
     "val_metric": "loss",
     "lr_rate": 1e-3,
     "lr_cycles": 1,
@@ -50,17 +50,14 @@
     "architecture": {
         "name": "tcn",
         "params": {
-            "input_kernel": [1, 7],
-            "input_norm": "batch",
+            "block_type": "mb",
             "blocks": [
                 {"depth": 1, "branch": 1, "filters": 8, "kernel": [1, 7], "dilation": [1, 1], "dropout": 0, "ex_ratio": 1, "se_ratio": 0, "norm": "batch"},
-                {"depth": 1, "branch": 1, "filters": 12, "kernel": [1, 7], "dilation": [1, 2], "dropout": 0, "ex_ratio": 1, "se_ratio": 0, "norm": "batch"},
-                {"depth": 1, "branch": 1, "filters": 16, "kernel": [1, 7], "dilation": [1, 4], "dropout": 0, "ex_ratio": 1, "se_ratio": 0, "norm": "batch"},
-                {"depth": 1, "branch": 1, "filters": 20, "kernel": [1, 7], "dilation": [1, 8], "dropout": 0, "ex_ratio": 1, "se_ratio": 0, "norm": "batch"},
-                {"depth": 1, "branch": 1, "filters": 24, "kernel": [1, 7], "dilation": [1, 16], "dropout": 0, "ex_ratio": 1, "se_ratio": 0, "norm": "batch"},
-                {"depth": 1, "branch": 1, "filters": 28, "kernel": [1, 7], "dilation": [1, 32], "dropout": 0, "ex_ratio": 1, "se_ratio": 0, "norm": "batch"},
-                {"depth": 1, "branch": 1, "filters": 32, "kernel": [1, 7], "dilation": [1, 64], "dropout": 0, "ex_ratio": 1, "se_ratio": 0, "norm": "batch"},
-                {"depth": 1, "branch": 1, "filters": 40, "kernel": [1, 7], "dilation": [1, 128], "dropout": 0, "ex_ratio": 1, "se_ratio": 0, "norm": "batch"}
+                {"depth": 1, "branch": 1, "filters": 16, "kernel": [1, 7], "dilation": [1, 2], "dropout": 0, "ex_ratio": 1, "se_ratio": 2, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 24, "kernel": [1, 7], "dilation": [1, 4], "dropout": 0, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 32, "kernel": [1, 7], "dilation": [1, 8], "dropout": 0, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 40, "kernel": [1, 7], "dilation": [1, 16], "dropout": 0, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 48, "kernel": [1, 7], "dilation": [1, 32], "dropout": 0, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"}
             ],
             "output_kernel": [1, 7],
             "include_top": true,

@@ -31,11 +31,11 @@ class TcnParams(BaseModel):
     input_kernel: int | tuple[int, int] | None = Field(default=None, description="Input kernel size")
     input_norm: Literal["batch", "layer"] | None = Field(default="layer", description="Input normalization type")
     block_type: Literal["lg", "mb", "sm"] = Field(default="mb", description="Block type")
-    blocks: list[TcnBlockParams] = Field(default_factory=list, description="UNext blocks")
+    blocks: list[TcnBlockParams] = Field(default_factory=list, description="TCN blocks")
     output_kernel: int | tuple[int, int] = Field(default=3, description="Output kernel size")
     include_top: bool = Field(default=True, description="Include top")
     use_logits: bool = Field(default=True, description="Use logits")
-    model_name: str = Field(default="UNext", description="Model name")
+    model_name: str = Field(default="TCN", description="Model name")
 
 
 def norm_layer(norm: str, name: str) -> KerasLayer:
