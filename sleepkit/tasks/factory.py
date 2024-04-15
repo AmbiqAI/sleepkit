@@ -2,6 +2,7 @@ from .task import SKTask
 
 _tasks: dict[str, type[SKTask]] = {}
 
+
 class TaskFactory:
     """Task factory enables registering, creating, and listing tasks. It is a singleton class."""
 

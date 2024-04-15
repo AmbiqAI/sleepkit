@@ -10,12 +10,7 @@ import tensorflow as tf
 from ...datasets import DatasetFactory, SKDataset
 from ...datasets.utils import create_dataset_from_data
 from ...defines import DatasetParams, ModelArchitecture
-from ...models import (
-    ModelFactory,
-    UNext,
-    UNextBlockParams,
-    UNextParams,
-)
+from ...models import ModelFactory, UNext, UNextBlockParams, UNextParams
 
 
 def create_model(inputs: tf.Tensor, num_classes: int, architecture: ModelArchitecture | None) -> keras.Model:

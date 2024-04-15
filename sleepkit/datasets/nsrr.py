@@ -40,9 +40,7 @@ def authenticate_nsrr(token: str | None = None) -> str:
 
     # Attempt to authenticate
     response = requests.get(
-        "https://sleepdata.org/api/v1/account/profile.json",
-        params={"auth_token": token},
-        timeout=30
+        "https://sleepdata.org/api/v1/account/profile.json", params={"auth_token": token}, timeout=30
     )
     authenticated = response.json()["authenticated"]
     if authenticated:

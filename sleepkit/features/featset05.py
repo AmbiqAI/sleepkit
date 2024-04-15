@@ -107,7 +107,9 @@ class FeatSet05(SKFeatureSet):
                 pifv = scipy.interpolate.interp1d(
                     nn_ppeaks, pifv, kind="linear", bounds_error=False, fill_value=np.nanmedian(pifv)
                 )(ts)
-                ppg_qos = scipy.interpolate.interp1d(ppeaks, ppg_qos, kind="linear", bounds_error=False, fill_value=0)(ts)
+                ppg_qos = scipy.interpolate.interp1d(ppeaks, ppg_qos, kind="linear", bounds_error=False, fill_value=0)(
+                    ts
+                )
             else:
                 raise NotImplementedError(f"Dataset {ds_name} not implemented")
             # END IF

@@ -27,19 +27,19 @@ The following table provides the latest pre-trained models for sleep apnea. Belo
 
 
     <div class="sk-plotly-graph-div">
-    --8<-- "assets/zoo/apnea/SA-2-TCN-SM-cm.html"
+    --8<-- "assets/zoo/apnea/sa-2-tcn-sm-cm.html"
     </div>
 
     The following plot shows the model's ability to detect AHI (Apnea-Hypopnea Index) compared to the ground truth AHI values. The x-axis represents the true AHI values, while the y-axis represents the predicted AHI values. The plot shows a strong correlation between the true and predicted AHI values.
 
     <div class="sk-plotly-graph-div">
-    --8<-- "assets/zoo/apnea/sleep-apnea-ahi-scatter.html"
+    --8<-- "assets/zoo/apnea/sa-2-tcn-sm-ahi-scatter.html"
     </div>
 
     The following table provides the corresponding confusion matrix for AHI.
 
     <div class="sk-plotly-graph-div">
-    --8<-- "assets/zoo/apnea/sleep-apnea-ahi-cm.html"
+    --8<-- "assets/zoo/apnea/sa-2-tcn-sm-ahi-cm.html"
     </div>
 
 ---

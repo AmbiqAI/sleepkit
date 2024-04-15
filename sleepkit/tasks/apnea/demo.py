@@ -14,6 +14,7 @@ from .utils import load_dataset
 
 logger = setup_logger(__name__)
 
+
 def get_apnea_color_map(num_classes) -> dict[int, str]:
     """Get color map for apnea classes
 
@@ -34,6 +35,7 @@ def get_apnea_color_map(num_classes) -> dict[int, str]:
         return {0: gray, 1: navy, 2: blue, 3: purple, 4: red}
     raise ValueError("Invalid number of classes")
 
+
 def demo(params: SKDemoParams):
     """Sleep Apnea Demo"""
 
@@ -41,7 +43,7 @@ def demo(params: SKDemoParams):
     plotly_template = "plotly_dark"
 
     apnea_classes = sorted(list(set(params.class_map.values())))
-    class_names = params.class_names or [f"Class {i}" for i in range(params.num_classes)]
+    # class_names = params.class_names or [f"Class {i}" for i in range(params.num_classes)]
     class_colors = get_apnea_color_map(params.num_classes)
 
     logger.info("Setting up")
@@ -85,7 +87,7 @@ def demo(params: SKDemoParams):
     y_true = y_true[y_mask == 1]
 
     tod = datetime.datetime(2025, 5, 24, random.randint(18, 22), 00)
-    ts = [tod + datetime.timedelta(seconds=i/params.sampling_rate) for i in range(y_pred.size)]
+    ts = [tod + datetime.timedelta(seconds=i / params.sampling_rate) for i in range(y_pred.size)]
 
     act_ahi = compute_apnea_hypopnea_index(
         y_true, min_duration=int(10 * params.sampling_rate), sample_rate=params.sampling_rate
@@ -112,26 +114,35 @@ def demo(params: SKDemoParams):
     )
 
     # Plot predicted as positive and actual as negative
-    fig.add_trace(go.Scatter(
-        x=ts,
-        y=y_pred,
-        mode="lines",
-        name="Predicted",
-        # #11acd5 with 50% alpha
-        line_color="rgba(17, 172, 213, 0.5)",
-        fill="tozeroy",
-    ), row=1, col=1, secondary_y=False)
+    fig.add_trace(
+        go.Scatter(
+            x=ts,
+            y=y_pred,
+            mode="lines",
+            name="Predicted",
+            # #11acd5 with 50% alpha
+            line_color="rgba(17, 172, 213, 0.5)",
+            fill="tozeroy",
+        ),
+        row=1,
+        col=1,
+        secondary_y=False,
+    )
 
-    fig.add_trace(go.Scatter(
-        x=ts,
-        y=-y_true,
-        mode="lines",
-        name="Actual",
-        # #ce6cff with 50% alpha
-        line_color="rgba(206, 108, 255, 0.5)",
-        fill="tozeroy",
-    ), row=1, col=1, secondary_y=False)
-
+    fig.add_trace(
+        go.Scatter(
+            x=ts,
+            y=-y_true,
+            mode="lines",
+            name="Actual",
+            # #ce6cff with 50% alpha
+            line_color="rgba(206, 108, 255, 0.5)",
+            fill="tozeroy",
+        ),
+        row=1,
+        col=1,
+        secondary_y=False,
+    )
 
     fig.update_yaxes(
         autorange=True,
@@ -162,13 +173,13 @@ def demo(params: SKDemoParams):
     # END FOR
 
     ahi_bins = [5, 15, 30, 100]
-    ahi_group_names = ['MILD', 'MODERATE', 'SEVERE']
+    ahi_group_names = ["MILD", "MODERATE", "SEVERE"]
 
     ahi_bars = [act_ahi, pred_ahi]
     fig.add_trace(
         go.Bar(
             x=[act_ahi, pred_ahi],
-            y=['Actual', 'Predicted'],
+            y=["Actual", "Predicted"],
             marker_color=[class_colors.get(c, "red") for c in apnea_classes],
             showlegend=False,
             text=[f"{t:0.1f}" for t in ahi_bars],
@@ -194,7 +205,8 @@ def demo(params: SKDemoParams):
                 width=2,
                 dash="dashdot",
             ),
-            row=2, col=1,
+            row=2,
+            col=1,
         )
         fig.add_annotation(
             x=ahi_bin,
@@ -203,7 +215,8 @@ def demo(params: SKDemoParams):
             text=ahi_name,
             showarrow=False,
             xshift=10,
-            row=2, col=1,
+            row=2,
+            col=1,
         )
     # END FOR
     fig.update_xaxes(title="Apnea Hypopnea Index (AHI)", row=2, col=1)

@@ -170,9 +170,10 @@ class MesaDataset(SKDataset):
     def signal_generator2(
         self,
         subject_generator: SubjectGenerator,
-        signals: list[str], samples_per_subject: int = 1,
+        signals: list[str],
+        samples_per_subject: int = 1,
         normalize: bool = True,
-        epsilon: float = 1e-6
+        epsilon: float = 1e-6,
     ) -> SampleGenerator:
         """Randomly generate frames of sleep data for given subjects.
 
