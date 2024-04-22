@@ -42,7 +42,6 @@ seaborn = "^0.13.2"
 matplotlib = "3.8.2"
 fastparquet = "^2023.10.1"
 statsmodels = "^0.14.1"
-erpc = {git = "https://github.com/AmbiqAI/erpc.git", rev = "develop", subdirectory = "erpc_python"}
 pyserial = "^3.5"
 tensorflow-model-optimization = "^0.7.5"
 argdantic = {extras = ["all"], version = "^1.0.0"}

@@ -921,22 +921,6 @@ files = [
 six = ">=1.4.0"
 
 [[package]]
-name = "erpc"
-version = "1.9.1"
-description = "eRPC Python infrastructure"
-optional = false
-python-versions = "*"
-files = []
-develop = false
-
-[package.source]
-type = "git"
-url = "https://github.com/AmbiqAI/erpc.git"
-reference = "develop"
-resolved_reference = "a2991a0b4a2fe03d473d30e0aca5a2beadfa3971"
-subdirectory = "erpc_python"
-
-[[package]]
 name = "executing"
 version = "2.0.1"
 description = "Get the currently executing AST node of a frame, and other information"
@@ -5407,4 +5391,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "57c9f78461bb46ba7ad2ad20b1a8f81e64ed2c2754130e4cab33ac1cd2943d8a"
+content-hash = "fa20b6521cf7ac501a186eda5e7626b88dd3a9ca3aec224290512850e4406c3f"
