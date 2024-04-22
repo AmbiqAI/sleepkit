@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sleepkit"
-version = "0.3.0"
+version = "0.4.0"
 description = "AI driven sleep monitoring kit for ultra low-power wearables."
 license = "BSD-3-Clause"
 authors = ["Ambiq AI <support.aitg@ambiq.com>"]
@@ -22,9 +22,8 @@ build = "make -C ./evb"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-tensorflow-macos = {version = "^2.15.0", platform = "darwin"}
-tensorflow = {version = "^2.15.0", markers = "sys_platform != 'darwin'"}
-tensorflow-metal = {version = "^1.1.0", platform = "darwin"}
+tensorflow = {version = "~2.15.1"}
+tensorflow-metal = {version = "^1.1.0", markers = "sys_platform == 'darwin'"}
 numpy = "^1.26.4"
 scikit-learn = "^1.4.0"
 scipy = "^1.12.0"

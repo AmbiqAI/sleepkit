@@ -2,7 +2,7 @@ import abc
 import time
 from enum import IntEnum
 
-import erpc
+from . import erpc
 import numpy as np
 import numpy.typing as npt
 import tensorflow as tf
