@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import keras
+from keras_edge.models.unext import UNext, UNextBlockParams, UNextParams
 import numpy as np
 import numpy.typing as npt
 import tensorflow as tf
@@ -10,14 +11,14 @@ import tensorflow as tf
 from ...datasets import DatasetFactory, SKDataset
 from ...datasets.utils import create_dataset_from_data
 from ...defines import DatasetParams, ModelArchitecture
-from ...models import ModelFactory, UNext, UNextBlockParams, UNextParams
+from ...models import ModelFactory
 
 
-def create_model(inputs: tf.Tensor, num_classes: int, architecture: ModelArchitecture | None) -> keras.Model:
+def create_model(inputs: keras.KerasTensor, num_classes: int, architecture: ModelArchitecture | None) -> keras.Model:
     """Generate model or use default
 
     Args:
-        inputs (tf.Tensor): Model inputs
+        inputs (keras.KerasTensor): Model inputs
         num_classes (int): Number of classes
         architecture (ModelArchitecture|None): Model
 
@@ -36,13 +37,13 @@ def create_model(inputs: tf.Tensor, num_classes: int, architecture: ModelArchite
 
 
 def _default_model(
-    inputs: tf.Tensor,
+    inputs: keras.KerasTensor,
     num_classes: int,
 ) -> keras.Model:
     """Reference model
 
     Args:
-        inputs (tf.Tensor): Model inputs
+        inputs (keras.KerasTensor): Model inputs
         num_classes (int): Number of classes
 
     Returns:
@@ -54,13 +55,37 @@ def _default_model(
         params=UNextParams(
             blocks=[
                 UNextBlockParams(
-                    filters=24, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0
+                    filters=24,
+                    depth=2,
+                    kernel=5,
+                    pool=2,
+                    strides=2,
+                    skip=True,
+                    expand_ratio=1,
+                    se_ratio=2,
+                    dropout=0,
                 ),
                 UNextBlockParams(
-                    filters=32, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0
+                    filters=32,
+                    depth=2,
+                    kernel=5,
+                    pool=2,
+                    strides=2,
+                    skip=True,
+                    expand_ratio=1,
+                    se_ratio=2,
+                    dropout=0,
                 ),
                 UNextBlockParams(
-                    filters=48, depth=2, kernel=5, pool=2, strides=2, skip=True, expand_ratio=1, se_ratio=2, dropout=0
+                    filters=48,
+                    depth=2,
+                    kernel=5,
+                    pool=2,
+                    strides=2,
+                    skip=True,
+                    expand_ratio=1,
+                    se_ratio=2,
+                    dropout=0,
                 ),
             ],
             output_kernel_size=5,
@@ -153,7 +178,11 @@ def load_train_dataset(
             train_subj_gen = ds.uniform_subject_generator(subject_ids)
             return map(
                 lambda x_y: prepare(preprocess(x_y[0]), x_y[1], class_shape[-1], class_map),
-                ds.signal_generator(train_subj_gen, samples_per_subject=samples_per_subject, normalize=True),
+                ds.signal_generator(
+                    train_subj_gen,
+                    samples_per_subject=samples_per_subject,
+                    normalize=True,
+                ),
             )
 
         return tf.data.Dataset.from_generator(

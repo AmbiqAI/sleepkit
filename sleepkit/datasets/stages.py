@@ -133,14 +133,17 @@ class StagesDataset(SKDataset):
                 random.shuffle(subject_idxs)
             for subject_idx in subject_idxs:
                 subject_id = subject_ids[subject_idx]
-                yield subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id
+                yield (subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id)
             # END FOR
             if not repeat:
                 break
         # END WHILE
 
     def signal_generator2(
-        self, subject_generator: SubjectGenerator, signals: list[str], samples_per_subject: int = 1
+        self,
+        subject_generator: SubjectGenerator,
+        signals: list[str],
+        samples_per_subject: int = 1,
     ) -> SampleGenerator:
         """Randomly generate frames of sleep data for given subjects.
 
@@ -178,7 +181,10 @@ class StagesDataset(SKDataset):
                 for i, signal_label in enumerate(signals):
                     signal_label = signal_label.decode("ascii") if isinstance(signal_label, bytes) else signal_label
                     signal = self.load_signal_for_subject(
-                        subject_id, signal_label=signal_label, start=frame_start, data_size=self.frame_size
+                        subject_id,
+                        signal_label=signal_label,
+                        start=frame_start,
+                        data_size=self.frame_size,
                     )
                     signal_len = min(signal.size, x.shape[0])
                     x[:signal_len, i] = signal[:signal_len]
@@ -189,7 +195,11 @@ class StagesDataset(SKDataset):
         # END FOR
 
     def _load_actigraphy_signal_for_subject(
-        self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
+        self,
+        subject_id: str,
+        signal_label: str,
+        start: int = 0,
+        data_size: int | None = None,
     ) -> npt.NDArray[np.float32]:
         if data_size is None:
             raise ValueError("data_size must be specified for actigraphy signals")
@@ -210,7 +220,11 @@ class StagesDataset(SKDataset):
         return signal[:data_size]
 
     def load_signal_for_subject(
-        self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
+        self,
+        subject_id: str,
+        signal_label: str,
+        start: int = 0,
+        data_size: int | None = None,
     ) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
 
@@ -286,7 +300,11 @@ class StagesDataset(SKDataset):
             event_label = get_first_element_by_tag_name(event, "EventConcept").childNodes[0].nodeValue
             start_time = float(get_first_element_by_tag_name(event, "Start").childNodes[0].nodeValue)
             duration = float(get_first_element_by_tag_name(event, "Duration").childNodes[0].nodeValue)
-            apnea_labels = ["Hypopnea|Hypopnea", "Unsure|Unsure", "Obstructive apnea|Obstructive Apnea"]
+            apnea_labels = [
+                "Hypopnea|Hypopnea",
+                "Unsure|Unsure",
+                "Obstructive apnea|Obstructive Apnea",
+            ]
             try:
                 apnea = apnea_labels.index(event_label) + 1
             except ValueError:

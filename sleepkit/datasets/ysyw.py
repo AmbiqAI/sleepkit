@@ -37,6 +37,16 @@ class YsywSleepStage(IntEnum):
     wake = 5
 
 
+YsywStageMap = {
+    YsywSleepStage.wake: SleepStage.wake,
+    YsywSleepStage.nonrem1: SleepStage.stage1,
+    YsywSleepStage.nonrem2: SleepStage.stage2,
+    YsywSleepStage.nonrem3: SleepStage.stage3,
+    YsywSleepStage.rem: SleepStage.rem,
+    YsywSleepStage.undefined: SleepStage.wake,
+}
+
+
 class YsywDataset(SKDataset):
     """YSYW dataset"""
 
@@ -127,14 +137,17 @@ class YsywDataset(SKDataset):
                 random.shuffle(subject_idxs)
             for subject_idx in subject_idxs:
                 subject_id = subject_ids[subject_idx]
-                yield subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id
+                yield (subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id)
             # END FOR
             if not repeat:
                 break
         # END WHILE
 
     def signal_generator2(
-        self, subject_generator: SubjectGenerator, signals: list[str], samples_per_subject: int = 1
+        self,
+        subject_generator: SubjectGenerator,
+        signals: list[str],
+        samples_per_subject: int = 1,
     ) -> SampleGenerator:
         """Randomly generate frames of sleep data for given subjects.
 
@@ -158,7 +171,10 @@ class YsywDataset(SKDataset):
                 for i, signal_label in enumerate(signals):
                     signal_label = signal_label.decode("ascii") if isinstance(signal_label, bytes) else signal_label
                     signal = self.load_signal_for_subject(
-                        subject_id, signal_label=signal_label, start=frame_start, data_size=self.frame_size
+                        subject_id,
+                        signal_label=signal_label,
+                        start=frame_start,
+                        data_size=self.frame_size,
                     )
                     signal_len = min(signal.size, x.shape[0])
                     x[:signal_len, i] = signal[:signal_len]
@@ -169,7 +185,11 @@ class YsywDataset(SKDataset):
         # END FOR
 
     def load_signal_for_subject(
-        self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
+        self,
+        subject_id: str,
+        signal_label: str,
+        start: int = 0,
+        data_size: int | None = None,
     ) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
 
@@ -218,16 +238,7 @@ class YsywDataset(SKDataset):
         # END WITH
         sleep_stages = np.argmax(sleep_stages, axis=0)
 
-        stage_label_map = lambda v: {
-            YsywSleepStage.wake: SleepStage.wake,
-            YsywSleepStage.nonrem1: SleepStage.stage1,
-            YsywSleepStage.nonrem2: SleepStage.stage2,
-            YsywSleepStage.nonrem3: SleepStage.stage3,
-            YsywSleepStage.rem: SleepStage.rem,
-            YsywSleepStage.undefined: SleepStage.wake,
-        }.get(v, 0)
-
-        sleep_stages = np.vectorize(stage_label_map)(sleep_stages)
+        sleep_stages = np.vectorize(YsywStageMap.get)(sleep_stages)
         if sample_rate != self.target_rate:
             sleep_stages = pk.signal.filter.resample_categorical(sleep_stages, sample_rate, self.target_rate)
 
@@ -324,7 +335,14 @@ class YsywDataset(SKDataset):
             pt_path (str): Source path
             force (bool, optional): Whether to override destination if it exists. Defaults to False.
         """
-        sleep_stage_names = ["nonrem1", "nonrem2", "nonrem3", "rem", "undefined", "wake"]
+        sleep_stage_names = [
+            "nonrem1",
+            "nonrem2",
+            "nonrem3",
+            "rem",
+            "undefined",
+            "wake",
+        ]
         pt_id = os.path.basename(pt_path)
         pt_src_data_path = os.path.join(pt_path, f"{pt_id}.mat")
         pt_src_ann_path = os.path.join(pt_path, f"{pt_id}-arousal.mat")
@@ -342,7 +360,12 @@ class YsywDataset(SKDataset):
         arousals = arousals.squeeze().astype(np.int8)  # pylint: disable=no-member
         h5.create_dataset(name="/data", data=data["val"], compression="gzip", compression_opts=5)
         h5.create_dataset(name="/arousals", data=arousals, compression="gzip", compression_opts=5)
-        h5.create_dataset(name="/sleep_stages", data=sleep_stages, compression="gzip", compression_opts=5)
+        h5.create_dataset(
+            name="/sleep_stages",
+            data=sleep_stages,
+            compression="gzip",
+            compression_opts=5,
+        )
         h5.close()
 
     def _get_subject_h5_path(self, subject_id: str) -> Path:

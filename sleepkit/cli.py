@@ -47,7 +47,7 @@ def _run(
     task: str = ArgField("-t", description="Task", default=""),
     config: str = ArgField("-c", description="File path or JSON content", default="{}"),
 ):
-    """ "SleepKit CLI"""
+    """SleepKit CLI"""
 
     # Download datasets
     if mode == SKMode.download:

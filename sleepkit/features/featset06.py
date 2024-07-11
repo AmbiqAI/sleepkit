@@ -38,7 +38,6 @@ class FeatSet06(SKFeatureSet):
             args (SKFeatureParams): Feature generation parameters
         """
         try:
-
             ds_name, subject_id = ds_subject
             sample_rate = args.sampling_rate
 
@@ -48,7 +47,12 @@ class FeatSet06(SKFeatureSet):
             # Load dataset specific signals
             if ds_name == "mesa":
                 ds_params = next((ds.params for ds in args.datasets if ds.name == ds_name), {})
-                ds = MesaDataset(ds_path=args.ds_path, is_commercial=True, target_rate=sample_rate, **ds_params)
+                ds = MesaDataset(
+                    ds_path=args.ds_path,
+                    is_commercial=True,
+                    target_rate=sample_rate,
+                    **ds_params,
+                )
 
                 # Read signals
                 duration = ds.get_subject_duration(subject_id=subject_id) * sample_rate
@@ -108,8 +112,18 @@ class FeatSet06(SKFeatureSet):
 
             with h5py.File(str(args.save_path / ds_name / f"{subject_id}.h5"), "w") as h5:
                 h5.create_dataset("/features", data=features, compression="gzip", compression_opts=6)
-                h5.create_dataset("/stage_labels", data=slabels, compression="gzip", compression_opts=6)
-                h5.create_dataset("/apnea_labels", data=alabels, compression="gzip", compression_opts=6)
+                h5.create_dataset(
+                    "/stage_labels",
+                    data=slabels,
+                    compression="gzip",
+                    compression_opts=6,
+                )
+                h5.create_dataset(
+                    "/apnea_labels",
+                    data=alabels,
+                    compression="gzip",
+                    compression_opts=6,
+                )
                 h5.create_dataset("/mask", data=masks, compression="gzip", compression_opts=6)
             # END WITH
 

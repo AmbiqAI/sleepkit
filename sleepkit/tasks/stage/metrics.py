@@ -36,7 +36,13 @@ def compute_total_sleep_time(sleep_durations: dict[int, int], class_map: dict[in
         int: Total sleep time (# samples)
     """
     # wake_classes = [SleepStage.wake]
-    sleep_classes = [SleepStage.stage1, SleepStage.stage2, SleepStage.stage3, SleepStage.stage4, SleepStage.rem]
+    sleep_classes = [
+        SleepStage.stage1,
+        SleepStage.stage2,
+        SleepStage.stage3,
+        SleepStage.stage4,
+        SleepStage.rem,
+    ]
     # wake_keys = list(set(class_map.get(s) for s in wake_classes if s in class_map))
     sleep_keys = list(set(class_map.get(s) for s in sleep_classes if s in class_map))
     # wake_duration = sum(sleep_durations.get(k, 0) for k in wake_keys)
@@ -56,7 +62,13 @@ def compute_sleep_efficiency(sleep_durations: dict[int, int], class_map: dict[in
         float: Sleep efficiency
     """
     wake_classes = [SleepStage.wake]
-    sleep_classes = [SleepStage.stage1, SleepStage.stage2, SleepStage.stage3, SleepStage.stage4, SleepStage.rem]
+    sleep_classes = [
+        SleepStage.stage1,
+        SleepStage.stage2,
+        SleepStage.stage3,
+        SleepStage.stage4,
+        SleepStage.rem,
+    ]
     wake_keys = list(set(class_map.get(s) for s in wake_classes if s in class_map))
     sleep_keys = list(set(class_map.get(s) for s in sleep_classes if s in class_map))
     wake_duration = sum(sleep_durations.get(k, 0) for k in wake_keys)

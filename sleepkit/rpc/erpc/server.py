@@ -24,7 +24,9 @@ class Service(object):
             self._methods[methodId](sequence, codec)
         except Exception as e:
             raise RequestError(
-                "invalid method ID (%d) or method implementation: %s" % (methodId, str(e)))
+                "invalid method ID (%d) or method implementation: %s"
+                % (methodId, str(e))
+            )
 
 
 class Server(object):
@@ -72,7 +74,10 @@ class Server(object):
 
     def _process_request(self, codec):
         info = codec.start_read_message()
-        if info.type not in [MessageType.kInvocationMessage, MessageType.kOnewayMessage]:
+        if info.type not in [
+            MessageType.kInvocationMessage,
+            MessageType.kOnewayMessage,
+        ]:
             raise RequestError("invalid type of incoming request")
 
         service = self.get_service_with_id(info.service)

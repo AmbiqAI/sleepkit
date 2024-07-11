@@ -5,7 +5,7 @@ import tflite_micro as tflm
 INPUT_SHAPE = (900, 5)
 inputs = tf.keras.layers.Input(shape=INPUT_SHAPE)
 
-x = np.ones((1,)+INPUT_SHAPE, dtype=np.int8)
+x = np.ones((1,) + INPUT_SHAPE, dtype=np.int8)
 
 
 with open("../results/sa-2-tcn-sm/model.tflite", "rb") as f:
@@ -15,7 +15,9 @@ with open("../results/sa-2-tcn-sm/model.tflite", "rb") as f:
 tfl_interpreter = tf.lite.Interpreter(model_content=tflite_model)
 tfl_interpreter.allocate_tensors()
 
-tflm_interpreter = tflm.runtime.Interpreter.from_bytes(tflite_model, intrepreter_config=tflm.runtime.InterpreterConfig.kPreserveAllTensors)
+tflm_interpreter = tflm.runtime.Interpreter.from_bytes(
+    tflite_model, intrepreter_config=tflm.runtime.InterpreterConfig.kPreserveAllTensors
+)
 
 tfl_interpreter.set_tensor(tfl_interpreter.get_input_details()[0]["index"], x)
 tfl_interpreter.invoke()

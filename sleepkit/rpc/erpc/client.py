@@ -74,8 +74,10 @@ class ClientManager(object):
             if info.type != MessageType.kReplyMessage:
                 raise RequestError("invalid reply message type")
             if info.sequence != request.sequence:
-                raise RequestError("unexpected sequence number in reply (was %d, expected %d)"
-                                   % (info.sequence, request.sequence))
+                raise RequestError(
+                    "unexpected sequence number in reply (was %d, expected %d)"
+                    % (info.sequence, request.sequence)
+                )
 
 
 class RequestContext(object):

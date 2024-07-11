@@ -18,7 +18,7 @@ class ClientInfo:
 
 
 class TransportArbitrator(Transport):
-    """ Shares a transport between a server and multiple clients.
+    """Shares a transport between a server and multiple clients.
 
     Args:
         Transport (_type_): Inherit and define transport interface methods
@@ -64,7 +64,10 @@ class TransportArbitrator(Transport):
             info = self._codec.start_read_message()
 
             # If it's an invocation or oneway, return it to the server.
-            if info.type in (MessageType.kInvocationMessage, MessageType.kOnewayMessage):
+            if info.type in (
+                MessageType.kInvocationMessage,
+                MessageType.kOnewayMessage,
+            ):
                 return msg
             # Ignore unexpected message types.
             elif info.type != MessageType.kReplyMessage:
@@ -84,7 +87,7 @@ class TransportArbitrator(Transport):
                 pass
 
     def prepare_client_receive(self, requestContext: RequestContext):
-        """ Add a client request to the client list.
+        """Add a client request to the client list.
 
         This call is made by the client thread prior to sending the invocation to the server. It
         Ensures that the transport arbitrator has the client's response message buffer ready in
@@ -111,7 +114,7 @@ class TransportArbitrator(Transport):
         return requestContext.sequence
 
     def client_receive(self, token: int):
-        """ Receive method for the client.
+        """Receive method for the client.
 
         Blocks until the a reply message is received with the expected sequence number that is
         associated with @a token. The client must have called prepare_client_receive() previously.

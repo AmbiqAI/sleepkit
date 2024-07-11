@@ -52,7 +52,6 @@ class FeatSet02(SKFeatureSet):
             args (SKFeatureParams): Feature generation parameters
         """
         try:
-
             ds_name, subject_id = ds_subject
             sample_rate = args.sampling_rate
 
@@ -146,7 +145,12 @@ class FeatSet02(SKFeatureSet):
 
             with h5py.File(str(args.save_path / ds_name / f"{subject_id}.h5"), "w") as h5:
                 h5.create_dataset("/features", data=features, compression="gzip", compression_opts=6)
-                h5.create_dataset("/stage_labels", data=slabels, compression="gzip", compression_opts=6)
+                h5.create_dataset(
+                    "/stage_labels",
+                    data=slabels,
+                    compression="gzip",
+                    compression_opts=6,
+                )
                 h5.create_dataset("/mask", data=masks, compression="gzip", compression_opts=6)
             # END WITH
 

@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+
 class Crc16(object):
     POLY = 0x1021
 
@@ -29,5 +30,5 @@ class Crc16(object):
             data = bytearray(data)
         crc = self._crcStart
         for c in data:
-            crc = ((crc << 8) ^ self._table[((crc >> 8) ^ c) & 0xff]) & 0xffff
+            crc = ((crc << 8) ^ self._table[((crc >> 8) ^ c) & 0xFF]) & 0xFFFF
         return crc

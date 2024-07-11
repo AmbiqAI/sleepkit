@@ -16,26 +16,28 @@ import time
 
 try:
     import serial
+
     SerialReady = True
 except ImportError:
     SerialReady = False
 
 try:
     from rpmsg.sysfs import RpmsgEndpoint
+
     RpmsgEndpointReady = True
 except ImportError:
     RpmsgEndpointReady = False
 
 try:
     from libusbsio import *
+
     LIBUSBSIOReady = True
 except ImportError:
     LIBUSBSIOReady = False
 
 
 class Transport(object):
-    """ Base transport class.
-    """
+    """Base transport class."""
 
     def __init__(self):
         pass
@@ -72,7 +74,7 @@ class FramedTransport(Transport):
 
             crc = self._Crc16.computeCRC16(message)
 
-            header = bytearray(struct.pack('<HH', len(message), crc))
+            header = bytearray(struct.pack("<HH", len(message), crc))
             assert len(header) == self.HEADER_LEN
             self._base_send(header + message)
             # print("transport")
@@ -87,7 +89,7 @@ class FramedTransport(Transport):
 
             # Read fixed size header containing the message length.
             headerData = self._base_receive(self.HEADER_LEN)
-            messageLength, crc = struct.unpack('<HH', headerData)
+            messageLength, crc = struct.unpack("<HH", headerData)
 
             # Now we know the length, read the rest of the message.
             data = self._base_receive(messageLength)
@@ -113,10 +115,12 @@ class SerialTransport(FramedTransport):
         super(SerialTransport, self).__init__()
         if not SerialReady:
             raise ImportError(
-                "Please, install pySerial module (sudo pip3 install pyserial).")
+                "Please, install pySerial module (sudo pip3 install pyserial)."
+            )
         self._url = url
         self._serial = serial.serial_for_url(
-            url, baudrate=baudrate, **kwargs)  # 8N1 by default
+            url, baudrate=baudrate, **kwargs
+        )  # 8N1 by default
 
     def close(self):
         self._serial.close()
@@ -126,7 +130,7 @@ class SerialTransport(FramedTransport):
         # time.sleep(0.001)
         self._serial.flush()
 
-        #print(len(data))
+        # print(len(data))
         # self._serial.flushOutput() # srsly?
 
     def _base_receive(self, count):
@@ -198,7 +202,8 @@ class RpmsgTransport(Transport):
     def __init__(self, ept_addr_local=None, ept_addr_remote=None, channel_name=None):
         if not RpmsgEndpointReady:
             raise ImportError(
-                "Please, install RPMsg from: https://github.com/EmbeddedRPC/erpc-imx-demos/tree/master/middleware/rpmsg-python")
+                "Please, install RPMsg from: https://github.com/EmbeddedRPC/erpc-imx-demos/tree/master/middleware/rpmsg-python"
+            )
 
         if ept_addr_local is None:
             ept_addr_local = RpmsgEndpoint.LOCAL_DEFAULT_ADDRESS
@@ -209,9 +214,8 @@ class RpmsgTransport(Transport):
 
         self.ept_addr_remote = ept_addr_remote
         self.ept = RpmsgEndpoint(
-            channel_name,
-            ept_addr_local,
-            RpmsgEndpoint.Types.DATAGRAM)
+            channel_name, ept_addr_local, RpmsgEndpoint.Types.DATAGRAM
+        )
 
     def send(self, message):
         self.ept.send(message, self.ept_addr_remote)
@@ -262,9 +266,9 @@ class LIBUSBSIOSPITransport(FramedTransport):
                 self._gpiopin = 4
                 self._gpiomode = 0x100
             else:
-                print('No LIBUSBSIO devices found \r\n')
+                print("No LIBUSBSIO devices found \r\n")
                 return
-        print('Total LIBUSBSIO devices: %d \r\n' % res)
+        print("Total LIBUSBSIO devices: %d \r\n" % res)
 
         # Open device at given index
         self._hSIOPort = self.sio.Open(int(self._devidx))
@@ -272,29 +276,31 @@ class LIBUSBSIOSPITransport(FramedTransport):
         # Get the device version
         s = self.sio.GetVersion()
         str1 = ""
-        print('Device version: %s \r\n ' % str1.join(str(s)))
+        print("Device version: %s \r\n " % str1.join(str(s)))
 
         # Get number of available SPI ports
         num_spi_ports = self.sio.GetNumSPIPorts()
-        print('Number of SPI ports available: %d \r\n' % num_spi_ports)
+        print("Number of SPI ports available: %d \r\n" % num_spi_ports)
 
         # Get max number of bytes supported for I2C/SPI transfers
         max_num_bytes = self.sio.GetMaxDataSize()
-        print('Max number of bytes supported for I2C/SPI transfers: %d \r\n' %
-              max_num_bytes)
+        print(
+            "Max number of bytes supported for I2C/SPI transfers: %d \r\n"
+            % max_num_bytes
+        )
 
         # Call SPI_Open and store the _hSPIPort handler
         self._hSPIPort = self.sio.SPI_Open(
-            int(self._baudrate), portNum=0, dataSize=8, preDelay=0)
+            int(self._baudrate), portNum=0, dataSize=8, preDelay=0
+        )
 
         # Configure GPIO pin for SPI master-slave signalling
-        res = self.sio.GPIO_ConfigIOPin(
-            self._gpioport, self._gpiopin, self._gpiomode)
-        print('GPIO_ConfigIOPin res: %d \r\n' % res)
+        res = self.sio.GPIO_ConfigIOPin(self._gpioport, self._gpiopin, self._gpiomode)
+        print("GPIO_ConfigIOPin res: %d \r\n" % res)
         res = self.sio.GPIO_SetPortInDir(self._gpioport, self._gpiopin)
-        print('GPIO_SetPortInDir res: %d \r\n' % res)
+        print("GPIO_SetPortInDir res: %d \r\n" % res)
         res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
-        print('GPIO_GetPin res: %d \r\n' % res)
+        print("GPIO_GetPin res: %d \r\n" % res)
 
     def close(self):
         res = self._hSPIPort.Close()
@@ -305,31 +311,32 @@ class LIBUSBSIOSPITransport(FramedTransport):
     def _base_send(self, message):
         # Wait for SPI master-slave signalling GPIO pin to be in low state
         res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
-        while (1 == res):
+        while 1 == res:
             res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
         # Send the header first
         data, rxbytesnumber = self._hSPIPort.Transfer(
-            0, 15, message[:self.HEADER_LEN], self.HEADER_LEN, 0)
+            0, 15, message[: self.HEADER_LEN], self.HEADER_LEN, 0
+        )
         if rxbytesnumber > 0:
-            #print('SPI received %d number of bytes' % rxbytesnumber)
+            # print('SPI received %d number of bytes' % rxbytesnumber)
             # Send the payload/data
             data, rxbytesnumber = self._hSPIPort.Transfer(
-                0, 15, bytes(message[4:]), len(message) - self.HEADER_LEN, 0)
+                0, 15, bytes(message[4:]), len(message) - self.HEADER_LEN, 0
+            )
         else:
-            print('SPI transfer error: %d' % rxbytesnumber)
+            print("SPI transfer error: %d" % rxbytesnumber)
 
     def _base_receive(self, count):
         # Wait for SPI master-slave signalling GPIO pin to be in low state
         res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
-        while (1 == res):
+        while 1 == res:
             res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
-        data, rxbytesnumber = self._hSPIPort.Transfer(
-            0, 15, range(count), count, 0)
+        data, rxbytesnumber = self._hSPIPort.Transfer(0, 15, range(count), count, 0)
         if rxbytesnumber > 0:
-            #print('SPI received %d number of bytes' % rxbytesnumber)
+            # print('SPI received %d number of bytes' % rxbytesnumber)
             return bytes(data[:count])
         else:
-            print('SPI transfer error: %d' % rxbytesnumber)
+            print("SPI transfer error: %d" % rxbytesnumber)
             res = self._hSPIPort.Reset()
             return b"\00" * count
 
@@ -369,9 +376,9 @@ class LIBUSBSIOI2CTransport(FramedTransport):
                 self._gpiopin = 3
                 self._gpiomode = 0x100
             else:
-                print('No LIBUSBSIO devices found \r\n')
+                print("No LIBUSBSIO devices found \r\n")
                 return
-        print('Total LIBUSBSIO devices: %d \r\n' % res)
+        print("Total LIBUSBSIO devices: %d \r\n" % res)
 
         # Open device at given index
         self._hSIOPort = self.sio.Open(int(self._devidx))
@@ -379,28 +386,29 @@ class LIBUSBSIOI2CTransport(FramedTransport):
         # Get the device version
         s = self.sio.GetVersion()
         str1 = ""
-        print('Device version: %s \r\n ' % str1.join(str(s)))
+        print("Device version: %s \r\n " % str1.join(str(s)))
 
         # Get number of available I2C ports
         num_spi_ports = self.sio.GetNumI2CPorts()
-        print('Number of I2C ports available: %d \r\n' % num_spi_ports)
+        print("Number of I2C ports available: %d \r\n" % num_spi_ports)
 
         # Get max number of bytes supported for SPI/I2C transfers
         max_num_bytes = self.sio.GetMaxDataSize()
-        print('Max number of bytes supported for SPI/I2C transfers: %d \r\n' %
-              max_num_bytes)
+        print(
+            "Max number of bytes supported for SPI/I2C transfers: %d \r\n"
+            % max_num_bytes
+        )
 
         # Call I2C_Open and store the _hI2CPort handler
         self._hI2CPort = self.sio.I2C_Open(int(self._baudrate), 0, 0)
 
         # Configure GPIO pin for I2C master-slave signalling
-        res = self.sio.GPIO_ConfigIOPin(
-            self._gpioport, self._gpiopin, self._gpiomode)
-        print('GPIO_ConfigIOPin res: %d \r\n' % res)
+        res = self.sio.GPIO_ConfigIOPin(self._gpioport, self._gpiopin, self._gpiomode)
+        print("GPIO_ConfigIOPin res: %d \r\n" % res)
         res = self.sio.GPIO_SetPortInDir(self._gpioport, self._gpiopin)
-        print('GPIO_SetPortInDir res: %d \r\n' % res)
+        print("GPIO_SetPortInDir res: %d \r\n" % res)
         res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
-        print('GPIO_GetPin res: %d \r\n' % res)
+        print("GPIO_GetPin res: %d \r\n" % res)
 
     def close(self):
         res = self._hI2CPort.Close()
@@ -411,30 +419,32 @@ class LIBUSBSIOI2CTransport(FramedTransport):
     def _base_send(self, message):
         # Wait for I2C master-slave signalling GPIO pin to be in low state
         res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
-        while (1 == res):
+        while 1 == res:
             res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
         # Send the header first
         data, rxbytesnumber = self._hI2CPort.FastXfer(
-            0x7E, message[:self.HEADER_LEN], self.HEADER_LEN, 0, 0)
+            0x7E, message[: self.HEADER_LEN], self.HEADER_LEN, 0, 0
+        )
         if rxbytesnumber > 0:
-            #print('I2C received %d number of bytes' % rxbytesnumber)
+            # print('I2C received %d number of bytes' % rxbytesnumber)
             # Send the payload/data
             data, rxbytesnumber = self._hI2CPort.FastXfer(
-                0x7E, bytes(message[4:]), len(message) - self.HEADER_LEN, 0, 0)
+                0x7E, bytes(message[4:]), len(message) - self.HEADER_LEN, 0, 0
+            )
         else:
-            print('I2C transfer error: %d' % rxbytesnumber)
+            print("I2C transfer error: %d" % rxbytesnumber)
 
     def _base_receive(self, count):
         # Wait for I2C master-slave signalling GPIO pin to be in low state
         res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
-        while (1 == res):
+        while 1 == res:
             res = self.sio.GPIO_GetPin(self._gpioport, self._gpiopin)
         # Issue the I2C_Transfer API
         data, rxbytesnumber = self._hI2CPort.FastXfer(0x7E, 0, 0, count, 0)
         if rxbytesnumber > 0:
-            #print('I2C received %d number of bytes' % rxbytesnumber)
+            # print('I2C received %d number of bytes' % rxbytesnumber)
             return bytes(data[:count])
         else:
-            #print('I2C transfer error: %d' % rxbytesnumber)
+            # print('I2C transfer error: %d' % rxbytesnumber)
             res = self._hI2CPort.Reset()
             return b"\00" * count

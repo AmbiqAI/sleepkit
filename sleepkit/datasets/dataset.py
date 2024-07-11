@@ -72,7 +72,11 @@ class SKDataset(abc.ABC):
         raise NotImplementedError()
 
     def signal_generator(
-        self, subject_generator, samples_per_subject: int = 1, normalize: bool = True, epsilon: float = 1e-6
+        self,
+        subject_generator,
+        samples_per_subject: int = 1,
+        normalize: bool = True,
+        epsilon: float = 1e-6,
     ) -> SampleGenerator:
         """Generate frames using subject generator
 

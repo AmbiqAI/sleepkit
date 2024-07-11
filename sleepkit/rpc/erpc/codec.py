@@ -17,8 +17,7 @@ class MessageType(Enum):
     kNotificationMessage = 3
 
 
-MessageInfo = namedtuple(
-    'MessageInfo', ['type', 'service', 'request', 'sequence'])
+MessageInfo = namedtuple("MessageInfo", ["type", "service", "request", "sequence"])
 
 
 class CodecError(RuntimeError):
@@ -94,7 +93,7 @@ class Codec(object):
         raise NotImplementedError()
 
     def start_read_message(self):
-        """ Returns MessageInfo object.
+        """Returns MessageInfo object.
 
         Returns:
             MessageInfo: MessageInfo object.
@@ -141,7 +140,7 @@ class Codec(object):
         raise NotImplementedError()
 
     def start_read_list(self):
-        """ Function which should be called on list de-serialization.
+        """Function which should be called on list de-serialization.
 
         Returns:
             int: Int of list length.
@@ -149,7 +148,7 @@ class Codec(object):
         raise NotImplementedError()
 
     def start_read_union(self):
-        """ Function which should be called on union de-serialization.
+        """Function which should be called on union de-serialization.
 
         Returns:
             int: Int of union discriminator.

@@ -90,10 +90,14 @@ def demo(params: SKDemoParams):
     ts = [tod + datetime.timedelta(seconds=i / params.sampling_rate) for i in range(y_pred.size)]
 
     act_ahi = compute_apnea_hypopnea_index(
-        y_true, min_duration=int(10 * params.sampling_rate), sample_rate=params.sampling_rate
+        y_true,
+        min_duration=int(10 * params.sampling_rate),
+        sample_rate=params.sampling_rate,
     )
     pred_ahi = compute_apnea_hypopnea_index(
-        y_pred, min_duration=int(10 * params.sampling_rate), sample_rate=params.sampling_rate
+        y_pred,
+        min_duration=int(10 * params.sampling_rate),
+        sample_rate=params.sampling_rate,
     )
 
     logger.info(f"Actual AHI: {act_ahi:0.2f}")

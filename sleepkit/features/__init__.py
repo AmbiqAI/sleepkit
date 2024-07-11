@@ -14,4 +14,4 @@ FeatureStore.register(FeatSet04.name(), FeatSet04)
 FeatureStore.register(FeatSet05.name(), FeatSet05)
 FeatureStore.register(FeatSet06.name(), FeatSet06)
 
-from .generate import generate_feature_set  # pylint: disable=wrong-import-position
+from .generate import generate_feature_set  # noqa: E402

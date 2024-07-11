@@ -40,7 +40,9 @@ def authenticate_nsrr(token: str | None = None) -> str:
 
     # Attempt to authenticate
     response = requests.get(
-        "https://sleepdata.org/api/v1/account/profile.json", params={"auth_token": token}, timeout=30
+        "https://sleepdata.org/api/v1/account/profile.json",
+        params={"auth_token": token},
+        timeout=30,
     )
     authenticated = response.json()["authenticated"]
     if authenticated:
@@ -122,7 +124,13 @@ def download_nsrr_file(url: str, dst: Path, checksum: str, checksum_type: Litera
     """
 
     try:
-        download_file(src=url, dst=dst, checksum=checksum, checksum_type=checksum_type, progress=False)
+        download_file(
+            src=url,
+            dst=dst,
+            checksum=checksum,
+            checksum_type=checksum_type,
+            progress=False,
+        )
     except RuntimeError as error:
         # If the token is invalid for the requested dataset, the request is redirected to a
         # files overview page. The response is an HTML-page which doesn't have a

@@ -7,6 +7,7 @@
 
 import os
 import typing
+
 # Yocto and python27 combination
 if "IS_YOCTO" in os.environ:
     from . import erpc_version
@@ -22,15 +23,18 @@ else:
 
 
 class Reference(object):
-    """ Simple container class used for pass by reference.
-    """
+    """Simple container class used for pass by reference."""
 
     def __init__(self, value: typing.Any = None):
         # Read/write attribute holding the referent.
         self.value = value
 
     def __str__(self):
-        return "<%s@%x value=%s>" % (self.__class__.__name__, id(self), repr(self.value))
+        return "<%s@%x value=%s>" % (
+            self.__class__.__name__,
+            id(self),
+            repr(self.value),
+        )
 
     def __repr__(self):
         return self.__str__()

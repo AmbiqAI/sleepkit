@@ -46,7 +46,6 @@ class FeatSet05(SKFeatureSet):
         ds_name, subject_id = ds_subject
 
         try:
-
             sample_rate = int(args.sampling_rate)
 
             win_size = int(args.frame_size)
@@ -55,7 +54,12 @@ class FeatSet05(SKFeatureSet):
             # Load dataset specific signals
             if ds_name == "mesa":
                 ds_params = next((ds.params for ds in args.datasets if ds.name == ds_name), {})
-                ds = MesaDataset(ds_path=args.ds_path, is_commercial=True, target_rate=sample_rate, **ds_params)
+                ds = MesaDataset(
+                    ds_path=args.ds_path,
+                    is_commercial=True,
+                    target_rate=sample_rate,
+                    **ds_params,
+                )
 
                 # Read signals
                 duration = ds.get_subject_duration(subject_id=subject_id) * sample_rate
@@ -99,13 +103,25 @@ class FeatSet05(SKFeatureSet):
 
                 spo2 = np.clip(spo2, 50, 100)
                 piav = scipy.interpolate.interp1d(
-                    nn_ppeaks, piav, kind="linear", bounds_error=False, fill_value=np.nanmedian(piav)
+                    nn_ppeaks,
+                    piav,
+                    kind="linear",
+                    bounds_error=False,
+                    fill_value=np.nanmedian(piav),
                 )(ts)
                 piiv = scipy.interpolate.interp1d(
-                    nn_ppeaks, piiv, kind="linear", bounds_error=False, fill_value=np.nanmedian(piiv)
+                    nn_ppeaks,
+                    piiv,
+                    kind="linear",
+                    bounds_error=False,
+                    fill_value=np.nanmedian(piiv),
                 )(ts)
                 pifv = scipy.interpolate.interp1d(
-                    nn_ppeaks, pifv, kind="linear", bounds_error=False, fill_value=np.nanmedian(pifv)
+                    nn_ppeaks,
+                    pifv,
+                    kind="linear",
+                    bounds_error=False,
+                    fill_value=np.nanmedian(pifv),
                 )(ts)
                 ppg_qos = scipy.interpolate.interp1d(ppeaks, ppg_qos, kind="linear", bounds_error=False, fill_value=0)(
                     ts
@@ -154,8 +170,18 @@ class FeatSet05(SKFeatureSet):
 
             with h5py.File(str(args.save_path / ds_name / f"{subject_id}.h5"), "w") as h5:
                 h5.create_dataset("/features", data=features, compression="gzip", compression_opts=6)
-                h5.create_dataset("/stage_labels", data=slabels, compression="gzip", compression_opts=6)
-                h5.create_dataset("/apnea_labels", data=alabels, compression="gzip", compression_opts=6)
+                h5.create_dataset(
+                    "/stage_labels",
+                    data=slabels,
+                    compression="gzip",
+                    compression_opts=6,
+                )
+                h5.create_dataset(
+                    "/apnea_labels",
+                    data=alabels,
+                    compression="gzip",
+                    compression_opts=6,
+                )
                 h5.create_dataset("/mask", data=masks, compression="gzip", compression_opts=6)
             # END WITH
 

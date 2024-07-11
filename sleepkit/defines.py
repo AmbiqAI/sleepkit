@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+from keras_edge.converters.tflite import QuantizationType
 
 from .datasets.defines import AugmentationParams
 
@@ -32,10 +33,11 @@ class QuantizationParams(BaseModel, extra="allow"):
 
     enabled: bool = Field(False, description="Enable quantization")
     qat: bool = Field(False, description="Enable quantization aware training (QAT)")
-    ptq: bool = Field(False, description="Enable post training quantization (PTQ)")
-    input_type: str | None = Field(None, description="Input type")
-    output_type: str | None = Field(None, description="Output type")
-    supported_ops: list[str] | None = Field(None, description="Supported ops")
+    mode: QuantizationType = Field(QuantizationType.INT8, description="Quantization mode")
+    io_type: str = Field("int8", description="I/O type")
+    concrete: bool = Field(True, description="Use concrete function")
+    debug: bool = Field(False, description="Debug quantization")
+    fallback: bool = Field(False, description="Fallback to float32")
 
 
 class DatasetParams(BaseModel, extra="allow"):

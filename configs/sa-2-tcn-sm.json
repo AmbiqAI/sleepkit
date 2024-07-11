@@ -40,12 +40,11 @@
     "label_smoothing": 0,
     "backend": "pc",
     "quantization": {
-        "enabled": true,
         "qat": false,
-        "ptq": true,
-        "input_type": "int8",
-        "output_type": "int8",
-        "supported_ops": null
+        "mode": "INT8",
+        "io_type": "int8",
+        "concrete": true,
+        "debug": false
     },
     "architecture": {
         "name": "tcn",

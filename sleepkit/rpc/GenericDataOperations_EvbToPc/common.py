@@ -34,7 +34,9 @@ class command:
 
 # Structures data types declarations
 class dataBlock(object):
-    def __init__(self, length=None, dType=None, description=None, cmd=None, buffer=None):
+    def __init__(
+        self, length=None, dType=None, description=None, cmd=None, buffer=None
+    ):
         self.length = length  # uint32
         self.dType = dType  # dataType
         self.description = description  # string

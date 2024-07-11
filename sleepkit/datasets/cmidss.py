@@ -99,14 +99,17 @@ class CmidssDataset(SKDataset):
                 random.shuffle(subject_idxs)
             for subject_idx in subject_idxs:
                 subject_id = subject_ids[subject_idx]
-                yield subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id
+                yield (subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id)
             # END FOR
             if not repeat:
                 break
         # END WHILE
 
     def signal_generator2(
-        self, subject_generator: SubjectGenerator, signals: list[str], samples_per_subject: int = 1
+        self,
+        subject_generator: SubjectGenerator,
+        signals: list[str],
+        samples_per_subject: int = 1,
     ) -> SampleGenerator:
         """Randomly generate frames of data for given subjects.
 
@@ -130,7 +133,10 @@ class CmidssDataset(SKDataset):
                 for i, signal_label in enumerate(signals):
                     signal_label = signal_label.decode("ascii") if isinstance(signal_label, bytes) else signal_label
                     signal = self.load_signal_for_subject(
-                        subject_id, signal_label=signal_label, start=frame_start, data_size=self.frame_size
+                        subject_id,
+                        signal_label=signal_label,
+                        start=frame_start,
+                        data_size=self.frame_size,
                     )
                     signal_len = min(signal.size, x.shape[0])
                     x[:signal_len, i] = signal[:signal_len]
@@ -141,7 +147,11 @@ class CmidssDataset(SKDataset):
         # END FOR
 
     def load_signal_for_subject(
-        self, subject_id: str, signal_label: str, start: int = 0, data_size: int | None = None
+        self,
+        subject_id: str,
+        signal_label: str,
+        start: int = 0,
+        data_size: int | None = None,
     ) -> npt.NDArray[np.float32]:
         """Load signal into memory for subject at target rate (resampling if needed)
 
@@ -255,7 +265,13 @@ class CmidssDataset(SKDataset):
         df_lbls["datetime"] = pd.to_datetime(df_lbls["timestamp"], format="%Y-%m-%dT%H:%M:%S%z")
         return df, df_lbls
 
-    def _convert_subject_to_hdf5(self, subject_id: str, df: pd.DataFrame, df_lbls: pd.DataFrame, force: bool = False):
+    def _convert_subject_to_hdf5(
+        self,
+        subject_id: str,
+        df: pd.DataFrame,
+        df_lbls: pd.DataFrame,
+        force: bool = False,
+    ):
         """Extract subject data from parquet.
 
         Args:
@@ -294,7 +310,12 @@ class CmidssDataset(SKDataset):
 
         with h5py.File(sub_h5_path, mode="w") as h5:
             h5.create_dataset(name="/data", data=data, compression="gzip", compression_opts=5)
-            h5.create_dataset(name="/sleep_stages", data=labels, compression="gzip", compression_opts=5)
+            h5.create_dataset(
+                name="/sleep_stages",
+                data=labels,
+                compression="gzip",
+                compression_opts=5,
+            )
         # END WITH
 
     def get_subject_h5_path(self, subject_id: str) -> Path:
