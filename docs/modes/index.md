@@ -1,4 +1,4 @@
-# SleepKit Modes
+# SleepKit Task Modes
 
 ## <span class="sk-h2-span">Introduction</span>
 
@@ -8,42 +8,52 @@ Rather than offering a handful of static models, SleepKit provides a complete fr
 
 ## <span class="sk-h2-span">Available Modes</span>
 
-- **[Download](./download.md)**: Download specified datasets
-- **[Feature](../features/index.md)**: Generate features from datasets
-- **[Train](./train.md)**: Train a model for specified task and feature set
-- **[Evaluate](./evaluate.md)**: Evaluate a model for specified task and feature set
-- **[Export](./export.md)**: Export a trained model to TensorFlow Lite and TFLM
-- **[Demo](./demo.md)**: Run task-level demo on PC or remotely on Ambiq EVB
+<div class="grid cards" markdown>
+
+- :material-download: [**Download** datasets](./download.md)
+- :simple-chartdotjs: [**Feature** generation](../features/index.md)
+- :material-chart-ppf: [**Train** model](./train.md)
+- :material-ab-testing: [**Evaluate** model](./evaluate.md)
+- :material-export: [**Export** model](./export.md)
+- :material-hexagon-multiple: [**Demo** model](./demo.md)
+
+</div>
+
+---
+
+## <span class="sk-h2-span">[Download](./download.md)</span>
+
+[Download mode](./download.md) is used to download the specified datasets for the task. The routine can be customized via the configuration file or by setting the parameters directly in the code. The download process involves fetching the dataset(s) from the specified source and storing them in the specified directory.
 
 ---
 
 ## <span class="sk-h2-span">[Feature](../features/index.md)</span>
 
-Feature mode is used to generate features from the specified dataset(s). The routine can be customized via the configuration file or by setting the parameters directly in the code. The feature extraction process involves transforming the raw data into a format that can be used for training a machine learning model.
+[Feature mode](../features/index.md) is used to generate features from the specified dataset(s). The routine can be customized via the configuration file or by setting the parameters directly in the code. The feature extraction process involves transforming the raw data into a format that can be used for training a machine learning model.
 
 ---
 
 ## <span class="sk-h2-span">[Train](./train.md)</span>
 
-Train mode is used to train a model for the specified task and dataset. In this mode, the model is trained for a given task using the specified dataset(s), model architecture, and hyperparameters. The training process involves optimizing the model's parameters to maximize its performance on the training data.
+[Train mode](./train.md) is used to train a model for the specified task and features. In this mode, the model is trained for a given task using the specified features, model architecture, and hyperparameters. The training process involves optimizing the model's parameters to maximize its performance on the training data.
 
 ---
 
 ## <span class="sk-h2-span">[Evaluate](./evaluate.md)</span>
 
-Evaluate mode is used to test the performance of the model on the reserved test set for the specified task. The routine can be customized via the configuration file or by setting the parameters directly in the code. The evaluation process involves testing the model's performance on the test data to measure its accuracy, precision, recall, and F1 score.
+[Evaluate mode](./evaluate.md) is used to test the performance of the model on the reserved test set for the specified task. The routine can be customized via the configuration file or by setting the parameters directly in the code. The evaluation process involves testing the model's performance on the test data to measure its accuracy, precision, recall, and F1 score.
 
 ---
 
 ## <span class="sk-h2-span">[Export](./export.md)</span>
 
-Export mode is used to convert the trained model into a format that can be used for deployment onto Ambiq's family of SoCs. Currently, the command will convert the TensorFlow model into both TensorFlow Lite (TFL) and TensorFlow Lite for micro-controller (TFLM) variants. The command will also verify the models' outputs match.
+[Export mode](./export.md) is used to convert the trained model into a format that can be used for deployment onto Ambiq's family of SoCs. Currently, the command will convert the TensorFlow model into both TensorFlow Lite (TFL) and TensorFlow Lite for micro-controller (TFLM) variants. The command will also verify the models' outputs match.
 
 ---
 
 ## <span class="sk-h2-span">[Demo](./demo.md)</span>
 
-Demo mode is used to run a task-level demonstration on the trained model using the specified backend inference engine (e.g. PC or EVB). This is useful to showcase the model's performance in real-time and to verify its accuracy in a real-world scenario.
+[Demo mode](./demo.md) is used to run a task-level demonstration on the trained model using the specified backend inference engine (e.g. PC or EVB). This is useful to showcase the model's performance in real-time and to verify its accuracy in a real-world scenario.
 
 ---
 
@@ -59,18 +69,18 @@ Demo mode is used to run a task-level demonstration on the trained model using t
 
         <br>
         Generate features from dataset(s). <br>
-        Refer to [Feature Mode](./feature.md) for more details.
+        Refer to [Feature Mode](../features/index.md) for more details.
 
     === "Train"
 
         <br>
-        Train a model for specified task and dataset(s). <br>
+        Train a model for specified task and features. <br>
         Refer to [Train Mode](./train.md) for more details.
 
     === "Evaluate"
 
         <br>
-        Evaluate a model for specified task and dataset(s). <br>
+        Evaluate a model for specified task and features. <br>
         Refer to [Evaluate Mode](./evaluate.md) for more details.
 
     === "Export"

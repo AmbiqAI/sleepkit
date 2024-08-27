@@ -1,18 +1,19 @@
-"""NSRR python API for downloading datasets from [sleepdata.org](https://sleepdata.org).
+"""
+# NSRR python API for downloading datasets from [sleepdata.org](https://sleepdata.org).
+
 Adapted from [SleepECG](https://github.com/cbrnr/sleepecg/blob/main/sleepecg/io/utils.py)
 """
 
-import concurrent.futures
 import os
 from fnmatch import fnmatch
 from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import Literal
-
 import requests
-from tqdm import tqdm
 
-from ..utils import download_file
+from tqdm.contrib.concurrent import thread_map
+
+import neuralspot_edge as nse
 
 _nsrr_token = None
 
@@ -40,7 +41,9 @@ def authenticate_nsrr(token: str | None = None) -> str:
 
     # Attempt to authenticate
     response = requests.get(
-        "https://sleepdata.org/api/v1/account/profile.json", params={"auth_token": token}, timeout=30
+        "https://sleepdata.org/api/v1/account/profile.json",
+        params={"auth_token": token},
+        timeout=30,
     )
     authenticated = response.json()["authenticated"]
     if authenticated:
@@ -122,7 +125,13 @@ def download_nsrr_file(url: str, dst: Path, checksum: str, checksum_type: Litera
     """
 
     try:
-        download_file(src=url, dst=dst, checksum=checksum, checksum_type=checksum_type, progress=False)
+        nse.utils.download_file(
+            src=url,
+            dst=dst,
+            checksum=checksum,
+            checksum_type=checksum_type,
+            progress=False,
+        )
     except RuntimeError as error:
         # If the token is invalid for the requested dataset, the request is redirected to a
         # files overview page. The response is an HTML-page which doesn't have a
@@ -166,17 +175,13 @@ def download_nsrr(
     checksum_key = "file_checksum_md5" if checksum_type == "md5" else "file_size"
 
     # Download files in parallel
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-        list(
-            tqdm(
-                executor.map(
-                    lambda item: download_nsrr_file(
-                        url=download_url + item["full_path"],
-                        dst=db_dir / item["full_path"],
-                        checksum=str(item[checksum_key]),
-                        checksum_type=checksum_type,
-                    ),
-                    files_to_download,
-                )
-            )
-        )
+    thread_map(
+        lambda item: download_nsrr_file(
+            url=download_url + item["full_path"],
+            dst=db_dir / item["full_path"],
+            checksum=str(item[checksum_key]),
+            checksum_type=checksum_type,
+        ),
+        files_to_download,
+        max_workers=num_workers,
+    )

@@ -16,8 +16,7 @@ The following table provides the latest pre-trained models for sleep apnea. Belo
     - **Classes**: Normal, Apnea
     - **Frame Size**: 10 minutes
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-P-5](../features/featset01.md)
-    - **Feature Set**: [FS-W-P-5-1]()
+    - **Features**: [FS-W-P-5](../features/fs_w_p_5.md)
 
 ## <span class="sk-h2-span">Model Performance</span>
 
@@ -59,3 +58,14 @@ python -m ns_autodeploy \
 ```
 
 --8<-- "assets/zoo/apnea/apnea-model-hw-table.md"
+
+## <span class="sk-h2-span">Downloads</span>
+
+=== "SA-2-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/apnea/sa-2-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/apnea/sa-2-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/apnea/sa-2-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/apnea/sa-2-tcn-sm/latest/metrics.json)       | Metrics file                  |

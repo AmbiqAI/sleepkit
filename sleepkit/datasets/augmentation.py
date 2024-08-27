@@ -1,113 +1,103 @@
-import numpy as np
-import numpy.typing as npt
-import physiokit as pk
+import keras
 
-from .defines import AugmentationParams, PreprocessParams
+# import numpy as np
+import neuralspot_edge as nse
 
-
-def preprocess_pipeline(x: npt.NDArray, preprocesses: list[PreprocessParams], sample_rate: float) -> npt.NDArray:
-    """Apply preprocessing pipeline
-
-    Args:
-        x (npt.NDArray): Signal
-        preprocesses (list[PreprocessParams]): Preprocessing pipeline
-        sample_rate (float): Sampling rate in Hz.
-
-    Returns:
-        npt.NDArray: Preprocessed signal
-    """
-    for preprocess in preprocesses:
-        match preprocess.name:
-            case "filter":
-                x = pk.signal.filter_signal(x, sample_rate=sample_rate, **preprocess.params)
-            case "znorm":
-                x = pk.signal.normalize_signal(x, **preprocess.params)
-            case _:
-                raise ValueError(f"Unknown preprocess '{preprocess.name}'")
-        # END MATCH
-    # END FOR
-    return x
+from ..defines import NamedParams
+# from .nstdb import NstdbNoise
 
 
-def augment_pipeline(x: npt.NDArray, augmentations: list[AugmentationParams], sample_rate: float) -> npt.NDArray:
-    """Apply augmentation pipeline
+def create_augmentation_layer(augmentation: NamedParams) -> keras.Layer:
+    """Create an augmentation layer from a configuration
 
     Args:
-        x (npt.NDArray): Signal
-        augmentations (list[AugmentationParams]): Augmentations to apply
-        sample_rate: Sampling rate in Hz.
+        augmentation (NamedParams): Augmentation configuration
 
     Returns:
-        npt.NDArray: Augmented signal
+        keras.Layer: Augmentation layer
+
+    Example:
+
+    ```python
+    import sleepkit as sk
+    x = keras.random.normal
+    layer = sk.datasets.augmentation.create_augmentation_layer(
+        sk.NamedParams(name="random_noise", params={"factor": 0.01}),
+    )
+    y = layer(x)
+    ```
     """
-    x_sd = np.nanstd(x)
-    for augmentation in augmentations:
-        args = augmentation.args
-        match augmentation.name:
-            case "baseline_wander":
-                amplitude = args.get("amplitude", [0.05, 0.06])
-                frequency = args.get("frequency", [0, 1])
-                x = pk.signal.add_baseline_wander(
-                    x,
-                    amplitude=np.random.uniform(amplitude[0], amplitude[1]),
-                    frequency=np.random.uniform(frequency[0], frequency[1]),
-                    sample_rate=sample_rate,
-                    signal_sd=x_sd,
-                )
-            case "motion_noise":
-                amplitude = args.get("amplitude", [0.5, 1.0])
-                frequency = args.get("frequency", [0.4, 0.6])
-                x = pk.signal.add_motion_noise(
-                    x,
-                    amplitude=np.random.uniform(amplitude[0], amplitude[1]),
-                    frequency=np.random.uniform(frequency[0], frequency[1]),
-                    sample_rate=sample_rate,
-                    signal_sd=x_sd,
-                )
-            case "burst_noise":
-                amplitude = args.get("amplitude", [0.05, 0.5])
-                frequency = args.get("frequency", [sample_rate / 4, sample_rate / 2])
-                burst_number = args.get("burst_number", [0, 2])
-                x = pk.signal.add_burst_noise(
-                    x,
-                    amplitude=np.random.uniform(amplitude[0], amplitude[1]),
-                    frequency=np.random.uniform(frequency[0], frequency[1]),
-                    num_bursts=np.random.randint(burst_number[0], burst_number[1]),
-                    sample_rate=sample_rate,
-                    signal_sd=x_sd,
-                )
-            case "powerline_noise":
-                amplitude = args.get("amplitude", [0.005, 0.01])
-                frequency = args.get("frequency", [50, 60])
-                x = pk.signal.add_powerline_noise(
-                    x,
-                    amplitude=np.random.uniform(amplitude[0], amplitude[1]),
-                    frequency=np.random.uniform(frequency[0], frequency[1]),
-                    sample_rate=sample_rate,
-                    signal_sd=x_sd,
-                )
-            case "noise_sources":
-                num_sources = args.get("num_sources", [1, 2])
-                amplitude = args.get("amplitude", [0, 0.1])
-                frequency = args.get("frequency", [0, sample_rate / 2])
-                num_sources: int = np.random.randint(num_sources[0], num_sources[1])
-                x = pk.signal.add_noise_sources(
-                    x,
-                    amplitudes=[np.random.uniform(amplitude[0], amplitude[1]) for _ in range(num_sources)],
-                    frequencies=[np.random.uniform(frequency[0], frequency[1]) for _ in range(num_sources)],
-                    noise_shapes=["laplace" for _ in range(num_sources)],
-                    sample_rate=sample_rate,
-                    signal_sd=x_sd,
-                )
-            case "lead_noise":
-                scale = args.get("scale", [1e-3, 1e-2])
-                x = pk.signal.add_lead_noise(
-                    x,
-                    scale=x_sd * np.random.uniform(scale[0], scale[1]),
-                )
-            case _:  # default
-                pass
-                # raise ValueError(f"Unknown augmentation '{augmentation.name}'")
-        # END MATCH
-    # END FOR
-    return x
+    match augmentation.name:
+        case "amplitude_warp":
+            return nse.layers.preprocessing.AmplitudeWarp(**augmentation.params)
+        case "augmentation_pipeline":
+            return create_augmentation_pipeline(augmentation.params)
+        case "random_augmentation":
+            return nse.layers.preprocessing.RandomAugmentation1DPipeline(
+                layers=[
+                    create_augmentation_layer(augmentation)
+                    for augmentation in [NamedParams(**p) for p in augmentation.params["layers"]]
+                ],
+                augmentations_per_sample=augmentation.params.get("augmentations_per_sample", 3),
+                rate=augmentation.params.get("rate", 1.0),
+                batchwise=True,
+            )
+        case "random_background_noise":
+            pass
+            # nstdb = NstdbNoise(target_rate=sampling_rate)
+            # noises = np.hstack(
+            #     (nstdb.get_noise(noise_type="bw"), nstdb.get_noise(noise_type="ma"), nstdb.get_noise(noise_type="em"))
+            # )
+            # noises = noises.astype(np.float32)
+            # return nse.layers.preprocessing.RandomBackgroundNoises1D(noises=noises, **augmentation.params)
+        case "random_sine_wave":
+            return nse.layers.preprocessing.RandomSineWave(**augmentation.params)
+        case "random_cutout":
+            return nse.layers.preprocessing.RandomCutout1D(**augmentation.params)
+        case "random_noise":
+            return nse.layers.preprocessing.RandomGaussianNoise1D(**augmentation.params)
+        case "random_noise_distortion":
+            return nse.layers.preprocessing.RandomNoiseDistortion1D(**augmentation.params)
+        case "resizing":
+            return nse.layers.preprocessing.Resizing1D(**augmentation.params)
+        case "sine_wave":
+            return nse.layers.preprocessing.AddSineWave(**augmentation.params)
+        case "filter":
+            return nse.layers.preprocessing.CascadedBiquadFilter(**augmentation.params)
+        case "layer_norm":
+            return nse.layers.preprocessing.LayerNormalization1D(**augmentation.params)
+        case _:
+            raise ValueError(f"Unknown augmentation '{augmentation.name}'")
+    # END MATCH
+
+
+def create_augmentation_pipeline(augmentations: list[NamedParams]) -> nse.layers.preprocessing.AugmentationPipeline:
+    """Create an augmentation pipeline from a list of augmentation configurations.
+
+    This is useful when running from a configuration file to hydrate the pipeline.
+
+    Args:
+        augmentations (list[NamedParams]): List of augmentation configurations
+
+    Returns:
+        nse.layers.preprocessing.AugmentationPipeline: Augmentation pipeline
+
+    Example:
+
+    ```python
+    import sleepkit as sk
+    x = keras.random.normal(shape=(256, 1), dtype="float32")
+
+    augmenter = sk.datasets.create_augmentation_pipeline([
+        sk.NamedParams(name="random_noise", params={"factor": 0.01}),
+        sk.NamedParams(name="random_cutout", params={"factor": 0.01, "cutouts": 2}),
+    ])
+
+    y = augmenter(x)
+    """
+    if not augmentations:
+        return keras.layers.Lambda(lambda x: x)
+    aug = nse.layers.preprocessing.AugmentationPipeline(
+        layers=[create_augmentation_layer(augmentation) for augmentation in augmentations]
+    )
+    return aug

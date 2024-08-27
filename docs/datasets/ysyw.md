@@ -21,19 +21,3 @@ The YSYW dataset is available commercial use under [Open Data Commons Attributio
 * [Sleep Stage](../tasks/stage.md)
 * [Sleep Apnea](../tasks/apnea.md)
 * [Sleep Arousal](../tasks/arousal.md)
-
-## <span class="sk-h2-span">Usage</span>
-
-!!! Example Python
-
-    ```python
-    from pathlib import Path
-    import sleepkit as sk
-
-    # Download dataset
-    sk.datasets.download_datasets(sk.SKDownloadParams(
-        ds_path=Path("./datasets"),
-        datasets=["ysyw"],
-        progress=True
-    ))
-    ```

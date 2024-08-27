@@ -5,14 +5,13 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from tqdm import tqdm
+import neuralspot_edge as nse
 
-from ...defines import SKDemoParams
-from ...rpc import BackendFactory
-from ...utils import setup_logger
+from ...defines import TaskParams
+from ...backends import BackendFactory
+from ...features import H5Dataloader
 from .metrics import compute_sleep_stage_durations
-from .utils import load_dataset
-
-logger = setup_logger(__name__)
+from .utils import subject_data_preprocessor
 
 
 def get_stage_color_map(num_classes) -> dict[int, str]:
@@ -36,48 +35,46 @@ def get_stage_color_map(num_classes) -> dict[int, str]:
     raise ValueError("Invalid number of classes")
 
 
-def demo(params: SKDemoParams):
+def demo(params: TaskParams):
     """Run sleep stage classification demo.
 
     Args:
-        params (SKDemoParams): Demo parameters
+        params (TaskParams): Demo parameters
     """
+    logger = nse.utils.setup_logger(__name__)
+
     bg_color = "rgba(38,42,50,1.0)"
     plotly_template = "plotly_dark"
 
-    sleep_classes = sorted(list(set(params.class_map.values())))
+    sleep_classes = sorted(set(params.class_map.values()))
     class_names = params.class_names or [f"Class {i}" for i in range(params.num_classes)]
     class_colors = get_stage_color_map(params.num_classes)
 
-    logger.info("Setting up")
+    logger.debug("Setting up")
 
     # Load backend inference engine
-    runner = BackendFactory.create(params.backend, params=params)
+    runner = BackendFactory.get(params.backend)(params=params)
 
-    # Load data handler
-    ds = load_dataset(
-        ds_path=params.ds_path,
+    # Load features
+    dataloader = H5Dataloader(
+        path=params.feature.save_path,
         frame_size=params.frame_size,
-        dataset=params.dataset,
+        feat_key=params.feature.feat_key,
+        label_key=params.feature.label_key,
+        mask_key=params.feature.mask_key,
+        feat_cols=params.feature.feat_cols,
+        class_map=params.class_map,
     )
 
     # Load entire subject's features
-    subject_id = random.choice(ds.subject_ids)
-    logger.info(f"Loading subject {subject_id} data")
-    features, _, _ = ds.load_subject_data(subject_id=subject_id, normalize=False)
-    x, y_true, y_mask = ds.load_subject_data(subject_id=subject_id, normalize=True)
-
-    # max_xlen = int((4*24*1)/params.sampling_rate)
-    # features = features[:max_xlen]
-    # x = x[:max_xlen]
-    # y_true = y_true[:max_xlen]
-    # y_mask = y_mask[:max_xlen]
-
-    y_true = np.vectorize(params.class_map.get)(y_true)
+    subject_id = random.choice(dataloader.subject_ids)
+    logger.debug(f"Loading subject {subject_id} data")
+    features, _, _ = dataloader.load_subject_data(subject_id=subject_id, preprocessor=None)
+    x, y_true, y_mask = dataloader.load_subject_data(subject_id=subject_id, preprocessor=subject_data_preprocessor)
 
     # Run inference
     runner.open()
-    logger.info("Running inference")
+    logger.debug("Running inference")
     y_pred = np.zeros_like(y_true)
     for i in tqdm(range(0, x.shape[0], params.frame_size), desc="Inference"):
         if i + params.frame_size > x.shape[0]:
@@ -99,7 +96,7 @@ def demo(params: SKDemoParams):
     ts = [tod + datetime.timedelta(seconds=(1.0 / params.sampling_rate) * i) for i in range(y_pred.size)]
 
     # Report
-    logger.info("Generating report")
+    logger.debug("Generating report")
     fig = make_subplots(
         rows=2,
         cols=2,
@@ -223,4 +220,4 @@ def demo(params: SKDemoParams):
     fig.write_html(params.job_dir / "demo.html", include_plotlyjs="cdn", full_html=False)
     fig.show()
 
-    logger.info(f"Report saved to {params.job_dir / 'demo.html'}")
+    logger.debug(f"Report saved to {params.job_dir / 'demo.html'}")

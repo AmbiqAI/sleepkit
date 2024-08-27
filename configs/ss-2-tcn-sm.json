@@ -1,18 +1,31 @@
 {
     "name": "ss-2-tcn-sm",
     "job_dir": "./results/ss-2-tcn-sm",
-    "ds_path": "./datasets/store/fs-w-pa-14-60/mesa",
-    "dataset": {
-        "name": "hdf5",
+    "verbose": 2,
+
+    "datasets": [{
+        "name": "mesa",
         "params": {
-            "feat_key": "features",
-            "label_key": "stage_labels",
-            "mask_key": "mask"
+            "path": "./datasets/mesa"
         }
+    }],
+
+    "feature": {
+        "name": "FS-W-PA-14",
+        "sampling_rate": 64,
+        "frame_size": 3840,
+        "loader": "hdf5",
+        "feat_key": "features",
+        "label_key": "stage_labels",
+        "mask_key": "mask",
+        "feat_cols": null,
+        "save_path": "./datasets/store/fs-w-pa-14-60",
+        "params": {}
     },
+
     "sampling_rate": 0.03333,
     "frame_size": 240,
-    "model_file": "model.keras",
+
     "num_classes": 2,
     "class_map": {
         "0": 0,
@@ -23,13 +36,16 @@
         "5": 1
     },
     "class_names": ["WAKE", "SLEEP"],
+
     "samples_per_subject": 20,
     "val_samples_per_subject": 20,
-    "val_subjects": 0.20,
-    "val_size": 7000,
-    "val_acc_threshold": 0.98,
     "test_samples_per_subject": 20,
+
+    "val_size": 7000,
     "test_size": 7000,
+
+    "val_subjects": 0.20,
+    "val_acc_threshold": 0.98,
     "batch_size": 128,
     "buffer_size": 25000,
     "epochs": 150,
@@ -39,15 +55,25 @@
     "lr_cycles": 1,
     "class_weights": "balanced",
     "label_smoothing": 0,
+
+    "test_metric": "f1",
+    "test_metric_threshold": 0.02,
+    "tflm_var_name": "sk_stage_flatbuffer",
+    "tflm_file": "sk_stage_flatbuffer.h",
+
     "backend": "pc",
+    "display_report": true,
+
     "quantization": {
-        "enabled": true,
         "qat": false,
-        "ptq": true,
-        "input_type": "int8",
-        "output_type": "int8",
-        "supported_ops": null
+        "mode": "INT8",
+        "io_type": "int8",
+        "concrete": true,
+        "debug": false
     },
+
+    "model_file": "model.keras",
+    "use_logits": false,
     "architecture": {
         "name": "tcn",
         "params": {

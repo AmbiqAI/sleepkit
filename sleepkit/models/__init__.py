@@ -1,19 +1,105 @@
-from .defines import MBConvParams
-from .efficientnet import EfficientNetParams, EfficientNetV2, efficientnetv2_from_object
-from .factory import ModelFactory
-from .mobileone import MobileOne, MobileOneU0, mobileone_from_object
-from .multiresnet import MultiresNet, MultiresNetParams, multiresnet_from_object
-from .resnet import ResNet, ResNetBlockParams, ResNetParams, resnet_from_object
-from .tcn import Tcn, TcnBlockParams, TcnParams, tcn_from_object
-from .tsmixer import TsBlockParams, TsMixer, TsMixerParams, tsmixer_from_object
-from .unet import UNet, UNetBlockParams, UNetParams, unet_from_object
-from .unext import UNext, UNextBlockParams, UNextParams, unext_from_object
+"""
+# :material-graph: Models API
 
-ModelFactory.register("unet", unet_from_object)
-ModelFactory.register("unext", unext_from_object)
-ModelFactory.register("resnet", resnet_from_object)
-ModelFactory.register("multiresnet", multiresnet_from_object)
-ModelFactory.register("efficientnetv2", efficientnetv2_from_object)
-ModelFactory.register("mobileone", mobileone_from_object)
-ModelFactory.register("tsmixer", tsmixer_from_object)
-ModelFactory.register("tcn", tcn_from_object)
+SleepKit provides a number of model architectures that can be used for training __sleep-monitoring tasks__.
+While a number of off-the-shelf models exist, they are often not efficient nor optimized for real-time, edge applications.
+To address this, SleepKit provides a model factory that allows you to easily create and train customized models via [neuralspot-edge](https://ambiqai.github.io/neuralspot-edge/).
+`neuralspot-edge` includes a growing number of state-of-the-art models that can be easily configured and trained using high-level parameters.
+The models are designed to be efficient and well-suited for real-time, edge applications.
+Most of the models are based on state-of-the-art architectures that have been modified to allow for more fine-grain customization.
+In addition, the models support 1D variants to allow for training on time-series data.
+
+Please check [neuralspot-edge](https://ambiqai.github.io/neuralspot-edge/) for list of available models and their configurations.
+
+## Available Models
+
+- **[TCN](https://ambiqai.github.io/neuralspot-edge/models/tcn)**: A CNN leveraging dilated convolutions (key=`tcn`)
+- **[U-Net](https://ambiqai.github.io/neuralspot-edge/models/unet)**: A CNN with encoder-decoder architecture for segmentation tasks (key=`unet`)
+- **[U-NeXt](https://ambiqai.github.io/neuralspot-edge/models/unext)**: A U-Net variant leveraging MBConv blocks (key=`unext`)
+- **[EfficientNetV2](https://ambiqai.github.io/neuralspot-edge/models/efficientnet)**: A CNN leveraging MBConv blocks (key=`efficientnet`)
+- **[MobileOne](https://ambiqai.github.io/neuralspot-edge/models/mobileone)**: A CNN aimed at sub-1ms inference (key=`mobileone`)
+- **[ResNet](https://ambiqai.github.io/neuralspot-edge/models/resnet)**: A popular CNN often used for vision tasks (key=`resnet`)
+- **[Conformer](https://ambiqai.github.io/neuralspot-edge/models/conformer)**: A transformer composed of both convolutional and self-attention blocks (key=`conformer`)
+- **[MetaFormer](https://ambiqai.github.io/neuralspot-edge/models/metaformer)**: A transformer composed of both spatial mixing and channel mixing blocks (key=`metaformer`)
+- **[TSMixer](https://ambiqai.github.io/neuralspot-edge/models/tsmixer)**: An All-MLP Architecture for Time Series Classification (key=`tsmixer`)
+
+
+## Model Factory
+
+The ModelFactory provides a convenient way to access the built-in models.
+
+```py linenums="1"
+import sleepkit as sk
+
+for model in sk.ModelFactory.list():
+    print(f"Model name: {model} - {sk.ModelFactory.get(model)}")
+```
+
+## Usage
+
+A model architecture can easily be instantied by providng a custom set of parameters to the model factory. Each model exposes a set of parameters defined using `Pydantic` to ensure type safety and consistency.
+
+
+!!! Example
+
+    The following example demonstrates how to create a TCN model using the `Tcn` class. The model is defined using a set of parameters defined in the `TcnParams` and `TcnBlockParams` classes.
+
+    ```py linenums="1"
+    import keras
+    from neuralspot_edge.models import TcnModel, TcnParams, TcnBlockParams
+
+    inputs = keras.Input(shape=(800, 1))
+    num_classes = 5
+
+    model = TcnModel.model_from_params(
+        x=inputs,
+        params=TcnParams(
+            input_kernel=(1, 3),
+            input_norm="batch",
+            blocks=[
+                TcnBlockParams(filters=8, kernel=(1, 3), dilation=(1, 1), dropout=0.1, ex_ratio=1, se_ratio=0, norm="batch"),
+                TcnBlockParams(filters=16, kernel=(1, 3), dilation=(1, 2), dropout=0.1, ex_ratio=1, se_ratio=0, norm="batch"),
+                TcnBlockParams(filters=24, kernel=(1, 3), dilation=(1, 4), dropout=0.1, ex_ratio=1, se_ratio=4, norm="batch"),
+                TcnBlockParams(filters=32, kernel=(1, 3), dilation=(1, 8), dropout=0.1, ex_ratio=1, se_ratio=4, norm="batch"),
+            ],
+            output_kernel=(1, 3),
+            include_top=True,
+            use_logits=True,
+            model_name="tcn",
+        ),
+        num_classes=num_classes,
+    )
+    ```
+
+"""
+
+from typing import Protocol
+
+import keras
+import neuralspot_edge as nse
+
+
+class ModelFactoryItem(Protocol):
+    def __call__(self, inputs: keras.KerasTensor, params: dict, num_classes: int) -> keras.Model: ...
+
+    """ModelFactoryItem is a protocol for model factory items.
+
+    Args:
+        inputs (keras.KerasTensor): Input tensor
+        params (dict): Model parameters
+        num_classes (int): Number of classes
+
+    Returns:
+        keras.Model: Model
+    """
+
+
+ModelFactory = nse.utils.ItemFactory[ModelFactoryItem].shared("SKModelFactory")
+
+ModelFactory.register("unet", nse.models.UNetModel.model_from_params)
+ModelFactory.register("unext", nse.models.UNetModel.model_from_params)
+ModelFactory.register("resnet", nse.models.ResNetModel.model_from_params)
+ModelFactory.register("efficientnetv2", nse.models.EfficientNetV2Model.model_from_params)
+ModelFactory.register("mobileone", nse.models.MobileOneModel.model_from_params)
+ModelFactory.register("tcn", nse.models.TcnModel.model_from_params)
+ModelFactory.register("composer", nse.models.ComposerModel.model_from_params)

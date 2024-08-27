@@ -1,8 +1,3 @@
-import json
-
-from sleepkit import cli
-
-
 def test_app_cli_help():
     """Verify APP CLI provides help dialog."""
     assert True

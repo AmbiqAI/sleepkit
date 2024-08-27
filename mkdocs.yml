@@ -23,20 +23,18 @@ nav:
       - Detect: tasks/detect.md
       - Stage: tasks/stage.md
       - Apnea: tasks/apnea.md
-      # - Arousal: tasks/arousal.md
       - BYOT: tasks/byot.md
-    - Model Zoo:
-      - zoo/index.md
-    - Models:
-      - models/index.md
     - Datasets:
       - datasets/index.md
-    - "Feature Store":
+    - Features:
       - features/index.md
-    - Experiments:
-      - experiments/index.md
+    - Models:
+      - models/index.md
+    - Model Zoo:
+      - zoo/index.md
     - Guides:
       - guides/index.md
+    - API: api/
 
   - Quickstart:
     - quickstart.md
@@ -44,38 +42,22 @@ nav:
       - CLI: usage/cli.md
       - Python: usage/python.md
 
+  - Tasks:
+    - tasks/index.md
+    - Detect: tasks/detect.md
+    - Stage: tasks/stage.md
+    - Apnea: tasks/apnea.md
+    - BYOT: tasks/byot.md
+
   - Modes:
     - modes/index.md
+    - Configuration: modes/configuration.md
     - Download: modes/download.md
     - Feature: features/index.md
     - Train: modes/train.md
     - Evaluate: modes/evaluate.md
     - Export: modes/export.md
     - Demo: modes/demo.md
-
-  - Tasks:
-    - tasks/index.md
-    - Detect: tasks/detect.md
-    - Stage: tasks/stage.md
-    - Apnea: tasks/apnea.md
-    # - Arousal: tasks/arousal.md
-    - BYOT: tasks/byot.md
-
-  - Model Zoo:
-    - zoo/index.md
-    - Detect: zoo/detect.md
-    - Stage: zoo/stage.md
-    - Apnea: zoo/apnea.md
-    # - Arousal: zoo/arousal.md
-
-  - Models:
-    - models/index.md
-    - TCN: models/tcn.md
-    - EfficientNetV2: models/efficientnet.md
-    - MobileOne: models/mobileone.md
-    - UNet: models/unet.md
-    - UNeXt: models/unext.md
-    - ResNet: models/resnet.md
 
   - Datasets:
     - datasets/index.md
@@ -86,28 +68,31 @@ nav:
     - Synthetic: datasets/synthetic.md
     - BYOD: datasets/byod.md
 
-  - "Feature Store":
+  - Features:
     - features/index.md
-    - FS-W-PA-14: features/featset01.md
-    - FS-C-EAR-9: features/featset02.md
-    - FS-W-A-5: features/featset03.md
-    - FS-H-E-10: features/featset04.md
-    - FS-W-P-5: features/featset05.md
+    - FS-W-PA-14: features/fs_w_pa_14.md
+    - FS-C-EAR-9: features/fs_c_ear_9.md
+    - FS-W-A-5: features/fs_w_a_5.md
+    - FS-H-E-10: features/fs_h_e_10.md
+    - FS-W-P-5: features/fs_w_p_5.md
     - BYOFS: features/byofs.md
 
-  - Experiments:
-    - experiments/index.md
-    - "Sleep Staging Ablation": experiments/stage-ablation.md
+  - Models:
+    - models/index.md
+    - BYOM: models/byom.md
+
+  - Model Zoo:
+    - zoo/index.md
+    - Detect: zoo/detect.md
+    - Stage: zoo/stage.md
+    - Apnea: zoo/apnea.md
 
   - Guides:
     - guides/index.md
+    - "Sleep Staging Ablation": guides/stage-ablation.md
     - "Train Sleep Detection": guides/train-detect-model.md
 
-  - Reference:
-    - SleepKit: api/sleepkit.md
-    - Datasets: api/datasets.md
-    - Models: api/models.md
-    - Tasks: api/tasks.md
+  - API: api/
 
 theme:
   name: material
@@ -161,6 +146,11 @@ theme:
 
 plugins:
   - search
+  - gen-files:
+      scripts:
+      - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: summary.md
   - mkdocstrings:
       handlers:
         python:
@@ -168,10 +158,30 @@ plugins:
           - https://docs.python.org/3/objects.inv
           - https://numpy.org/doc/stable/objects.inv
           options:
+            show_bases: false
             docstring_style: google
             docstring_section_style: list
-            line_length: 92
-            show_root_heading: true
+            line_length: 120
+            show_root_heading: false
+            heading_level: 2
+            merge_init_into_class: true
+            show_root_full_path: false
+            parameter_headings: true
+            show_symbol_type_heading: true
+            group_by_category: true
+            show_category_heading: true
+            modernize_annotations: true
+            members_order: source
+            filters: ["!^_", "^__init__$"]
+            separate_signature: true
+            show_signature: true
+            show_signature_annotations: true
+            show_docstring_attributes: true
+            show_source: true
+
+  - mkdocs-jupyter:
+      include_requirejs: true
+      include_source: true
 
 extra_css:
   - css/mkdocstrings.css
@@ -181,6 +191,7 @@ extra_css:
 extra_javascript:
   - js/termynal.js
   - js/custom.js
+  - https://cdn.plot.ly/plotly-2.33.0.min.js
 
 markdown_extensions:
   - admonition

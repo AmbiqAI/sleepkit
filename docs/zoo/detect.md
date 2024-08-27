@@ -18,12 +18,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, Sleep
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-A-5](../features/featset03.md)
-    - **Feature Set**: [FS-W-A-5-60]()
-
-    ??? note "Configuration"
-
-        --8<-- "assets/zoo/detect/sleep-detect-2-config.md"
+    - **Features**: [FS-W-A-5](../features/fs_w_a_5.md)
 
 ## <span class="sk-h2-span">Model Performance</span>
 
@@ -70,3 +65,15 @@ python -m ns_autodeploy \
 ```
 
 --8<-- "assets/zoo/detect/detect-model-hw-table.md"
+
+
+## <span class="sk-h2-span">Downloads</span>
+
+=== "SD-2-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/detect/sd-2-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/detect/sd-2-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/detect/sd-2-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/detect/sd-2-tcn-sm/latest/metrics.json)       | Metrics file                  |

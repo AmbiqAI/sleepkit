@@ -1,28 +1,23 @@
----
-hide:
-  - toc
----
-
-# Model Zoo
+# :material-graph: Model Zoo
 
 A number of pre-trained models are available for download to use in your own project. These models are trained on the datasets listed below and are available in TensorFlow flatbuffer formats.
 
-## <span class="sk-h2-span">Sleep Detect</span>
+## <span class="sk-h2-span">[Sleep Detect](./detect.md)</span>
 
-The following table provides the latest performance and accuracy results for sleep detection models. Additional result details can be found in [Zoo → Detect](./detect.md).
+The following table provides the latest performance and accuracy results for sleep detection models.
 
 --8<-- "assets/zoo/detect/detect-model-zoo-table.md"
 
 
-## <span class="sk-h2-span">Sleep Stage</span>
+## <span class="sk-h2-span">[Sleep Stage](./stage.md)</span>
 
-The following table provides the latest performance and accuracy results for sleep staging models. Additional result details can be found in [Zoo → Stage](./stage.md).
+The following table provides the latest performance and accuracy results for sleep staging models.
 
 --8<-- "assets/zoo/stage/stage-model-zoo-table.md"
 
-## <span class="sk-h2-span">Sleep Apnea</span>
+## <span class="sk-h2-span">[Sleep Apnea](./apnea.md)</span>
 
-The following table provides the latest performance and accuracy results for sleep apnea detection models. Additional result details can be found in [Zoo → Apnea](./apnea.md).
+The following table provides the latest performance and accuracy results for sleep apnea detection models.
 
 --8<-- "assets/zoo/apnea/apnea-model-zoo-table.md"
 

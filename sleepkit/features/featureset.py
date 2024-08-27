@@ -1,17 +1,19 @@
+"""
+# Feature Set Abstract Class API
+
+The `FeatureSet` abstract class defines the interface for feature sets in sleep analysis tasks.
+
+Classes:
+    FeatureSet: Abstract class for feature
+
+"""
+
 import abc
 
-from ..defines import SKFeatureParams
+from ..defines import TaskParams
 
 
-class PoorSignalError(Exception):
-    """Poor signal error."""
-
-
-class NoSignalError(Exception):
-    """No signal error."""
-
-
-class SKFeatureSet(abc.ABC):
+class FeatureSet(abc.ABC):
     """Feature set abstract class."""
 
     @staticmethod
@@ -25,11 +27,12 @@ class SKFeatureSet(abc.ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def generate_features(ds_subject: tuple[str, str], args: SKFeatureParams):
-        """Generate features for dataset subject.
+    def generate_subject_features(subject_id: str, ds_name: str, params: TaskParams):
+        """Generate features for given dataset and subject.
 
         Args:
-            ds_subject (tuple[str, str]): Dataset name and subject ID
-            args (SKFeatureParams): Feature generation parameters
+            subject_id (str): Subject ID
+            ds_name (str): Dataset name
+            params (TaskParams): Feature generation parameters
         """
         raise NotImplementedError()

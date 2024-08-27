@@ -8,7 +8,7 @@ DILATION_RATE = 2
 # Create example dilated convolutional model
 inputs = tf.keras.layers.Input(shape=INPUT_SHAPE)
 y = inputs
-y = tf.keras.layers.Convolution1D(1, 3, dilation_rate=DILATION_RATE, padding='same')(y)
+y = tf.keras.layers.Convolution1D(1, 3, dilation_rate=DILATION_RATE, padding="same")(y)
 model = tf.keras.Model(inputs=inputs, outputs=y)
 
 
@@ -20,10 +20,12 @@ tflite_model = converter.convert()
 tfl_interpreter = tf.lite.Interpreter(model_content=tflite_model)
 tfl_interpreter.allocate_tensors()
 
-tflm_interpreter = tflm.runtime.Interpreter.from_bytes(tflite_model, intrepreter_config=tflm.runtime.InterpreterConfig.kPreserveAllTensors)
+tflm_interpreter = tflm.runtime.Interpreter.from_bytes(
+    tflite_model, intrepreter_config=tflm.runtime.InterpreterConfig.kPreserveAllTensors
+)
 
 # Create input tensor of 1s
-x = np.ones((1,)+INPUT_SHAPE, dtype=np.float32)
+x = np.ones((1,) + INPUT_SHAPE, dtype=np.float32)
 
 # Invoke TF, TFLite and TFLM models using same input
 y_tf = model(x)

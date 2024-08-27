@@ -1,4 +1,4 @@
-# Sleep Stage Assessment
+# :material-sleep: Sleep Stage Task
 
 ## <span class="sk-h2-span">Overview</span>
 

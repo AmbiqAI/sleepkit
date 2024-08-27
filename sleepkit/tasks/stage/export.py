@@ -1,143 +1,124 @@
-"""Sleep Stage Export"""
-
-import logging
 import os
 import shutil
 
 import keras
 import numpy as np
-import tensorflow as tf
-import tensorflow_model_optimization as tfmot
+import neuralspot_edge as nse
 
-from ... import tflite as tfa
-from ...defines import SKExportParams
-from ...metrics import f1_score
-from ...utils import setup_logger
-from .utils import load_dataset, load_test_dataset
-
-logger = setup_logger(__name__)
+from ...defines import TaskParams
+from ...features import H5Dataloader
+from .utils import create_data_pipeline
 
 
-def export(params: SKExportParams):
+def export(params: TaskParams):
     """Export sleep stage model.
 
     Args:
-        params (SKExportParams): Deployment parameters
+        params (TaskParams): Deployment parameters
     """
 
-    logger.info(f"Creating working directory in {params.job_dir}")
     os.makedirs(params.job_dir, exist_ok=True)
-
-    handler = logging.FileHandler(params.job_dir / "export.log", mode="w")
-    handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
-
-    # target_classes = sorted(list(set(params.class_map.values())))
-    # class_names = params.class_names or [f"Class {i}" for i in range(params.num_classes)]
+    logger = nse.utils.setup_logger(__name__, level=params.verbose, file_path=params.job_dir / "export.log")
+    logger.debug(f"Creating working directory in {params.job_dir}")
 
     tfl_model_path = params.job_dir / "model.tflite"
     tflm_model_path = params.job_dir / "model_buffer.h"
 
-    ds = load_dataset(
-        ds_path=params.ds_path,
+    # Load features
+    dataloader = H5Dataloader(
+        path=params.feature.save_path,
         frame_size=params.frame_size,
-        dataset=params.dataset,
-    )
-    feat_shape = ds.feature_shape
-    class_shape = (params.frame_size, params.num_classes)
-
-    input_spec = (
-        tf.TensorSpec(shape=feat_shape, dtype=tf.float32),
-        tf.TensorSpec(shape=class_shape, dtype=tf.int32),
-    )
-
-    test_x, test_y = load_test_dataset(
-        ds=ds,
-        subject_ids=ds.test_subject_ids,
-        samples_per_subject=params.samples_per_subject,
-        test_size=params.test_size,
-        spec=input_spec,
+        feat_key=params.feature.feat_key,
+        label_key=params.feature.label_key,
+        mask_key=params.feature.mask_key,
+        feat_cols=params.feature.feat_cols,
         class_map=params.class_map,
     )
 
+    feat_shape = dataloader.feature_shape
+
+    test_ds = create_data_pipeline(
+        dataloader=dataloader,
+        subject_ids=dataloader.test_subject_ids,
+        samples_per_subject=params.test_samples_per_subject,
+        num_classes=params.num_classes,
+        batch_size=params.batch_size,
+        cache_size=params.test_size // params.batch_size,
+    )
+
+    test_x = np.concatenate([x for x, _ in test_ds.as_numpy_iterator()])
+    test_y = np.concatenate([y for _, y in test_ds.as_numpy_iterator()])
+
     # Load model and set fixed batch size of 1
-    with tfa.get_strategy().scope(), tfmot.quantization.keras.quantize_scope():
-        logger.info("Loading trained model")
-        model = tfa.load_model(params.model_file, custom_objects={"MultiF1Score": tfa.MultiF1Score})
-        inputs = keras.Input(shape=input_spec[0].shape, batch_size=1, name="input", dtype=input_spec[0].dtype)
-        outputs = model(inputs)
+    logger.debug("Loading trained model")
+    model = nse.models.load_model(params.model_file)
+    inputs = keras.Input(shape=feat_shape, batch_size=1, name="input", dtype="float32")
+    model(inputs)
 
-        if not params.use_logits and not isinstance(model.layers[-1], keras.layers.Softmax):
-            outputs = keras.layers.Softmax()(outputs)
-            model = keras.Model(inputs, outputs, name=model.name)
-            outputs = model(inputs)
-        # END IF
+    if not params.use_logits and not isinstance(model.layers[-1], keras.layers.Softmax):
+        model = nse.models.append_layers(model, layers=[keras.layers.Softmax()], copy_weights=True)
+    # END IF
 
-        flops = tfa.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
-        model.summary(print_fn=logger.info)
+    flops = nse.metrics.flops.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
+    model.summary(print_fn=logger.debug)
 
-        logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
+    logger.debug(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
-        logger.info(f"Converting model to TFLite (quantization={params.quantization.enabled})")
-        converter = tfa.create_tflite_converter(
-            model=model,
-            quantize=params.quantization.enabled,
-            test_x=test_x,
-            input_type=params.quantization.input_type,
-            output_type=params.quantization.output_type,
-            supported_ops=params.quantization.supported_ops,
-            use_concrete=True,
-            feat_shape=feat_shape,
-        )
-        tflite_model = converter.convert()
+    logger.debug(f"Converting model to TFLite (quantization={params.quantization.mode})")
+    converter = nse.converters.tflite.TfLiteKerasConverter(model=model)
 
-        # if params.quantization.enabled:
-        #     _, quant_df = tfa.debug_quant_tflite(
-        #        converter=converter
-        #     )
-        #     quant_df.to_csv(params.job_dir / "quant.csv")
-        # # END IF
+    tflite_content = converter.convert(
+        test_x=test_x,
+        quantization=params.quantization.format,
+        io_type=params.quantization.io_type,
+        mode=params.quantization.conversion,
+        strict=not params.quantization.fallback,
+    )
 
-        # Save TFLite model
-        logger.info(f"Saving TFLite model to {tfl_model_path}")
-        with open(tfl_model_path, "wb") as fp:
-            fp.write(tflite_model)
+    if params.quantization.debug:
+        quant_df = converter.debug_quantization()
+        quant_df.to_csv(params.job_dir / "quant.csv")
 
-        # Save TFLM model
-        logger.info(f"Saving TFL micro model to {tflm_model_path}")
-        tfa.xxd_c_dump(
-            src_path=tfl_model_path,
-            dst_path=tflm_model_path,
-            var_name=params.tflm_var_name,
-            chunk_len=20,
-            is_header=True,
-        )
-    # END WITH
+    # Save TFLite model
+    logger.debug(f"Saving TFLite model to {tfl_model_path}")
+    converter.export(tfl_model_path)
 
-    y_pred_tf = np.argmax(model.predict(test_x), axis=-1).flatten()
+    # Save TFLM model
+    logger.debug(f"Saving TFL micro model to {tflm_model_path}")
+    converter.export_header(tflm_model_path, name=params.tflm_var_name)
+    converter.cleanup()
+
+    tflite = nse.interpreters.tflite.TfLiteKerasInterpreter(tflite_content)
+    tflite.compile()
 
     # Verify TFLite results match TF results on example data
-    logger.info("Validating model results")
-    y_true = np.argmax(test_y, axis=-1).flatten()
+    metrics = [
+        keras.metrics.CategoricalCrossentropy(name="loss", from_logits=params.use_logits),
+        keras.metrics.CategoricalAccuracy(name="acc"),
+        nse.metrics.MultiF1Score(name="f1", average="weighted"),
+    ]
 
-    y_pred_tfl = tfa.predict_tflite(model_content=tflite_model, test_x=test_x)
-    y_pred_tfl = np.argmax(y_pred_tfl, axis=-1).flatten()
+    if params.test_metric not in [m.name for m in metrics]:
+        raise ValueError(f"Metric {params.test_metric} not supported")
 
-    tf_acc = np.sum(y_true == y_pred_tf) / y_true.size
-    tf_f1 = f1_score(y_true, y_pred_tf, average="weighted")
-    logger.info(f"[TF SET] ACC={tf_acc:.2%}, F1={tf_f1:.2%}")
+    logger.debug("Validating model results")
+    y_true = test_y
+    y_pred_tf = model.predict(test_x)
+    y_pred_tfl = tflite.predict(x=test_x)
 
-    tfl_acc = np.sum(y_true == y_pred_tfl) / y_true.size
-    tfl_f1 = f1_score(y_true, y_pred_tfl, average="weighted")
-    logger.info(f"[TFL SET] ACC={tfl_acc:.2%}, F1={tfl_f1:.2%}")
+    tf_rst = nse.metrics.compute_metrics(metrics, y_true, y_pred_tf)
+    tfl_rst = nse.metrics.compute_metrics(metrics, y_true, y_pred_tfl)
+    logger.info("[TF METRICS] " + " ".join([f"{k.upper()}={v:.4f}" for k, v in tf_rst.items()]))
+    logger.info("[TFL METRICS] " + " ".join([f"{k.upper()}={v:.4f}" for k, v in tfl_rst.items()]))
 
-    # Check accuracy hit
-    tfl_acc_drop = max(0, tf_acc - tfl_acc)
-    if params.val_acc_threshold is not None and (1 - tfl_acc_drop) < params.val_acc_threshold:
-        logger.warning(f"TFLite accuracy dropped by {tfl_acc_drop:0.2%}")
-    elif params.val_acc_threshold:
-        logger.info(f"Validation passed ({tfl_acc_drop:0.2%})")
+    metric_diff = abs(tf_rst[params.val_metric] - tfl_rst[params.val_metric])
+
+    # Check if TFLite model meets validation threshold
+    if params.test_metric_threshold is not None and metric_diff > params.test_metric_threshold:
+        logger.warning(f"TFLite metric dropped by {metric_diff:0.2%}")
+    elif params.test_metric_threshold:
+        logger.info(f"Validation passed ({metric_diff:0.2%})")
 
     if params.tflm_file and tflm_model_path != params.tflm_file:
-        logger.info(f"Copying TFLM header to {params.tflm_file}")
+        logger.debug(f"Copying TFLM header to {params.tflm_file}")
         shutil.copyfile(tflm_model_path, params.tflm_file)

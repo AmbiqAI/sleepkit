@@ -2,7 +2,7 @@ import numpy as np
 import numpy.typing as npt
 import scipy.signal
 
-from .defines import SleepApnea
+from ...defines import SleepApnea
 
 
 def compute_sleep_apnea_durations(apnea_mask: npt.NDArray) -> dict[int, int]:
@@ -37,7 +37,12 @@ def compute_apnea_efficiency(apnea_durations: dict[int, int], class_map: dict[in
         float: apnea efficiency
     """
     norm_classes = [SleepApnea.none]
-    apnea_classes = [SleepApnea.hypopnea, SleepApnea.central, SleepApnea.obstructive, SleepApnea.mixed]
+    apnea_classes = [
+        SleepApnea.hypopnea,
+        SleepApnea.central,
+        SleepApnea.obstructive,
+        SleepApnea.mixed,
+    ]
     norm_keys = list(set(class_map.get(s) for s in norm_classes if s in class_map))
     apnea_keys = list(set(class_map.get(s) for s in apnea_classes if s in class_map))
     norm_duration = sum(apnea_durations.get(k, 0) for k in norm_keys)

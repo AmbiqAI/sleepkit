@@ -16,8 +16,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, Sleep
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-PA-14](../features/featset01.md)
-    - **Feature Set**: [FS-W-PA-14-60]()
+    - **Features**: [FS-W-PA-14](../features/fs_w_pa_14.md)
 
     | Base Class              | Target Class | Label     |
     | ----------------------- | ------------ | --------- |
@@ -32,8 +31,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, NREM, REM
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-PA-14](../features/featset01.md)
-    - **Feature Set**: [FS-W-PA-14-60]()
+    - **Features**: [FS-W-PA-14](../features/fs_w_pa_14.md)
 
     | Base Class              | Target Class | Label     |
     | ----------------------- | ------------ | --------- |
@@ -49,8 +47,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, Core, Deep, REM
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-PA-14](../features/featset01.md)
-    - **Feature Set**: [FS-W-PA-14-60]()
+    - **Features**: [FS-W-PA-14](../features/fs_w_pa_14.md)
 
     | Base Class              | Target Class | Label     |
     | ----------------------- | ------------ | --------- |
@@ -68,8 +65,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, N1, N2, N3, REM
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-PA-14](../features/featset01.md)
-    - **Feature Set**: [FS-W-PA-14-60]()
+    - **Features**: [FS-W-PA-14](../features/fs_w_pa_14.md)
 
     | Base Class              | Target Class | Label     |
     | ----------------------- | ------------ | --------- |
@@ -182,5 +178,45 @@ TOTAL: 20736+442368+442368+7895040+75816 -->
 | [Song et al., 2023](https://doi.org/10.1371/journal.pone.0285703) | 70.0      | 72.0      | 78.7      | 66.3      | **55.9**      | 63.0      |
 | SleepKit          | **75.8**  | **76.4**  | **80.6**  | **73.9**  | 52.2  | **81.7**  |
 
+
+---
+
+## <span class="sk-h2-span">Downloads</span>
+
+=== "SS-2-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-2-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-2-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-2-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-2-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+=== "SS-3-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-3-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-3-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-3-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-3-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+=== "SS-4-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-4-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-4-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-4-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-4-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+=== "SS-5-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-5-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-5-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-5-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-5-tcn-sm/latest/metrics.json)       | Metrics file                  |
 
 ---

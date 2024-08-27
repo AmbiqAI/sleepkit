@@ -1,4 +1,4 @@
-# Sleep Detection
+# :material-sleep: Sleep Detection Task
 
 ## <span class="sk-h2-span">Overview</span>
 

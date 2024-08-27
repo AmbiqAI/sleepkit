@@ -1,18 +1,31 @@
 {
     "name": "sd-2-tcn-sm",
     "job_dir": "./results/sd-2-tcn-sm",
-    "ds_path": "./datasets/store/fs-w-a-5-60/cmidss",
-    "dataset": {
-        "name": "hdf5",
+    "verbose": 2,
+
+    "datasets": [{
+        "name": "cmidss",
         "params": {
-            "feat_key": "features",
-            "label_key": "detect_labels",
-            "mask_key": "mask"
+            "path": "./datasets/cmidss"
         }
+    }],
+
+    "feature": {
+        "name": "FS-W-A-5",
+        "sampling_rate": 0.2,
+        "frame_size": 12,
+        "loader": "hdf5",
+        "feat_key": "features",
+        "label_key": "detect_labels",
+        "mask_key": "mask",
+        "feat_cols": null,
+        "save_path": "./datasets/store/fs-w-a-5-60",
+        "params": {}
     },
+
     "sampling_rate": 0.0083333,
     "frame_size": 240,
-    "model_file": "model.keras",
+
     "num_classes": 2,
     "class_map": {
         "0": 0,
@@ -23,30 +36,43 @@
         "5": 1
     },
     "class_names": ["WAKE", "SLEEP"],
+
     "samples_per_subject": 100,
     "val_samples_per_subject": 100,
-    "val_subjects": 0.20,
-    "val_size": 4000,
-    "val_acc_threshold": 0.98,
-    "test_size": 2500,
     "test_samples_per_subject": 50,
+
+    "val_size": 4000,
+    "test_size": 2500,
+
+    "val_subjects": 0.20,
     "batch_size": 128,
     "buffer_size": 10000,
     "epochs": 200,
     "steps_per_epoch": 25,
+    "val_steps_per_epoch": 25,
     "val_metric": "loss",
     "lr_rate": 1e-3,
     "lr_cycles": 1,
     "label_smoothing": 0,
+
+    "test_metric": "f1",
+    "test_metric_threshold": 0.02,
+    "tflm_var_name": "sk_detect_flatbuffer",
+    "tflm_file": "sk_detect_flatbuffer.h",
+
     "backend": "pc",
+    "display_report": true,
+
     "quantization": {
-        "enabled": true,
         "qat": false,
-        "ptq": true,
-        "input_type": "int8",
-        "output_type": "int8",
-        "supported_ops": null
+        "mode": "INT8",
+        "io_type": "int8",
+        "concrete": true,
+        "debug": false
     },
+
+    "model_file": "model.keras",
+    "use_logits": false,
     "architecture": {
         "name": "tcn",
         "params": {
