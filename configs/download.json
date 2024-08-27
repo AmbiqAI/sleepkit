@@ -1,5 +1,18 @@
 {
-    "ds_path": "./datasets",
-    "datasets": ["cmidss", "mesa", "ysyw"],
-    "progress": false
+    "datasets": [{
+        "name": "cmidss",
+        "params": {
+            "path": "./datasets/cmidss"
+        }
+    }, {
+        "name": "mesa",
+        "params": {
+            "path": "./datasets/mesa"
+        }
+    }, {
+        "name": "ysyw",
+        "params": {
+            "path": "./datasets/ysyw"
+        }
+    }]
 }

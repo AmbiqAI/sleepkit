@@ -5,14 +5,15 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from tqdm import tqdm
+import neuralspot_edge as nse
 
-from ...defines import SKDemoParams
-from ...rpc import BackendFactory
-from ...utils import setup_logger
+from ...defines import TaskParams
+from ...backends import BackendFactory
+from ...features import H5Dataloader
 from .metrics import compute_apnea_hypopnea_index
-from .utils import load_dataset
+from .utils import subject_data_preprocessor
 
-logger = setup_logger(__name__)
+logger = nse.utils.setup_logger(__name__)
 
 
 def get_apnea_color_map(num_classes) -> dict[int, str]:
@@ -36,8 +37,13 @@ def get_apnea_color_map(num_classes) -> dict[int, str]:
     raise ValueError("Invalid number of classes")
 
 
-def demo(params: SKDemoParams):
-    """Sleep Apnea Demo"""
+def demo(params: TaskParams):
+    """Sleep Apnea Demo
+
+    Args:
+        params (TaskParams): Task parameters
+
+    """
 
     bg_color = "rgba(38,42,50,1.0)"
     plotly_template = "plotly_dark"
@@ -46,29 +52,32 @@ def demo(params: SKDemoParams):
     # class_names = params.class_names or [f"Class {i}" for i in range(params.num_classes)]
     class_colors = get_apnea_color_map(params.num_classes)
 
-    logger.info("Setting up")
+    logger.debug("Setting up")
 
     # Load backend inference engine
     runner = BackendFactory.create(params.backend, params=params)
 
-    # Load data handler
-    ds = load_dataset(
-        ds_path=params.ds_path,
+    # Load features
+    dataloader = H5Dataloader(
+        path=params.feature.save_path,
         frame_size=params.frame_size,
-        dataset=params.dataset,
+        feat_key=params.feature.feat_key,
+        label_key=params.feature.label_key,
+        mask_key=params.feature.mask_key,
+        feat_cols=params.feature.feat_cols,
     )
 
     # Load entire subject's features
-    subject_id = random.choice(ds.subject_ids)
-    logger.info(f"Loading subject {subject_id} data")
-    features, _, _ = ds.load_subject_data(subject_id=subject_id, normalize=False)
-    x, y_true, y_mask = ds.load_subject_data(subject_id=subject_id, normalize=True)
+    subject_id = random.choice(dataloader.subject_ids)
+    logger.debug(f"Loading subject {subject_id} data")
+    features, _, _ = dataloader.load_subject_data(subject_id=subject_id, preprocessor=subject_data_preprocessor)
+    x, y_true, y_mask = dataloader.load_subject_data(subject_id=subject_id, preprocessor=subject_data_preprocessor)
 
     y_true = np.vectorize(params.class_map.get)(y_true)
 
     # Run inference
     runner.open()
-    logger.info("Running inference")
+    logger.debug("Running inference")
     y_pred = np.zeros_like(y_true)
     for i in tqdm(range(0, x.shape[0], params.frame_size), desc="Inference"):
         if i + params.frame_size > x.shape[0]:
@@ -100,11 +109,11 @@ def demo(params: SKDemoParams):
         sample_rate=params.sampling_rate,
     )
 
-    logger.info(f"Actual AHI: {act_ahi:0.2f}")
-    logger.info(f"Predicted AHI: {pred_ahi:0.2f}")
+    logger.debug(f"Actual AHI: {act_ahi:0.2f}")
+    logger.debug(f"Predicted AHI: {pred_ahi:0.2f}")
 
     # Report
-    logger.info("Generating report")
+    logger.debug("Generating report")
     fig = make_subplots(
         rows=2,
         cols=2,

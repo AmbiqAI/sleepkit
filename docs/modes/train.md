@@ -1,49 +1,94 @@
-# Model Training
+# :material-chart-ppf: Model Training
 
 ## <span class="sk-h2-span">Introduction </span>
 
-Each task provides a mode to train a model on the specified datasets. The training mode can be invoked either via CLI or within `sleepkit` python package. At a high level, the training mode performs the following actions based on the provided configuration parameters:
+Each task provides a mode to train a model on the specified features. The training mode can be invoked either via CLI or within `sleepkit` python package. At a high level, the training mode performs the following actions based on the provided configuration parameters:
 
-1. Load the configuration data (e.g. `detect-class-2.json`)
-1. Load the desired datasets (e.g. `cmidss`)
-1. Load the custom model architecture (e.g. `tcn`)
-1. Train the model
-1. Save the trained model
-1. Generate training report
+<div class="annotate" markdown>
+
+1. Load the configuration data (e.g. `configuration.json` (1))
+1. Load features (e.g. `FS-W-A-5`)
+1. Initialize custom model architecture (e.g. `tcn`)
+1. Define the metrics, loss, and optimizer (e.g. `accuracy`, `categorical_crossentropy`, `adam`)
+1. Train the model (e.g. `model.fit`)
+1. Save artifacts (e.g. `model.keras`)
+
+</div>
+
+1. Example configuration:
+--8<-- "assets/usage/json-configuration.md"
+
+<br/>
+
+```mermaid
+graph LR
+A("`Load
+configuration
+__TaskParams__
+`")
+B("`Load
+features
+__FeatureFactory__
+`")
+C("`Initialize
+model
+__ModelFactory__
+`")
+D("`Define
+_metrics_, _loss_,
+_optimizer_
+`")
+E("`Train
+__model__
+`")
+F("`Save
+__artifacts__
+`")
+A ==> B
+B ==> C
+subgraph "Model Training"
+    C ==> D
+    D ==> E
+end
+E ==> F
+```
 
 ---
 
 ## <span class="sk-h2-span">Usage</span>
 
-!!! Example
+### CLI
 
-    The following command will train a sleep detection model using the reference configuration:
+The following command will train a sleep stage model using the reference configuration.
 
-    === "CLI"
+```bash
+sleepkit --task stage --mode train --config ./configuration.json
+```
 
-        ```bash
-        sleepkit --task detect --mode train --config ./configs/detect-class-2.json
-        ```
+### Python
 
-    === "Python"
+The model can be trained using the following snippet:
 
-        ```python
-        from pathlib import Path
-        import sleepkit as sk
+```py linenums="1"
 
-        task = sk.TaskFactory.get("detect")
-        task.train(sk.HKTrainParams(
-            ...
-        ))
-        ```
+from pathlib import Path
+import sleepkit as sk
+
+task = sk.TaskFactory.get("detect")
+
+params = sk.TaskParams(...)  # (1)
+
+task.train(params)
+```
+
+1. Example configuration:
+--8<-- "assets/usage/python-configuration.md"
 
 ---
 
 ## <span class="sk-h2-span">Arguments </span>
 
-The following tables lists the parameters that can be used to configure the training mode.
-
---8<-- "assets/modes/train-params.md"
+Please refer to [TaskParams](../modes/configuration.md#taskparams) for the list of arguments that can be used with the `train` command.
 
 ---
 
@@ -60,5 +105,3 @@ The training mode is able to log all metrics and artifacts (aka models) to [Weig
 ### TensorBoard
 
 The training mode is able to log all metrics to [TensorBoard](https://www.tensorflow.org/tensorboard). To enable TensorBoard logging, simply set environment variable `TENSORBOARD=1`.
-
----

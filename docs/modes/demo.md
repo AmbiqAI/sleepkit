@@ -1,15 +1,52 @@
-# Task-Level Model Demo
+# :material-hexagon-multiple: Task-Level Model Demo
 
 ## <span class="sk-h2-span">Introduction </span>
 
 Each task in SleepKit has a corresponding demo mode that allows you to run a task-level demonstration using the specified backend inference engine (e.g. PC or EVB). This is useful to showcase the model's performance in real-time and to verify its accuracy in a real-world scenario. Similar to other modes, the demo can be invoked either via CLI or within `sleepkit` python package. At a high level, the demo mode performs the following actions based on the provided configuration parameters:
 
-1. Load the configuration file (e.g. `stage-class-4`)
-1. Load the desired dataset features (e.g. `cmidss`)
+1. Load the configuration data (e.g. `configuration.json`)
+1. Load the desired features (e.g. `FS-W-A-5`)
 1. Load the trained model (e.g. `model.keras`)
-1. Load random test subject's data
-1. Perform inference via backend engine (e.g. PC or EVB)
-1. Generate report
+1. Initialize inference engine backend (e.g. `pc` or `evb`)
+1. Generate input data (e.g. `x, y`)
+1. Perform inference on backend (e.g. `model.predict`)
+1. Generate report (e.g. `report.html`)
+
+```mermaid
+graph LR
+A("`Load
+configuration
+__TaskParams__
+`")
+B("`Load
+features
+__FeatureFactory__
+`")
+C("`Load trained
+__model__
+`")
+D("`Initialize
+inference engine
+__BackendFactory__
+`")
+E("`Generate
+input stimulus
+`")
+F("`Perform
+__inference(s)__
+`")
+G("`Generate
+__report__
+`")
+A ==> B
+B ==> C
+C ==> D
+subgraph CF["Inference Engine"]
+    D ==> E
+    E ==> F
+end
+F ==> G
+```
 
 ---
 
@@ -68,7 +105,7 @@ Similar to datasets, tasks, and models, the demo mode can be customized to use y
     ```python
     import sleepkit as sk
     task = sk.TaskFactory.get("detect")
-    task.demo(sk.SKDemoParams(
+    task.demo(sk.TaskParams(
         ...,
         backend="custom"
     ))
@@ -89,7 +126,7 @@ The following is an example of a task-level demo report for the sleep staging ta
 === "CLI"
 
     ```bash
-    sleepkit -m export -t stage -c ./configs/stage-class-4.json
+    sleepkit -m export -t stage -c ./configuration.json
     ```
 
 === "Python"
@@ -99,7 +136,7 @@ The following is an example of a task-level demo report for the sleep staging ta
     import sleepkit as sk
 
     task = sk.TaskFactory.get("stage")
-    task.export(sk.SKDemoParams(
+    task.export(sk.TaskParams(
         ...
     ))
     ```
@@ -112,6 +149,6 @@ The following is an example of a task-level demo report for the sleep staging ta
 
 ## <span class="sk-h2-span">Arguments </span>
 
-The following table lists the parameters that can be used to configure the demo mode. For argument `model_file`, the supported formats include `.keras` and `.tflite`.
+Please refer to [TaskParams](../modes/configuration.md#taskparams) for the list of arguments that can be used with the `demo` command.
 
---8<-- "assets/modes/demo-params.md"
+---

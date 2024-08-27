@@ -1,79 +1,95 @@
-# Python Usage
+# :simple-python: Python Usage
 
-__SleepKit__ python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for a variety of tasks. The package is designed to be simple and easy to use.
+__SleepKit__ python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for both built-in taks and custom tasks. In addition, custom datasets and model architectures can be created and registered with corresponding factories.
 
-!!! Example
+## <span class="sk-h2-span">Overview</span>
 
-    --8<-- "assets/usage/python-full-snippet.md"
+The main components of SleepKit include the following:
 
----
+### [Tasks](../tasks/index.md)
 
-## [Download](../modes/train.md)
+A [Task](../tasks/index.md) inherits from the [sk.Task](/sleepkit/api/sleepkit/tasks/task) class and provides implementations for each of the main modes: download, feature, train, evaluate, export, and demo. Each mode is provided with a set of parameters defined by [sk.TaskParams](/sleepkit/api/sleepkit/defines). Additional task-specific parameters can be extended to the `TaskParams` class. These tasks are then registered and accessed via the `TaskFactory` using a unique task name as the key and the custom Task class as the value.
 
-The `download` command is used to download all datasets specified. Please refer to [Datasets](../datasets/index.md) for details on the available datasets. Additional datasets can be added by creating a new dataset class and registering it with __SleepKit dataset factory__.
+```py linenums="1"
+import sleepkit as sk
 
-!!! example "Python"
+task = sk.TaskFactory.get('stage')
+```
 
-    The following snippet will download and prepare four datasets.
+### [Datasets](../datasets/index.md)
 
-     --8<-- "assets/usage/python-download-snippet.md"
+A dataset inherits from the [sk.Dataset](/sleepkit/api/sleepkit/datasets/dataset) class and provides implementations for downloading, preparing, and loading the dataset. Each dataset is provided with a set of custom parameters for initialization. The datasets are registered and accessed via the [DatasetFactory](/sleepkit/api/sleepkit/datasets/factory) using a unique dataset name as the key and the Dataset class as the value.
 
----
+```py linenums="1"
+import sleepkit as sk
 
-## [Feature](../modes/feature.md)
+ds = sk.DatasetFactory.get('ecg-synthetic')(num_pts=100)
+```
 
-The `feature` command is used to extract features from the datasets using the supplied configuration file. The routine can be customized via the `sk.SKFeatureParams` configuration.
+### [Features](../features/index.md)
 
-!!! example "Python"
-
-    The following snippet will extract features from the datasets using the supplied parameters:
-
-    --8<-- "assets/usage/python-feature-snippet.md"
+Since each task will require specific transformations of the data, a feature store is used to generate features from the dataset. The feature store provides a set of feature sets that can be used by the task. Each feature set is provided with a set of custom parameters for initialization. The feature sets are registered and accessed via the [sk.FeatureFactory](/sleepkit/api/sleepkit/features/factory) using a unique feature set name as the key and the Feature class as the value.
 
 
-## [Train](../modes/train.md)
 
-The `train` command is used to train a SleepKit model for the specified `task` and `dataset`. Each task provides a reference routine for training the model. The routine can be customized via the `sk.SKTrainParams` configuration. If further customization is needed, the task's routine can be overriden.
+### [Models](../models/index.md)
 
-!!! example "Python"
+Lastly, SleepKit leverages [neuralspot-edge's](https://ambiqai.github.io/neuralspot-edge/) customizable model architectures. To enable creating custom network topologies from configuration files, SleepKit provides a `ModelFactory` that allows you to create models by specifying the model key and the model parameters. Each item in the factory is a callable that takes a `keras.Input`, model parameters, and number of classes as arguments and returns a `keras.Model`.
 
-    The following snippet will train a model using the supplied parameters:
+```
+import keras
+import sleepkit as sk
 
-    --8<-- "assets/usage/python-train-snippet.md"
+inputs = keras.Input((256, 1), dtype="float32")
+num_classes = 4
+model_params = dict(...)
 
----
+model = sk.ModelFactory.get('tcn')(
+    inputs=inputs,
+    params=model_params,
+    num_classes=num_classes
+)
 
-## [Evaluate](../modes/evaluate.md)
+```
 
-The `evaluate` command will test the performance of the model on the reserved test set for the specified `task`. The routine can be customized via the `sk.SKTestParams` configuration. A number of results and metrics will be generated and saved to the `job_dir`.
+## <span class="sk-h2-span">Usage</span>
 
-!!! Example "Python"
+### Running a built-in task w/ existing datasets
 
-    The following command will test the model using the supplied parameters:
+1. Create a task configuration file defining the model, datasets, class labels, mode parameters, and so on. Have a look at the [sk.TaskParams](../modes/configuration.md#taskparams) for more details on the available parameters.
 
-    --8<-- "assets/usage/python-evaluate-snippet.md"
+2. Leverage `TaskFactory` to get the desired built-in task.
 
----
+3. Run the task's main modes: `download`, `feature`, `train`, `evaluate`, `export`, and/or `demo`.
 
-## [Export](../modes/export.md)
 
-The `export` command will convert the trained TensorFlow model into both TensorFlow Lite (TFL) and TensorFlow Lite for micro-controller (TFLM) variants. The command will also verify the models' outputs match. The activations and weights can be quantized by configuring the `quantization` section in the configuration file. Once converted, the TFLM header file will be copied to location specified by `tflm_file`.
+```py linenums="1"
 
-!!! Example "Python"
+import sleepkit as hk
 
-    The following command will export the model to TF Lite and TFLM:
+params = sk.TaskParams(...)  # (1)
 
-    --8<-- "assets/usage/python-export-snippet.md"
----
+task = sk.TaskFactory.get("stage")
 
-## [Demo](../modes/demo.md)
+task.download(params)  # Download dataset(s)
 
-The `demo` command is used to run a task-level demonstration using the designated backend inference engine (e.g. PC or EVB). The routine can be customized via the `sk.SKDemoParams` configuration. If running on the EVB, additional setup is required to flash and connect the EVB to the PC.
+task.feature(params)  # Generate features
 
-!!! Example "Python"
+task.train(params)  # Train the model
 
-    The following snippet will run a task-level demo using the PC as the backend inference engine:
+task.evaluate(params)  # Evaluate the model
 
-    --8<-- "assets/usage/python-demo-snippet.md"
+task.export(params)  # Export to TFLite
+
+```
+
+1. Example configuration:
+--8<-- "assets/usage/python-configuration.md"
+
+### Running a custom task w/ custom datasets
+
+To create a custom task, check out the [Bring-Your-Own-Task Guide](../tasks/byot.md).
+
+To create a custom dataset, check out the [Bring-Your-Own-Dataset Guide](../datasets/byod.md).
 
 ---

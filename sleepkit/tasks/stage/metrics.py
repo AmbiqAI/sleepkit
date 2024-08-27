@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 
-from .defines import SleepStage
+from ...defines import SleepStage
 
 
 def compute_sleep_stage_durations(sleep_mask: npt.NDArray) -> dict[int, int]:

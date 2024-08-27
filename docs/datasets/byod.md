@@ -9,7 +9,7 @@ The Bring-Your-Own-Dataset (BYOD) feature allows users to add custom datasets fo
     ```python
     import sleepkit as sk
 
-    class CustomDataset(sk.SKDataset):
+    class CustomDataset(sk.Dataset):
         def __init__(self, config):
             super().__init__(config)
 

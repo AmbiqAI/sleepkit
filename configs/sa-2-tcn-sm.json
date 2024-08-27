@@ -1,18 +1,31 @@
 {
     "name": "sa-2-tcn-sm",
     "job_dir": "./results/sa-2-tcn-sm",
-    "ds_path": "./datasets/store/fs-w-p-5-1/mesa",
-    "dataset": {
-        "name": "hdf5",
+    "verbose": 2,
+
+    "datasets": [{
+        "name": "mesa",
         "params": {
-            "feat_key": "features",
-            "label_key": "apnea_labels",
-            "mask_key": "mask"
+            "path": "./datasets/mesa"
         }
+    }],
+
+    "feature": {
+        "name": "FS-W-P-5",
+        "sampling_rate": 64,
+        "frame_size": 64,
+        "loader": "hdf5",
+        "feat_key": "features",
+        "label_key": "apnea_labels",
+        "mask_key": "mask",
+        "feat_cols": null,
+        "save_path": "./datasets/store/fs-w-p-5-1",
+        "params": {}
     },
+
     "sampling_rate": 1,
     "frame_size": 600,
-    "model_file": "model.keras",
+
     "num_classes": 2,
     "class_map": {
         "0": 0,
@@ -22,13 +35,16 @@
         "4": 1
     },
     "class_names": ["NONE", "APNEA"],
+
     "samples_per_subject": 80,
     "val_samples_per_subject": 80,
-    "val_subjects": 0.20,
-    "val_size": 24000,
-    "val_acc_threshold": 0.98,
-    "test_size": 30000,
     "test_samples_per_subject": 80,
+
+    "val_size": 24000,
+    "test_size": 30000,
+
+    "val_subjects": 0.20,
+    "val_acc_threshold": 0.98,
     "batch_size": 256,
     "buffer_size": 80000,
     "epochs": 125,
@@ -38,7 +54,9 @@
     "lr_cycles": 1,
     "class_weights": "balanced",
     "label_smoothing": 0,
+
     "backend": "pc",
+
     "quantization": {
         "qat": false,
         "mode": "INT8",
@@ -46,6 +64,8 @@
         "concrete": true,
         "debug": false
     },
+
+    "model_file": "model.keras",
     "architecture": {
         "name": "tcn",
         "params": {

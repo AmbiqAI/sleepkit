@@ -2,7 +2,7 @@ import numpy as np
 import numpy.typing as npt
 import scipy.signal
 
-from .defines import SleepApnea
+from ...defines import SleepApnea
 
 
 def compute_sleep_apnea_durations(apnea_mask: npt.NDArray) -> dict[int, int]:

@@ -1,29 +1,34 @@
+"""
+# :octicons-terminal-24: SleepKit CLI API
+
+The SleepKit CLI provides a command-line interface to interact with the SleepKit library.
+
+```bash
+$ sleepkit --help
+
+SleepKit CLI Options:
+    --task [detect, stage, apnea]
+    --mode [download, feature, train, evaluate, export, demo]
+    --config ["./path/to/config.json", or '{"raw: "json"}']
+```
+
+"""
 import os
 from typing import Type, TypeVar
 
 from argdantic import ArgField, ArgParser
 from pydantic import BaseModel
+import neuralspot_edge as nse
 
-from .datasets import download_datasets
-from .defines import (
-    SKDemoParams,
-    SKDownloadParams,
-    SKExportParams,
-    SKFeatureParams,
-    SKMode,
-    SKTestParams,
-    SKTrainParams,
-)
-from .features import generate_feature_set
+from .defines import TaskParams, TaskMode
+
 from .tasks import TaskFactory
-from .utils import setup_logger
 
-logger = setup_logger(__name__)
-
-cli = ArgParser()
+logger = nse.utils.setup_logger(__name__)
 
 B = TypeVar("B", bound=BaseModel)
 
+cli = ArgParser()
 
 def parse_content(cls: Type[B], content: str) -> B:
     """Parse file or raw content into Pydantic model.
@@ -42,46 +47,40 @@ def parse_content(cls: Type[B], content: str) -> B:
 
 
 @cli.command(name="run")
-def _run(
-    mode: SKMode = ArgField("-m", description="Mode", default="train"),
-    task: str = ArgField("-t", description="Task", default=""),
+def run(
+    mode: TaskMode = ArgField("-m", description="Mode", default="train"),
+    task: str = ArgField("-t", description="Task", default="detect"),
     config: str = ArgField("-c", description="File path or JSON content", default="{}"),
 ):
     """SleepKit CLI"""
 
-    # Download datasets
-    if mode == SKMode.download:
-        logger.info("#STARTED MODE=download")
-        download_datasets(parse_content(SKDownloadParams, config))
-        logger.info("#FINISHED MODE=download")
-        return
-
-    # Generate feature set
-    if mode == SKMode.feature:
-        logger.info("#STARTED MODE=feature")
-        generate_feature_set(parse_content(SKFeatureParams, config))
-        logger.info("#FINISHED MODE=feature")
-        return
+    logger.info(f"#STARTED MODE={mode} TASK={task}")
 
     if not TaskFactory.has(task):
         raise ValueError(f"Unknown task {task}")
 
-    logger.info(f"#STARTED MODE={mode} TASK={task}")
-
     task_handler = TaskFactory.get(task)
 
+    params = parse_content(TaskParams, config)
+
     match mode:
-        case SKMode.train:
-            task_handler.train(parse_content(SKTrainParams, config))
+        case TaskMode.download:
+            task_handler.download(params)
 
-        case SKMode.evaluate:
-            task_handler.evaluate(parse_content(SKTestParams, config))
+        case TaskMode.feature:
+            task_handler.feature(params)
 
-        case SKMode.export:
-            task_handler.export(parse_content(SKExportParams, config))
+        case TaskMode.train:
+            task_handler.train(params)
 
-        case SKMode.demo:
-            task_handler.demo(parse_content(SKDemoParams, config))
+        case TaskMode.evaluate:
+            task_handler.evaluate(params)
+
+        case TaskMode.export:
+            task_handler.export(params)
+
+        case TaskMode.demo:
+            task_handler.demo(params)
 
         case _:
             logger.error("Error: Unsupported CLI command")
@@ -90,10 +89,5 @@ def _run(
     logger.info(f"#FINISHED MODE={mode} TASK={task}")
 
 
-def run():
-    """Run CLI."""
-    cli()
-
-
 if __name__ == "__main__":
-    run()
+    cli()

@@ -1,4 +1,4 @@
-# Sleep Arousal
+# Sleep Arousal Task
 
 ## <span class="sk-h2-span">Overview</span>
 

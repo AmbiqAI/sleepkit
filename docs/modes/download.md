@@ -1,36 +1,31 @@
-# Download Datasets
+# :material-download: Download Datasets
 
 The `download` command is used to download all datasets specified. Please refer to [Datasets](../datasets/index.md) for details on the available datasets. Additional datasets can be added by creating a new dataset class and registering it with __SleepKit__ dataset factory.
 
 ## <span class="sk-h2-span">Usage</span>
 
-!!! Example
+### CLI
 
-    The following command will download and prepare four datasets.
+Using the CLI, the `download` command can be used to download specified datasets in the configuration file or directly in the command line.
 
-    === "CLI"
+```bash
+sleepkit -m download -c '{"datasets": [{"name": "cmidss", "parameters": {"path": ".datatasets/cmidss"}}]}'
+```
 
-        ```bash
-        sleepkit -m download -c ./configs/download-datasets.json
-        # ^ No task is required
-        ```
+### Python
 
-    === "Python"
+In code, the `download` method of a dataset can be used to download the dataset.
 
-        ```python
-        from pathlib import Path
-        import sleepkit as sk
+```py linenums="1"
+import sleepkit as sk
 
-        sk.datasets.download_datasets(sk.SKDownloadParams(
-            ds_path=Path("./datasets"),
-            datasets=["ysyw", "cmidss", "mesa", "synthetic"],
-            progress=True
-        ))
-        ```
+ds = sk.DatasetFactory.get("cmidss")(path="./datasets/cmidss")
+ds.download()
 
+```
 
 ## <span class="sk-h2-span">Arguments </span>
 
-The following table lists the arguments that can be used with the `download` command. All datasets will be saved in their own subdirectory within the `ds_path` directory.
+Please refer to [TaskParams](../modes/configuration.md#taskparams) for the list of arguments that can be used with the `download` command.
 
---8<-- "assets/modes/download-params.md"
+---

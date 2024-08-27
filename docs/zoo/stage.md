@@ -16,8 +16,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, Sleep
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-PA-14](../features/featset01.md)
-    - **Feature Set**: [FS-W-PA-14-60]()
+    - **Features**: [FS-W-PA-14](../features/fs_w_pa_14.md)
 
     | Base Class              | Target Class | Label     |
     | ----------------------- | ------------ | --------- |
@@ -32,8 +31,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, NREM, REM
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-PA-14](../features/featset01.md)
-    - **Feature Set**: [FS-W-PA-14-60]()
+    - **Features**: [FS-W-PA-14](../features/fs_w_pa_14.md)
 
     | Base Class              | Target Class | Label     |
     | ----------------------- | ------------ | --------- |
@@ -49,8 +47,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, Core, Deep, REM
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-PA-14](../features/featset01.md)
-    - **Feature Set**: [FS-W-PA-14-60]()
+    - **Features**: [FS-W-PA-14](../features/fs_w_pa_14.md)
 
     | Base Class              | Target Class | Label     |
     | ----------------------- | ------------ | --------- |
@@ -68,8 +65,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, N1, N2, N3, REM
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-PA-14](../features/featset01.md)
-    - **Feature Set**: [FS-W-PA-14-60]()
+    - **Features**: [FS-W-PA-14](../features/fs_w_pa_14.md)
 
     | Base Class              | Target Class | Label     |
     | ----------------------- | ------------ | --------- |

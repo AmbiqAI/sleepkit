@@ -1,18 +1,19 @@
-"""NSRR python API for downloading datasets from [sleepdata.org](https://sleepdata.org).
+"""
+# NSRR python API for downloading datasets from [sleepdata.org](https://sleepdata.org).
+
 Adapted from [SleepECG](https://github.com/cbrnr/sleepecg/blob/main/sleepecg/io/utils.py)
 """
 
-import concurrent.futures
 import os
 from fnmatch import fnmatch
 from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import Literal
-
 import requests
-from tqdm import tqdm
 
-from ..utils import download_file
+from tqdm.contrib.concurrent import thread_map
+
+import neuralspot_edge as nse
 
 _nsrr_token = None
 
@@ -124,7 +125,7 @@ def download_nsrr_file(url: str, dst: Path, checksum: str, checksum_type: Litera
     """
 
     try:
-        download_file(
+        nse.utils.download_file(
             src=url,
             dst=dst,
             checksum=checksum,
@@ -174,17 +175,13 @@ def download_nsrr(
     checksum_key = "file_checksum_md5" if checksum_type == "md5" else "file_size"
 
     # Download files in parallel
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-        list(
-            tqdm(
-                executor.map(
-                    lambda item: download_nsrr_file(
-                        url=download_url + item["full_path"],
-                        dst=db_dir / item["full_path"],
-                        checksum=str(item[checksum_key]),
-                        checksum_type=checksum_type,
-                    ),
-                    files_to_download,
-                )
-            )
-        )
+    thread_map(
+        lambda item: download_nsrr_file(
+            url=download_url + item["full_path"],
+            dst=db_dir / item["full_path"],
+            checksum=str(item[checksum_key]),
+            checksum_type=checksum_type,
+        ),
+        files_to_download,
+        max_workers=num_workers,
+    )

@@ -2,10 +2,6 @@
   <a href="https://github.com/AmbiqAI/sleepkit"><img src="./docs/assets/sleepkit-banner.png" alt="SleepKit"></a>
 </p>
 
-<p style="color:rgb(201,48,198); font-size: 1.2em;">
-🚧 SleepKit is under active development
-</p>
-
 ---
 
 **Documentation**: <a href="https://ambiqai.github.io/sleepkit" target="_blank">https://ambiqai.github.io/sleepkit</a>
@@ -39,9 +35,17 @@ The following are also required to compile/flash the binary for the EVB demo:
 
 ## <span class="sk-h2-span">Installation</span>
 
-To get started, first install the local python package `sleepkit` along with its dependencies via `Poetry`:
+To get started, first install the local python package `sleepkit` along with its dependencies via `PyPi`:
 
 ```bash
+$ pip install sleepkit
+```
+
+Alternatively, you can install the package from source by cloning the repository and running the following command:
+
+```bash
+git clone https://github.com/AmbiqAI/sleepkit.git
+cd sleepkit
 poetry install
 ```
 
@@ -50,19 +54,6 @@ poetry install
 ## <span class="sk-h2-span">Usage</span>
 
 __SleepKit__ can be used as either a CLI-based app or as a python package to perform advanced experimentation. In both forms, SleepKit exposes a number of modes and tasks discussed below. Refer to the [Overview Guide](https://ambiqai.github.io/sleepkit/quickstart) to learn more about available options and configurations.
-
----
-
-## <span class="sk-h2-span">Modes</span>
-
-__SleepKit__ provides a number of **modes** that can be invoked for a given task. These modes can be accessed via the CLI or directly from the `task` within the Python package.
-
-- **Download**: Download specified datasets
-- **Feature**: Extract features from dataset(s)
-- **Train**: Train a model for specified task and datasets
-- **Evaluate**: Evaluate a model for specified task and datasets
-- **Export**: Export a trained model to TF Lite and TFLM
-- **Demo**: Run task-level demo on PC or EVB
 
 ---
 
@@ -76,27 +67,44 @@ __SleepKit__ includes a number of built-in **tasks**. Each task provides referen
 
 ---
 
-## <span class="sk-h2-span">Model Factory</span>
+## <span class="sk-h2-span">Modes</span>
 
-__SleepKit__ provides a __model factory__ that allows you to easily create and train customized models. The model factory includes a number of modern networks well suited for efficient, real-time edge applications. Each model architecture exposes a number of high-level parameters that can be used to customize the network for a given application. These parameters can be set as part of the configuration accessible via the CLI and Python package.
+__SleepKit__ provides a number of **modes** that can be invoked for a given task. These modes can be accessed via the CLI or directly from the `task` within the Python package.
+
+- **Download**: Download specified datasets
+- **Feature**: Generate features for given dataset(s)
+- **Train**: Train a model for specified task and features
+- **Evaluate**: Evaluate a model for specified task and features
+- **Export**: Export a trained model to TF Lite and TFLM
+- **Demo**: Run task-level demo on PC or EVB
 
 ---
 
+## <span class="sk-h2-span">Datasets</span>
 
-## <span class="sk-h2-span">Dataset Factory</span>
-
-__SleepKit__ exposes several open-source datasets for training each of the SleepKit tasks via a __dataset factory__. For certain tasks, we also provide synthetic data provided by [PhysioKit](https://ambiqai.github.io/physiokit) to help improve model generalization. Each dataset has a corresponding Python class to aid in downloading and generating data for the given task. Additional datasets can be easily added to the SleepKit framework by creating a new dataset class and registering it to the dataset factory.
+__SleepKit__ includes several open-source datasets for training each of the SleepKit tasks via a __dataset factory__. For certain tasks, we also provide synthetic data provided by [PhysioKit](https://ambiqai.github.io/physiokit) to help improve model generalization. Each dataset has a corresponding Python class to aid in downloading and generating data for the given task. Additional datasets can be easily added to the SleepKit framework by creating a new dataset class and registering it to the dataset factory.
 
 - **MESA**: A large-scale polysomnography dataset with 6,814 subjects collected from 6 field centers.
-
 - **CMIDSS**: A dataset of 300 subjects with over 500 multi-day recordings of wrist-worn accelerometer data annotated with two event types: onset, the beginning of sleep, and wakeup, the end of sleep.
-
 - **YSYW**: A dataset of 1,983 polysomnography recordings provided by the Massachusetts General Hospital’s (MGH) Sleep Lab.
-
 - **STAGES**: A dataset from the Stanford Technology Analytics and Genomics in Sleep (STAGES) study involving 20 data collection sites from six centers.
+
+---
+
+## <span class="sk-h2-span">Models</span>
+
+__SleepKit__ provides a __model factory__ that allows you to easily create and train customized models. The model factory includes a number of modern networks well suited for efficient, real-time edge applications. Each model architecture exposes a number of high-level parameters that can be used to customize the network for a given application. These parameters can be set as part of the configuration accessible via the CLI and Python package.
 
 ---
 
 ## <span class="sk-h2-span">Model Zoo</span>
 
 A number of pre-trained models are available for each task. These models are trained on a variety of datasets and are optimized for deployment on Ambiq's ultra-low power SoCs. In addition to providing links to download the models, __SleepKit__ provides the corresponding configuration files and performance metrics. The configuration files allow you to easily retrain the models or use them as a starting point for a custom model. Furthermore, the performance metrics provide insights into the model's accuracy, precision, recall, and F1 score. For a number of the models, we provide experimental and ablation studies to showcase the impact of various design choices. Check out the [Model Zoo](https://ambiqai.github.io/sleepkit/zoo) to learn more about the available models and their corresponding performance metrics.
+
+---
+
+## <span class="sk-h2-span">Guides</span>
+
+Checkout the [Guides](https://ambiqai.github.io/sleepkit/guides) to see detailed examples and tutorials on how to use SleepKit for a variety of tasks. The guides provide step-by-step instructions on how to train, evaluate, and deploy models for a given task. In addition, the guides provide insights into the design choices and performance metrics for the models. The guides are designed to help you get up and running quickly and to provide a deeper understanding of the models and tasks available in SleepKit.
+
+---

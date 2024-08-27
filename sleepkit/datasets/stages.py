@@ -2,9 +2,7 @@ import glob
 import logging
 import math
 import os
-import random
 from enum import IntEnum
-from pathlib import Path
 from xml.dom.minidom import Element as XmlElement
 from xml.dom.minidom import Node as XmlNode
 from xml.dom.minidom import parse as xml_parse
@@ -14,10 +12,11 @@ import numpy.typing as npt
 import pandas as pd
 import physiokit as pk
 import pyedflib
+import neuralspot_edge as nse
 
-from ..tasks import SleepStage
-from .dataset import SKDataset
-from .defines import SampleGenerator, SubjectGenerator
+from ..defines import SleepStage
+from .dataset import Dataset
+from .defines import SubjectGenerator
 from .nsrr import download_nsrr
 
 logger = logging.getLogger(__name__)
@@ -38,19 +37,25 @@ class StagesSleepStage(IntEnum):
     UNSCORED = 9
 
 
-class StagesDataset(SKDataset):
-    """STAGES dataset"""
+class StagesDataset(Dataset):
 
     def __init__(
         self,
-        ds_path: Path,
-        frame_size: int = 30 * 128,
         target_rate: int = 128,
+        **kwargs,
     ) -> None:
-        super().__init__(ds_path=ds_path, frame_size=frame_size)
-        self.frame_size = frame_size
+        """STAGES dataset
+
+        Args:
+            target_rate (int, optional): Target rate. Defaults to 128.
+
+        """
+
+        super().__init__(**kwargs)
+        # If last folder is not "stages", then add it
+        if self.path.parts[-1] != "stages":
+            self.path = self.path / "stages"
         self.target_rate = target_rate
-        self.ds_path = ds_path / "stages"
 
     @property
     def subject_ids(self) -> list[str]:
@@ -59,7 +64,7 @@ class StagesDataset(SKDataset):
         Returns:
             list[str]: Subject IDs
         """
-        subj_paths = glob.glob(str(self.ds_path / "original" / "STAGES PSGs" / "*.edf"), recursive=True)
+        subj_paths = glob.glob(str(self.path / "original" / "STAGES PSGs" / "*.edf"), recursive=True)
         # /polysomnography/edfs/mesa-sleep-NNNN.edf -> NNNN
         subjs = [os.path.splitext(os.path.basename(p))[0].split("-")[-1] for p in subj_paths]
         subjs.sort()
@@ -127,72 +132,10 @@ class StagesDataset(SKDataset):
         """
         if subject_ids is None:
             subject_ids = self.subject_ids
-        subject_idxs = list(range(len(subject_ids)))
-        while True:
-            if shuffle:
-                random.shuffle(subject_idxs)
-            for subject_idx in subject_idxs:
-                subject_id = subject_ids[subject_idx]
-                yield (subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id)
-            # END FOR
-            if not repeat:
-                break
-        # END WHILE
 
-    def signal_generator2(
-        self,
-        subject_generator: SubjectGenerator,
-        signals: list[str],
-        samples_per_subject: int = 1,
-    ) -> SampleGenerator:
-        """Randomly generate frames of sleep data for given subjects.
-
-        Args:
-            subject_generator (SubjectGenerator): Generator that yields subject ids.
-            samples_per_subject (int): Samples per subject.
-
-        Returns:
-            SampleGenerator: Generator of input data of shape (frame_size, num_signals)
-        """
-        subjs_sleep_stages = dict()
-        # subjs_apnea_events = dict()
-        for subject_id in subject_generator:
-            max_size = int(self.target_rate * self.get_subject_duration(subject_id))
-            if subject_id in subjs_sleep_stages:
-                sleep_stages = subjs_sleep_stages[subject_id]
-            else:
-                sleep_stages = self.extract_sleep_stages(subject_id=subject_id)
-                subjs_sleep_stages[subject_id] = sleep_stages
-            # END IF
-            sleep_mask = self.sleep_stages_to_mask(sleep_stages, max_size)
-            # if subject_id in subjs_apnea_events:
-            #     apnea_events = subjs_apnea_events[subject_id]
-            # else:
-            #     apnea_events = self.extract_sleep_apneas(subject_id=subject_id)
-            #     subjs_apnea_events[subject_id] = apnea_events
-            # # END IF
-            # apnea_mask = self.apnea_events_to_mask(apnea_events, max_size)
-
-            x = np.zeros((self.frame_size, len(signals)), dtype=np.float32)
-            y = np.zeros((self.frame_size,), dtype=np.int32)
-            for _ in range(samples_per_subject):
-                frame_start = random.randint(0, max_size - 2 * self.frame_size)
-                frame_end = frame_start + self.frame_size
-                for i, signal_label in enumerate(signals):
-                    signal_label = signal_label.decode("ascii") if isinstance(signal_label, bytes) else signal_label
-                    signal = self.load_signal_for_subject(
-                        subject_id,
-                        signal_label=signal_label,
-                        start=frame_start,
-                        data_size=self.frame_size,
-                    )
-                    signal_len = min(signal.size, x.shape[0])
-                    x[:signal_len, i] = signal[:signal_len]
-                # END FOR
-                y = sleep_mask[frame_start:frame_end]
-                yield x, y
-            # END FOR
-        # END FOR
+        for idx in nse.utils.uniform_id_generator(list(range(len(subject_ids))), repeat=repeat, shuffle=shuffle):
+            subject_id = subject_ids[idx]
+            yield (subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id)
 
     def _load_actigraphy_signal_for_subject(
         self,
@@ -204,7 +147,7 @@ class StagesDataset(SKDataset):
         if data_size is None:
             raise ValueError("data_size must be specified for actigraphy signals")
 
-        overlap_path = str(self.ds_path / "overlap" / "mesa-actigraphy-psg-overlap.csv")
+        overlap_path = str(self.path / "overlap" / "mesa-actigraphy-psg-overlap.csv")
         df = pd.read_csv(overlap_path)
         line = df[df["mesaid"] == int(subject_id)].line.to_numpy()
         if len(line) != 1:
@@ -379,15 +322,15 @@ class StagesDataset(SKDataset):
             return fp.getFileDuration()
 
     def _get_subject_actigraphy_path(self, subject_id: str) -> str:
-        return str(self.ds_path / "actigraphy" / f"mesa-sleep-{subject_id}.csv")
+        return str(self.path / "actigraphy" / f"mesa-sleep-{subject_id}.csv")
 
     def _get_subject_edf_path(self, subject_id: str) -> str:
         """Get subject EDF data path"""
-        return str(self.ds_path / "polysomnography" / "edfs" / f"mesa-sleep-{subject_id}.edf")
+        return str(self.path / "polysomnography" / "edfs" / f"mesa-sleep-{subject_id}.edf")
 
     def _get_subject_xml_path(self, subject_id: str) -> str:
         """Get subject XML NSRR path"""
-        return str(self.ds_path / "polysomnography" / "annotations-events-nsrr" / f"mesa-sleep-{subject_id}-nsrr.xml")
+        return str(self.path / "polysomnography" / "annotations-events-nsrr" / f"mesa-sleep-{subject_id}-nsrr.xml")
 
     def sleep_stages_to_mask(
         self, sleep_stages: list[tuple[int, float, float]], data_size: int
@@ -438,11 +381,11 @@ class StagesDataset(SKDataset):
         """
 
         download_nsrr(
-            db_slug=self.ds_path.stem,
+            db_slug=self.path.stem,
             # subfolder will be URL-encoded
             subfolder="original/STAGES PSGs",
             pattern="*",
-            data_dir=self.ds_path.parent,
+            data_dir=self.path.parent,
             checksum_type="size",
             num_workers=num_workers,
         )

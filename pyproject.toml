@@ -20,8 +20,8 @@ lint = "ruff check"
 test = "pytest tests/"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.12"
-tensorflow = {version = "~2.16.2"}
+python = ">=3.11,<3.13"
+tensorflow = {version = "^2.17.0"}
 tensorflow-metal = {version = "^1.1.0", markers = "sys_platform == 'darwin'"}
 numpy = "^1.26.4"
 scikit-learn = "^1.4.0"
@@ -42,7 +42,7 @@ statsmodels = "^0.14.1"
 pyserial = "^3.5"
 argdantic = {extras = ["all"], version = "^1.0.0"}
 kaggle = "^1.6.6"
-keras-edge = "^0.1.0"
+neuralspot-edge = "~0.2.1"
 
 
 [tool.poetry.group.ci.dependencies]
@@ -59,6 +59,11 @@ mkdocs-material = "^9.5.8"
 mkdocstrings-python = "^1.8.0"
 markdown-include = "^0.8.1"
 mkdocs-exclude = "^1.0.2"
+mkdocs-gen-files = "^0.5.0"
+mkdocs-section-index = "^0.3.9"
+mkdocs-literate-nav = "^0.6.1"
+mkdocs-jupyter = "^0.24.8"
+black = "^24.8.0"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.13.2"
@@ -74,9 +79,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff]
 line-length = 120
 extend-exclude = [
-    "sleepkit/rpc/GenericDataOperations_EvbToPc",
-    "sleepkit/rpc/GenericDataOperations_PcToEvb",
-    "sleepkit/rpc/erpc"
+    "sleepkit/backends/GenericDataOperations_EvbToPc",
+    "sleepkit/backends/GenericDataOperations_PcToEvb",
+    "sleepkit/backends/erpc"
 ]
 
 [tool.ruff.lint]

@@ -13,19 +13,19 @@ The Bring-Your-Own-Task (BYOT) feature allows users to create custom tasks for t
     class CustomTask(sk.SKTask):
 
         @staticmethod
-        def train(params: sk.SKTrainParams) -> None:
+        def train(params: sk.TaskParams) -> None:
             pass
 
         @staticmethod
-        def evaluate(params: sk.SKTestParams) -> None:
+        def evaluate(params: sk.TaskParams) -> None:
             pass
 
         @staticmethod
-        def export(params: sk.SKExportParams) -> None:
+        def export(params: sk.TaskParams) -> None:
             pass
 
         @staticmethod
-        def demo(params: sk.SKDemoParams) -> None:
+        def demo(params: sk.TaskParams) -> None:
             pass
 
     ```
@@ -43,7 +43,7 @@ The Bring-Your-Own-Task (BYOT) feature allows users to create custom tasks for t
     ```python
     ...
 
-    params = sk.SKTrainParams(...)
+    params = sk.TaskParams(...)
     task = sk.TaskFactory.get("custom")
     task.train(params)
 

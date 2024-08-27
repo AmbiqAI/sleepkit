@@ -18,8 +18,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Classes**: Awake, Sleep
     - **Frame Size**: 2 hours
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-A-5](../features/featset03.md)
-    - **Feature Set**: [FS-W-A-5-60]()
+    - **Features**: [FS-W-A-5](../features/fs_w_a_5.md)
 
     ??? note "Configuration"
 

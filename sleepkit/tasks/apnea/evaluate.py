@@ -1,71 +1,73 @@
-"""Sleep Apnea Evaluation"""
-
-import logging
 import os
 
 import numpy as np
 import pandas as pd
 import keras
-import keras_edge as kedge
-from rich.console import Console
+import neuralspot_edge as nse
 from tqdm import tqdm
-from sklearn.metrics import f1_score
 
-from ...defines import SKTestParams
-from ...metrics import compute_iou
-from ...utils import set_random_seed, setup_logger
+from ...defines import TaskParams
+from ...features import H5Dataloader
 from .metrics import (
     compute_apnea_efficiency,
     compute_apnea_hypopnea_index,
     compute_sleep_apnea_durations,
 )
-from .utils import load_dataset
-
-console = Console()
-logger = setup_logger(__name__)
+from .utils import create_data_pipeline, subject_data_preprocessor
 
 
-def evaluate(params: SKTestParams):
+def evaluate(params: TaskParams):
     """Evaluate sleep apnea model.
 
     Args:
-        params (SKTestParams): Testing/evaluation parameters
+        params (TaskParams): Task parameters
     """
-    params.seed = set_random_seed(params.seed)
-    logger.info(f"Random seed {params.seed}")
-
-    logger.info(f"Creating working directory in {params.job_dir}")
     os.makedirs(params.job_dir, exist_ok=True)
+    logger = nse.utils.setup_logger(__name__, level=params.verbose, file_path=params.job_dir / "test.log")
+    logger.debug(f"Creating working directory in {params.job_dir}")
 
-    handler = logging.FileHandler(params.job_dir / "test.log", mode="w")
-    handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
+    params.seed = nse.utils.set_random_seed(params.seed)
+    logger.debug(f"Random seed {params.seed}")
 
-    # target_classes = sorted(list(set(params.class_map.values())))
     class_names = params.class_names or [f"Class {i}" for i in range(params.num_classes)]
 
-    ds = load_dataset(
-        ds_path=params.ds_path,
+    # Load features
+    dataloader = H5Dataloader(
+        path=params.feature.save_path,
         frame_size=params.frame_size,
-        dataset=params.dataset,
+        feat_key=params.feature.feat_key,
+        label_key=params.feature.label_key,
+        mask_key=params.feature.mask_key,
+        feat_cols=params.feature.feat_cols,
     )
-    # feat_shape = ds.feature_shape
+
+    test_ds = create_data_pipeline(
+        dataloader=dataloader,
+        subject_ids=dataloader.test_subject_ids,
+        samples_per_subject=params.test_samples_per_subject,
+        num_classes=params.num_classes,
+        batch_size=params.batch_size,
+        cache_size=params.test_size // params.batch_size,
+    )
+
     test_true, test_pred = [], []
     pt_metrics = []
 
-    logger.info("Loading model")
-    model = kedge.models.load_model(params.model_file)
-    flops = kedge.metrics.flops.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
-    model.summary(print_fn=logger.info)
-    logger.info(f"Model requires {flops/1e6:0.2f} MFLOPS")
+    logger.debug("Loading model")
+    model = nse.models.load_model(params.model_file)
+    flops = nse.metrics.flops.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
+    model.summary(print_fn=logger.debug)
+    logger.debug(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
-    logger.info("Performing inference")
-    for subject_id in tqdm(ds.test_subject_ids, desc="Subject"):
-        features, labels, mask = ds.load_subject_data(subject_id=subject_id, normalize=True)
-        num_windows = int(features.shape[0] // ds.frame_size)
-        data_len = ds.frame_size * num_windows
+    logger.debug("Performing inference")
+    for subject_id in tqdm(dataloader.test_subject_ids, desc="Subject"):
+        features, labels, mask = dataloader.load_subject_data(
+            subject_id=subject_id, preprocessor=subject_data_preprocessor
+        )
+        num_windows = int(features.shape[0] // dataloader.frame_size)
+        data_len = dataloader.frame_size * num_windows
 
-        x = features[:data_len, :].reshape((num_windows, ds.frame_size) + ds.feature_shape[1:])
+        x = features[:data_len, :].reshape((num_windows, dataloader.frame_size) + dataloader.feature_shape[1:])
         y_prob = keras.ops.softmax(model.predict(x, verbose=0)).numpy()
         y_pred = np.argmax(y_prob, axis=-1).flatten()
         y_mask = mask[:data_len].flatten()
@@ -106,7 +108,7 @@ def evaluate(params: SKTestParams):
     df_results = pd.DataFrame(dict(y_true=test_true, y_pred=test_pred))
     df_results.to_csv(params.job_dir / "results.csv", header=True, index=False)
 
-    kedge.plotting.cm.confusion_matrix_plot(
+    nse.plotting.cm.confusion_matrix_plot(
         y_true=test_true,
         y_pred=test_pred,
         labels=class_names,
@@ -116,7 +118,5 @@ def evaluate(params: SKTestParams):
 
     # Summarize results
     logger.info("Testing Results")
-    test_acc = np.sum(test_pred == test_true) / test_true.size
-    test_f1 = f1_score(y_true=test_true, y_pred=test_pred, average="weighted")
-    test_iou = compute_iou(test_true, test_pred, average="weighted")
-    logger.info(f"[TEST SET] ACC={test_acc:.2%}, F1={test_f1:.2%} IoU={test_iou:0.2%}")
+    rsts = model.evaluate(test_ds, verbose=params.verbose, return_dict=True)
+    logger.info("[TEST SET] " + ", ".join([f"{k}={v:.2%}" for k, v in rsts.items()]))

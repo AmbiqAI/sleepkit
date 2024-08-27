@@ -1,24 +1,29 @@
 import os
 import tempfile
-from enum import StrEnum
+from enum import StrEnum, IntEnum
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
-from keras_edge.converters.tflite import QuantizationType
-
-from .datasets.defines import AugmentationParams
+from neuralspot_edge.converters.tflite import QuantizationType, ConversionType
 
 
-class ModelArchitecture(BaseModel, extra="allow"):
-    """Model architecture parameters"""
+class NamedParams(BaseModel, extra="allow"):
+    """
+    Named parameters is used to store parameters for a specific model, preprocessing, or augmentation.
+    Typically name refers to class/method name and params is provided as kwargs.
 
-    name: str
+    Attributes:
+        name: Name
+        params: Parameters
+    """
+
+    name: str = Field(..., description="Name")
     params: dict[str, Any] = Field(default_factory=dict, description="Parameters")
 
 
-class SKMode(StrEnum):
-    """SleepKit Mode"""
+class TaskMode(StrEnum):
+    """Task run mode"""
 
     download = "download"
     feature = "feature"
@@ -29,102 +34,133 @@ class SKMode(StrEnum):
 
 
 class QuantizationParams(BaseModel, extra="allow"):
-    """Quantization parameters"""
+    """Quantization parameters
+
+    Attributes:
+        enabled: Enable quantization
+        qat: Enable quantization aware training (QAT)
+        format: Quantization mode
+        io_type: I/O type
+        conversion: Conversion method
+        debug: Debug quantization
+        fallback: Fallback to float32
+    """
 
     enabled: bool = Field(False, description="Enable quantization")
     qat: bool = Field(False, description="Enable quantization aware training (QAT)")
-    mode: QuantizationType = Field(QuantizationType.INT8, description="Quantization mode")
+    format: QuantizationType = Field(QuantizationType.INT8, description="Quantization mode")
     io_type: str = Field("int8", description="I/O type")
-    concrete: bool = Field(True, description="Use concrete function")
+    conversion: ConversionType = Field(ConversionType.KERAS, description="Conversion method")
     debug: bool = Field(False, description="Debug quantization")
     fallback: bool = Field(False, description="Fallback to float32")
 
 
-class DatasetParams(BaseModel, extra="allow"):
-    """Dataset parameters"""
+class FeatureParams(BaseModel, extra="allow"):
+    """Feature configuration params"""
 
-    name: str = Field("hdf5", description="Dataset name")
-    params: dict[str, Any] = Field(default_factory=dict, description="Dataset parameters")
-    weight: float = Field(1, description="Dataset weight")
-
-
-class SKDownloadParams(BaseModel, extra="allow"):
-    """SleepKit download command params"""
-
-    job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
-    ds_path: Path = Field(default_factory=lambda: Path("./datasets"), description="Dataset directory")
-    datasets: list[str] = Field(default_factory=list, description="Datasets")
-    progress: bool = Field(True, description="Display progress bar")
-    force: bool = Field(False, description="Force download dataset- overriding existing files")
-    data_parallelism: int = Field(
-        default_factory=lambda: os.cpu_count() or 1,
-        description="# of data loaders running in parallel",
-    )
-
-
-class SKFeatureParams(BaseModel, extra="allow"):
-    """SleepKit feature command params"""
-
-    job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
-    ds_path: Path = Field(default_factory=lambda: Path("./datasets"), description="Dataset directory")
-    datasets: list[DatasetParams] = Field(default_factory=list, description="Datasets")
-    feature_set: str = Field(description="Feature set name")
-    feature_params: dict[str, Any] | None = Field(default=None, description="Feature set parameters")
-    save_path: Path = Field(default_factory=Path, description="Save directory")
+    name: str = Field("feature", description="Feature set name")
     sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
-    frame_size: int = Field(1250, description="Frame size")
-    data_parallelism: int = Field(
-        default_factory=lambda: os.cpu_count() or 1,
-        description="# of data loaders running in parallel",
-    )
+    frame_size: int = Field(1250, description="Frame size in samples")
+    loader: str = Field("hdf5", description="Data loader")
+    feat_key: str = Field("features", description="Feature key")
+    label_key: str = Field("labels", description="Label key")
+    mask_key: str = Field("mask", description="Mask key")
+    feat_cols: list[str] | None = Field(None, description="Feature columns")
+    save_path: Path = Field(default_factory=lambda: Path(tempfile.gettempdir()), description="Save path")
+    params: dict[str, Any] = Field(default_factory=dict, description="Feature Parameters")
 
 
-class SKTrainParams(BaseModel, extra="allow"):
-    """SleepKit train command params"""
+class TaskParams(BaseModel, extra="allow"):
+    """Task configuration params"""
 
+    # Common arguments
     name: str = Field("experiment", description="Experiment name")
-    job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
+    project: str = Field("sleepkit", description="Project name")
+    job_dir: Path = Field(
+        default_factory=lambda: Path(tempfile.gettempdir()),
+        description="Job output directory",
+    )
+
     # Dataset arguments
-    ds_path: Path = Field(default_factory=lambda: Path("./datasets"), description="Dataset directory")
-    dataset: DatasetParams = Field(default_factory=DatasetParams, description="Datasets")
+    datasets: list[NamedParams] = Field(default_factory=list, description="Datasets")
+    dataset_weights: list[float] | None = Field(None, description="Dataset weights")
+    force_download: bool = Field(False, description="Force download dataset- overriding existing files")
+
+    # Feature arguments
+    feature: FeatureParams = Field(default_factory=FeatureParams, description="Feature configuration")
+
+    # Signal arguments
     sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
-    frame_size: int = Field(1250, description="Frame size")
-    num_classes: int = Field(2, description="# of classes")
+    frame_size: int = Field(1250, description="Frame size in samples")
+
+    # Dataloader arguments
+    samples_per_subject: int | list[int] = Field(1000, description="Number train samples per subject")
+    val_samples_per_subject: int | list[int] = Field(1000, description="Number validation samples per subject")
+    test_samples_per_subject: int | list[int] = Field(1000, description="Number test samples per subject")
+
+    # Preprocessing/Augmentation arguments
+    preprocesses: list[NamedParams] = Field(default_factory=list, description="Preprocesses")
+    augmentations: list[NamedParams] = Field(default_factory=list, description="Augmentations")
+
+    # Class arguments
+    num_classes: int = Field(1, description="# of classes")
     class_map: dict[int, int] = Field(default_factory=lambda: {1: 1}, description="Class/label mapping")
     class_names: list[str] | None = Field(default=None, description="Class names")
-    samples_per_subject: int | list[int] = Field(1000, description="# train samples per subject")
-    val_samples_per_subject: int | list[int] = Field(1000, description="# validation samples per subject")
+
+    # Split arguments
     train_subjects: float | None = Field(None, description="# or proportion of subjects for training")
     val_subjects: float | None = Field(None, description="# or proportion of subjects for validation")
-    val_file: Path | None = Field(None, description="Path to load/store pickled validation file")
-    val_size: int | None = Field(None, description="# samples for validation")
+    test_subjects: float | None = Field(None, description="# or proportion of subjects for testing")
+
+    # Val/Test dataset arguments
+    val_file: Path | None = Field(None, description="Path to load/store TFDS validation data")
+    test_file: Path | None = Field(None, description="Path to load/store TFDS test data")
+    val_size: int | None = Field(None, description="Number of samples for validation")
+    test_size: int = Field(10000, description="# samples for testing")
+
     # Model arguments
     resume: bool = Field(False, description="Resume training")
-    architecture: ModelArchitecture | None = Field(default=None, description="Custom model architecture")
-    model_file: Path | None = Field(None, description="Path to model file (.keras)")
-
-    weights_file: Path | None = Field(None, description="Path to a checkpoint weights to load")
+    architecture: NamedParams | None = Field(default=None, description="Custom model architecture")
+    model_file: Path | None = Field(None, description="Path to load/save model file (.keras)")
+    use_logits: bool = Field(True, description="Use logits output or softmax")
+    weights_file: Path | None = Field(None, description="Path to a checkpoint weights to load/save")
     quantization: QuantizationParams = Field(default_factory=QuantizationParams, description="Quantization parameters")
+
     # Training arguments
     lr_rate: float = Field(1e-3, description="Learning rate")
     lr_cycles: int = Field(3, description="Number of learning rate cycles")
     lr_decay: float = Field(0.9, description="Learning rate decay")
-    class_weights: Literal["balanced", "fixed"] = Field("fixed", description="Class weights")
     label_smoothing: float = Field(0, description="Label smoothing")
     batch_size: int = Field(32, description="Batch size")
-    buffer_size: int = Field(100, description="Buffer size")
+    buffer_size: int = Field(100, description="Buffer cache size")
     epochs: int = Field(50, description="Number of epochs")
     steps_per_epoch: int = Field(10, description="Number of steps per epoch")
+    val_steps_per_epoch: int = Field(10, description="Number of validation steps")
     val_metric: Literal["loss", "acc", "f1"] = Field("loss", description="Performance metric")
-    # Preprocessing/Augmentation arguments
-    augmentations: list[AugmentationParams] = Field(default_factory=list, description="Augmentations")
+    class_weights: Literal["balanced", "fixed"] = Field("fixed", description="Class weights")
+
+    # Evaluation arguments
+    threshold: float | None = Field(None, description="Model output threshold")
+    test_metric: Literal["loss", "acc", "f1"] = Field("acc", description="Test metric")
+    test_metric_threshold: float | None = Field(0.98, description="Validation metric threshold")
+
+    # Export arguments
+    tflm_var_name: str = Field("g_model", description="TFLite Micro C variable name")
+    tflm_file: Path | None = Field(None, description="Path to copy TFLM header file (e.g. ./model_buffer.h)")
+
+    # Demo arguments
+    backend: str = Field("pc", description="Backend")
+    demo_size: int | None = Field(1000, description="# samples for demo")
+    display_report: bool = Field(True, description="Display report")
+
     # Extra arguments
     seed: int | None = Field(None, description="Random state seed")
-    model_config = ConfigDict(protected_namespaces=())
-    data_parallelism: int = Field(
+    num_workers: int = Field(
         default_factory=lambda: os.cpu_count() or 1,
-        description="# of data loaders running in parallel",
+        description="Number of workers for parallel processing",
     )
+    verbose: int = Field(1, ge=0, le=2, description="Verbosity level")
+    model_config = ConfigDict(protected_namespaces=())
 
     def model_post_init(self, __context: Any) -> None:
         """Post init hook"""
@@ -132,118 +168,37 @@ class SKTrainParams(BaseModel, extra="allow"):
         if self.val_file and len(self.val_file.parts) == 1:
             self.val_file = self.job_dir / self.val_file
 
+        if self.test_file and len(self.test_file.parts) == 1:
+            self.test_file = self.job_dir / self.test_file
+
         if self.model_file and len(self.model_file.parts) == 1:
             self.model_file = self.job_dir / self.model_file
 
         if self.weights_file and len(self.weights_file.parts) == 1:
             self.weights_file = self.job_dir / self.weights_file
 
-
-class SKTestParams(BaseModel, extra="allow"):
-    """SleepKit test command params"""
-
-    name: str = Field("experiment", description="Experiment name")
-    job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
-    # Dataset arguments
-    ds_path: Path = Field(default_factory=lambda: Path("./datasets"), description="Dataset directory")
-    dataset: DatasetParams = Field(default_factory=DatasetParams, description="Datasets")
-    sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
-    frame_size: int = Field(1250, description="Frame size")
-    num_classes: int = Field(2, description="# of classes")
-    class_map: dict[int, int] = Field(default_factory=lambda: {1: 1}, description="Class/label mapping")
-    class_names: list[str] | None = Field(default=None, description="Class names")
-    test_samples_per_subject: int | list[int] = Field(1000, description="# test samples per patient")
-    test_subjects: float | None = Field(None, description="# or proportion of subjects for testing")
-    test_size: int = Field(20_000, description="# samples for testing")
-    test_file: Path | None = Field(None, description="Path to load/store pickled test file")
-    # Model arguments
-    model_file: Path | None = Field(None, description="Path to model file (.keras)")
-    threshold: float | None = Field(None, description="Model output threshold")
-    quantization: QuantizationParams = Field(default_factory=QuantizationParams, description="Quantization parameters")
-    augmentations: list[AugmentationParams] = Field(default_factory=list, description="Augmentations")
-    # Extra arguments
-    seed: int | None = Field(None, description="Random state seed")
-    data_parallelism: int = Field(
-        default_factory=lambda: os.cpu_count() or 1,
-        description="# of data loaders running in parallel",
-    )
-    model_config = ConfigDict(protected_namespaces=())
-
-    def model_post_init(self, __context: Any) -> None:
-        """Post init hook"""
-
-        if self.test_file and len(self.test_file.parts) == 1:
-            self.test_file = self.job_dir / self.test_file
-
-        if self.model_file and len(self.model_file.parts) == 1:
-            self.model_file = self.job_dir / self.model_file
-
-
-class SKExportParams(BaseModel, extra="allow"):
-    """Export command params"""
-
-    name: str = Field("experiment", description="Experiment name")
-    job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
-    # Dataset arguments
-    ds_path: Path = Field(default_factory=lambda: Path("./datasets"), description="Dataset base directory")
-    dataset: DatasetParams = Field(default_factory=DatasetParams, description="Datasets")
-    sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
-    frame_size: int = Field(1250, description="Frame size")
-    num_classes: int = Field(2, description="# of classes")
-    class_map: dict[int, int] = Field(default_factory=lambda: {1: 1}, description="Class/label mapping")
-    class_names: list[str] | None = Field(default=None, description="Class names")
-    test_samples_per_subject: int | list[int] = Field(100, description="# test samples per subject")
-    test_subjects: float | None = Field(None, description="# or proportion of subjects for testing")
-    test_size: int = Field(20_000, description="# samples for testing")
-    test_file: Path | None = Field(None, description="Path to load/store pickled test file")
-    model_file: Path | None = Field(None, description="Path to model file (.keras)")
-    threshold: float | None = Field(None, description="Model output threshold")
-    val_acc_threshold: float | None = Field(0.98, description="Validation accuracy threshold")
-    use_logits: bool = Field(True, description="Use logits output or softmax")
-    quantization: QuantizationParams = Field(default_factory=QuantizationParams, description="Quantization parameters")
-    tflm_var_name: str = Field("g_model", description="TFLite Micro C variable name")
-    tflm_file: Path | None = Field(None, description="Path to copy TFLM header file (e.g. ./model_buffer.h)")
-    data_parallelism: int = Field(
-        default_factory=lambda: os.cpu_count() or 1,
-        description="# of data loaders running in parallel",
-    )
-    model_config = ConfigDict(protected_namespaces=())
-
-    def model_post_init(self, __context: Any) -> None:
-        """Post init hook"""
-
-        if self.test_file and len(self.test_file.parts) == 1:
-            self.test_file = self.job_dir / self.test_file
-
-        if self.model_file and len(self.model_file.parts) == 1:
-            self.model_file = self.job_dir / self.model_file
-
         if self.tflm_file and len(self.tflm_file.parts) == 1:
             self.tflm_file = self.job_dir / self.tflm_file
 
 
-class SKDemoParams(BaseModel, extra="allow"):
-    """Demo command params"""
+class SleepApnea(IntEnum):
+    """Sleep apnea class"""
 
-    name: str = Field("experiment", description="Experiment name")
-    job_dir: Path = Field(default_factory=tempfile.gettempdir, description="Job output directory")
-    # Dataset arguments
-    ds_path: Path = Field(default_factory=lambda: Path("./datasets"), description="Dataset directory")
-    dataset: DatasetParams = Field(default_factory=DatasetParams, description="Datasets")
-    sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
-    frame_size: int = Field(1250, description="Frame size")
-    num_classes: int = Field(2, description="# of classes")
-    class_map: dict[int, int] = Field(default_factory=lambda: {1: 1}, description="Class/label mapping")
-    class_names: list[str] | None = Field(default=None, description="Class names")
-    # Model arguments
-    model_file: Path | None = Field(None, description="Path to model file (.keras)")
-    backend: str = Field("pc", description="Backend")
-    # Extra arguments
-    seed: int | None = Field(None, description="Random state seed")
-    model_config = ConfigDict(protected_namespaces=())
+    none = 0
+    hypopnea = 1
+    central = 2
+    obstructive = 3
+    mixed = 4
+    noise = 5
 
-    def model_post_init(self, __context: Any) -> None:
-        """Post init hook"""
 
-        if self.model_file and len(self.model_file.parts) == 1:
-            self.model_file = self.job_dir / self.model_file
+class SleepStage(IntEnum):
+    """Sleep stage class"""
+
+    wake = 0
+    stage1 = 1
+    stage2 = 2
+    stage3 = 3
+    stage4 = 4
+    rem = 5
+    noise = 6

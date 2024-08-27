@@ -39,7 +39,7 @@ ds.download(
 
 ## 2. Create feature set
 
-From the dataset, let's create a feature set using the [FS-W-A-5 feature set generator](../features/featset03.md). This feature set computes 5 features over 60-second windows captured from the accelerometer sensor collected on the wrist. The [CMIDSS](../datasets/cmidss.md) dataset already provides accelerometer averaged over 5 secods (i.e. Fs=0.2 Hz). Therefore, we will use a frame size of 12 to capture 60 seconds of data (i.e. 6 samples at 0.2 Hz) with a 50% overlap.
+From the dataset, let's create a feature set using the [FS-W-A-5 features](../features/fs_w_a_5.md). This feature set computes 5 features over 60-second windows captured from the accelerometer sensor collected on the wrist. The [CMIDSS](../datasets/cmidss.md) dataset already provides accelerometer averaged over 5 secods (i.e. Fs=0.2 Hz). Therefore, we will use a frame size of 12 to capture 60 seconds of data (i.e. 6 samples at 0.2 Hz) with a 50% overlap.
 
 ```python
 sk.generate_feature_set(args=sk.SKFeatureParams(
@@ -100,7 +100,7 @@ At this point, we can train the model and generated feature set for the sleep de
 ```python
 # 3. Train model
 task_handler = sk.TaskFactory.get(task)
-task_handler.train(args=sk.SKTrainParams(
+task_handler.train(args=sk.TaskParams(
     name=experiment_name,
     job_dir=results_path / experiment_name,
     ds_path=fs_path,
@@ -175,7 +175,7 @@ Performing full validation
 Now that the model has been trained, we can evaluate its performance on the test set. We will use the same feature set and dataset configuration as before.
 
 ```python
-task_handler.evaluate(args=sk.SKTestParams(
+task_handler.evaluate(args=sk.TaskParams(
     name=experiment_name,
     job_dir=results_path / experiment_name,
     ds_path=fs_path,
@@ -229,7 +229,7 @@ Testing Results
 Once we achieve acceptable performance on the test set, we can export the model to a format that can be used for deployment. In this case, we will export the model to a TensorFlow Lite format with quantization enabled.
 
 ```python
-task_handler.export(args=sk.SKExportParams(
+task_handler.export(args=sk.TaskParams(
     name=experiment_name,
     job_dir=results_path / experiment_name,
     ds_path=fs_path,
@@ -292,7 +292,7 @@ Validation passed (0.70%)
 Finally, we can a full demo of the model using the `demo` command. This will run the model on a sample subject and generate a report with performance metrics. The current configuration will run inference on the PC. By changing backend to 'evb', the model can be run on the Apollo4 Plus EVB.
 
 ```python
-task_handler.demo(args=sk.SKDemoParams(
+task_handler.demo(args=sk.TaskParams(
     name=experiment_name,
     job_dir=results_path / experiment_name,
     ds_path=fs_path,

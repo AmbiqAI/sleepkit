@@ -1,17 +1,75 @@
 import abc
+import os
 from pathlib import Path
 
-import numpy.typing as npt
-
-from .defines import SampleGenerator, SubjectGenerator
+from .defines import SubjectGenerator
 
 
-class SKDataset(abc.ABC):
-    """Base SK dataset."""
+class Dataset(abc.ABC):
+    path: Path
 
-    def __init__(self, ds_path: Path, frame_size: int = 128, **kwargs) -> None:
-        self.ds_path = ds_path
-        self.frame_size = frame_size
+    def __init__(self, path: os.PathLike|None = None, **kwargs) -> None:
+        """Dataset serves as a base class to download and provide unified access to datasets.
+
+        Args:
+            path (os.PathLike|None, optional): Path to dataset base path. Defaults to None.
+
+        Example:
+
+        ```python
+        import numpy as np
+        import sleepkit as sk
+
+        class MyDataset(sk.Dataset):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+
+            @property
+            def name(self) -> str:
+                return 'my-dataset'
+
+            @property
+            def sampling_rate(self) -> int:
+                return 100
+
+            def get_train_patient_ids(self) -> npt.NDArray:
+                return np.arange(80)
+
+            def get_test_patient_ids(self) -> npt.NDArray:
+                return np.arange(80, 100)
+
+            @contextlib.contextmanager
+            def patient_data(self, patient_id: int) -> Generator[PatientData, None, None]:
+                data = np.random.randn(1000)
+                segs = np.random.randint(0, 1000, (10, 2))
+                yield {"data": data, "segmentations": segs}
+
+            def signal_generator(
+                self,
+                patient_generator: PatientGenerator,
+                frame_size: int,
+                samples_per_patient: int = 1,
+                target_rate: int | None = None,
+            ) -> Generator[npt.NDArray, None, None]:
+                for patient in patient_generator:
+                    for _ in range(samples_per_patient):
+                        with self.patient_data(patient) as pt:
+                            yield pt["data"]
+
+            def download(self, num_workers: int | None = None, force: bool = False):
+                pass
+
+        # Register dataset
+        sk.DatasetFactory.register("my-dataset", MyDataset)
+        ```
+
+        """
+
+        if path is None:
+            path = os.environ.get("SK_DATASET_PATH", None)
+        if path is None:
+            raise ValueError("Root dataset path is not set")
+        self.path = Path(path)
 
     @property
     def subject_ids(self) -> list[str]:
@@ -32,11 +90,6 @@ class SKDataset(abc.ABC):
         """Get test subject ids"""
         raise NotImplementedError()
 
-    @property
-    def feature_shape(self) -> tuple[int, int]:
-        """Get feature shape"""
-        raise NotImplementedError()
-
     def uniform_subject_generator(
         self,
         subject_ids: list[str] | None = None,
@@ -55,39 +108,6 @@ class SKDataset(abc.ABC):
 
         Yields:
             Iterator[SubjectGenerator]
-        """
-        raise NotImplementedError()
-
-    def load_subject_data(
-        self, subject_id: str, normalize: bool = True, epsilon: float = 1e-6
-    ) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]:
-        """Load subject data
-
-        Args:
-            subject_id (str): Subject ID
-
-        Returns:
-            tuple[npt.NDArray, npt.NDArray, npt.NDArray | None]: Tuple of features and labels
-        """
-        raise NotImplementedError()
-
-    def signal_generator(
-        self,
-        subject_generator,
-        samples_per_subject: int = 1,
-        normalize: bool = True,
-        epsilon: float = 1e-6,
-    ) -> SampleGenerator:
-        """Generate frames using subject generator
-
-        Args:
-            subject_generator (SubjectGenerator): Subject generator
-            samples_per_subject (int): # samples per subject
-            normalize (bool, optional): Normalize data. Defaults to True.
-            epsilon (float, optional): Epsilon for normalization. Defaults to 1e-6.
-
-        Returns:
-            SampleGenerator: Generator of input data of shape (frame_size, 1)
         """
         raise NotImplementedError()
 

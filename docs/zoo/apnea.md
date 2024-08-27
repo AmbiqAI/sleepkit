@@ -16,8 +16,7 @@ The following table provides the latest pre-trained models for sleep apnea. Belo
     - **Classes**: Normal, Apnea
     - **Frame Size**: 10 minutes
     - **Datasets**: [MESA](../datasets/mesa.md)
-    - **Feature Generator**: [FS-W-P-5](../features/featset01.md)
-    - **Feature Set**: [FS-W-P-5-1]()
+    - **Features**: [FS-W-P-5](../features/fs_w_p_5.md)
 
 ## <span class="sk-h2-span">Model Performance</span>
 
