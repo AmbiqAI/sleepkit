@@ -25,7 +25,7 @@ The tool is available under BSD-3-Clause License.
 
 !!! Example Python
 
-    ```python
+    ```py linenums="1"
     import physiokit as pk
 
     heart_rate = 64 # BPM

@@ -8,6 +8,7 @@ Functions:
     subject_data_preprocessor: Preprocess entire subject data
 
 """
+
 import functools
 
 import numpy as np
@@ -21,7 +22,14 @@ def subject_data_preprocessor(x, y, mask):
     """Preprocess entire subject data."""
 
     epsilon = 1e-6
+
     mask_x = x[mask == 1] if mask is not None else x
+
+    # Impute missing values with median
+    if mask is not None:
+        x_med = np.nanmedian(mask_x, axis=0)
+        x[mask == 0, :] = x_med
+
     x_mu = np.nanmean(mask_x, axis=0)
     x_var = np.nanvar(mask_x, axis=0)
     x = (x - x_mu) / np.sqrt(x_var + epsilon)

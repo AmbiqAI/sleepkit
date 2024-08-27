@@ -121,43 +121,6 @@ class H5Dataloader:
             feat_shape = (feat_shape[0], len(self.feat_cols))
         return feat_shape
 
-    def _preprocess_data(
-        self,
-        x: npt.NDArray,
-        y: npt.NDArray,
-        mask: npt.NDArray | None = None,
-        preprocessor: PreprocessorType | None = None,
-    ) -> XYMaskType:
-        """Perform preprocessing across entire subject data.
-
-        Args:
-            x (npt.NDArray): Features
-            y (npt.NDArray): Labels
-            mask (npt.NDArray | None): Mask
-            preprocessor (PreprocessorType|None): Preprocessor function
-
-        Returns:
-            XYMaskType: Tuple of features, labels, and mask
-
-        """
-        if self.feat_cols:
-            x = x[:, self.feat_cols]
-
-        mask_x = x[mask == 1] if mask is not None else x
-
-        # Impute missing values with median
-        if mask is not None:
-            x_med = np.nanmedian(mask_x, axis=0)
-            x[mask == 0, :] = x_med
-
-        if preprocessor:
-            x, y, mask = preprocessor(x, y, mask)
-
-        if self.class_map:
-            y = np.vectorize(self.class_map.get)(y)
-
-        return x, y, mask
-
     def load_subject_data(
         self,
         subject_id: str,
@@ -172,18 +135,41 @@ class H5Dataloader:
         Returns:
             XYMaskType: Tuple of features, labels, and mask
         """
-        if subject_id in self._cached_data:
-            return self._cached_data[subject_id]
 
-        mask = None
-        with h5py.File(self._subject_paths[subject_id], mode="r") as h5:
-            x = h5[self.feat_key][:]
-            y = h5[self.label_key][:]
-            if self.mask_key:
-                mask = h5[self.mask_key][:]
-        x, y, mask = self._preprocess_data(x, y, mask, preprocessor=preprocessor)
-        if self.cacheabe:
-            self._cached_data[subject_id] = x, y, mask
+        # Skip if data is cached
+        if subject_id in self._cached_data:
+            x, y, mask = self._cached_data[subject_id]
+        else:
+            # Load data from HDF5 file
+            mask = None
+            with h5py.File(self._subject_paths[subject_id], mode="r") as h5:
+                x = h5[self.feat_key][:]
+                y = h5[self.label_key][:]
+                if self.mask_key:
+                    mask = h5[self.mask_key][:]
+                # END IF
+            # END WITH
+
+            # Grab target feature columns
+            if self.feat_cols:
+                x = x[:, self.feat_cols]
+            # END IF
+
+            # Apply class map
+            if self.class_map:
+                y = np.vectorize(self.class_map.get)(y)
+            # END IF
+
+            # Cache data if cacheable
+            if self.cacheabe:
+                self._cached_data[subject_id] = x, y, mask
+            # END IF
+        # END IF
+
+        # Dont cache preprocessed data as it may be different for each epoch
+        if preprocessor:
+            x, y, mask = preprocessor(x, y, mask)
+
         return x, y, mask
 
     def signal_generator(

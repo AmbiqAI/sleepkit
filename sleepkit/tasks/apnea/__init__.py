@@ -7,6 +7,7 @@ Classes:
     ApneaTask: Sleep apnea detection task
 
 """
+
 from ...defines import TaskParams
 from ..task import Task
 from . import utils

@@ -81,6 +81,7 @@ import neuralspot_edge as nse
 
 class ModelFactoryItem(Protocol):
     def __call__(self, inputs: keras.KerasTensor, params: dict, num_classes: int) -> keras.Model: ...
+
     """ModelFactoryItem is a protocol for model factory items.
 
     Args:

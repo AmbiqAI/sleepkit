@@ -6,7 +6,7 @@ In this example, we will train a small TCN network to detect sleep and wake stag
 
 First, we will import the necessary libraries and define shared variables.
 
-```python
+```py linenums="1"
 import os
 from pathlib import Path
 import sleepkit as sk
@@ -26,7 +26,7 @@ fs_path = ds_path / 'store' / fset_name
 
 Next, we will download the datasets. In this case, we will be using the [CMIDSS](../datasets/cmidss.md) dataset.
 
-```python
+```py linenums="1"
 ds = sk.DatasetFactory.create(
     ds_name,
     ds_path=ds_path,
@@ -41,8 +41,8 @@ ds.download(
 
 From the dataset, let's create a feature set using the [FS-W-A-5 features](../features/fs_w_a_5.md). This feature set computes 5 features over 60-second windows captured from the accelerometer sensor collected on the wrist. The [CMIDSS](../datasets/cmidss.md) dataset already provides accelerometer averaged over 5 secods (i.e. Fs=0.2 Hz). Therefore, we will use a frame size of 12 to capture 60 seconds of data (i.e. 6 samples at 0.2 Hz) with a 50% overlap.
 
-```python
-sk.generate_feature_set(args=sk.SKFeatureParams(
+```py linenums="1"
+sk.generate_feature_set(args=sk.FeatureParams(
     job_dir=results_path / fset_name,
     ds_path=ds_path,
     datasets=[sk.DatasetParams(name=ds_name, params={})],
@@ -73,7 +73,7 @@ Once the command finishes, the feature set will be saved in the `fs_path` direct
 
 Next, we will define the model architecture. In this case, we will use a TCN model with the following configuration:
 
-```python
+```py linenums="1"
 architecture = sk.ModelArchitecture(
     name='tcn',
     params=dict(
@@ -97,7 +97,7 @@ architecture = sk.ModelArchitecture(
 
 At this point, we can train the model and generated feature set for the sleep detect task. Since we are performing sleep detection, we will use the TaskFactory to get the `detect` task handler to train the model. Since the feature set we generated are stored in HDF5 files, we will use the `hdf5` dataset handler. The model will be trained for 200 epochs with a batch size of 128 and a learning rate of 1e-3. The model will be fed a `frame_size` of 480 samples which equates to 240 minutes.
 
-```python
+```py linenums="1"
 # 3. Train model
 task_handler = sk.TaskFactory.get(task)
 task_handler.train(args=sk.TaskParams(
@@ -174,7 +174,7 @@ Performing full validation
 
 Now that the model has been trained, we can evaluate its performance on the test set. We will use the same feature set and dataset configuration as before.
 
-```python
+```py linenums="1"
 task_handler.evaluate(args=sk.TaskParams(
     name=experiment_name,
     job_dir=results_path / experiment_name,
@@ -228,7 +228,7 @@ Testing Results
 
 Once we achieve acceptable performance on the test set, we can export the model to a format that can be used for deployment. In this case, we will export the model to a TensorFlow Lite format with quantization enabled.
 
-```python
+```py linenums="1"
 task_handler.export(args=sk.TaskParams(
     name=experiment_name,
     job_dir=results_path / experiment_name,
@@ -291,7 +291,7 @@ Validation passed (0.70%)
 
 Finally, we can a full demo of the model using the `demo` command. This will run the model on a sample subject and generate a report with performance metrics. The current configuration will run inference on the PC. By changing backend to 'evb', the model can be run on the Apollo4 Plus EVB.
 
-```python
+```py linenums="1"
 task_handler.demo(args=sk.TaskParams(
     name=experiment_name,
     job_dir=results_path / experiment_name,

@@ -7,6 +7,7 @@ Classes:
     StageTask: Sleep stage classification task
 
 """
+
 from ..task import Task, TaskParams
 from .demo import demo
 from .evaluate import evaluate
@@ -39,7 +40,6 @@ class StageTask(Task):
 
     @staticmethod
     def export(params: TaskParams) -> None:
-
         """Export sleep stage model.
 
         Args:

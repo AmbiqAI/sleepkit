@@ -9,6 +9,7 @@ Furthermore, the included models are trainined using a large variety datasets- u
 The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
 
 """
+
 import os
 from importlib.metadata import version
 import neuralspot_edge as nse

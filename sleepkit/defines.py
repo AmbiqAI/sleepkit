@@ -56,7 +56,20 @@ class QuantizationParams(BaseModel, extra="allow"):
 
 
 class FeatureParams(BaseModel, extra="allow"):
-    """Feature configuration params"""
+    """Feature configuration params
+
+    Attributes:
+        name: Feature set name
+        sampling_rate: Target sampling rate (Hz)
+        frame_size: Frame size in samples
+        loader: Data loader
+        feat_key: Feature key
+        label_key: Label key
+        mask_key: Mask key
+        feat_cols: Feature columns
+        save_path: Save path
+        params: Feature Parameters
+    """
 
     name: str = Field("feature", description="Feature set name")
     sampling_rate: float = Field(250, description="Target sampling rate (Hz)")
@@ -182,7 +195,17 @@ class TaskParams(BaseModel, extra="allow"):
 
 
 class SleepApnea(IntEnum):
-    """Sleep apnea class"""
+    """Sleep apnea class
+
+    Attributes:
+        none: None
+        apnea: Apnea
+        hypopnea: Hypopnea
+        central: Central
+        obstructive: Obstructive
+        mixed: Mixed
+        noise: Noise
+    """
 
     none = 0
     hypopnea = 1
@@ -193,7 +216,17 @@ class SleepApnea(IntEnum):
 
 
 class SleepStage(IntEnum):
-    """Sleep stage class"""
+    """Sleep stage class
+
+    Attributes:
+        wake: Wake
+        stage1: Stage 1
+        stage2: Stage 2
+        stage3: Stage 3
+        stage4: Stage 4
+        rem: REM
+        noise: Noise
+    """
 
     wake = 0
     stage1 = 1

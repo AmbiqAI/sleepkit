@@ -80,41 +80,65 @@ Similar to datasets, tasks, and models, the demo mode can be customized to use y
 
 #### How it Works
 
-1. **Create a Backend**: Define a new backend by creating a new Python file. The file should contain a class that inherits from the `DemoBackend` base class and implements the required methods.
+1. **Create a Backend**: Define a new backend class that inherits from the `sk.InferenceBackend` base class and implements the required methods.
 
-    ```python
+    ```py linenums="1"
     import sleepkit as sk
 
-    class CustomBackend(sk.SKBackend):
-        def __init__(self, config):
-            super().__init__(config)
+    class CustomBackend(sk.InferenceBackend):
+        def __init__(self, params: TaskParams) -> None:
+            self.params = params
 
-        def run(self, model, data):
+        def open(self):
+            pass
+
+        def close(self):
+            pass
+
+        def set_inputs(self, inputs: npt.NDArray):
+            pass
+
+        def perform_inference(self):
+            pass
+
+        def get_outputs(self) -> npt.NDArray:
             pass
     ```
 
-2. **Register the Backend**: Register the new backend with the `BackendFactory` by calling the `register` method. This method takes the backend name and the backend class as arguments.
+2. **Register the Backend**: Register the new backend with the `sk.BackendFactory` by calling the `register` method. This method takes the backend name and the backend class as arguments.
 
-    ```python
+    ```py linenums="1"
     import sleepkit as sk
     sk.BackendFactory.register("custom", CustomBackend)
     ```
 
 3. **Use the Backend**: The new backend can now be used by setting the `backend` flag in the demo configuration settings.
 
-    ```python
+    ```py linenums="1"
     import sleepkit as sk
-    task = sk.TaskFactory.get("detect")
-    task.demo(sk.TaskParams(
+
+    params = sk.TaskParams(
         ...,
         backend="custom"
-    ))
+    )
+
+    task = sk.TaskFactory.get("detect")
+
+    task.demo(params)
     ```
+
     _OR_ by creating the backend directly:
 
-    ```python
+    ```py linenums="1"
     import sleepkit as sk
-    backend = sk.BackendFactory.create("custom", config)
+
+    params = sk.TaskParams(
+        ...,
+        backend="custom"
+    )
+
+    backend = sk.BackendFactory.get("custom")(params)
+
     ```
 
 ---
@@ -131,7 +155,7 @@ The following is an example of a task-level demo report for the sleep staging ta
 
 === "Python"
 
-    ```python
+    ```py linenums="1"
     from pathlib import Path
     import sleepkit as sk
 

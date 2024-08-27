@@ -8,7 +8,7 @@ The main components of SleepKit include the following:
 
 ### [Tasks](../tasks/index.md)
 
-A [Task](../tasks/index.md) inherits from the [sk.Task](/sleepkit/api/sleepkit/tasks/task) class and provides implementations for each of the main modes: download, feature, train, evaluate, export, and demo. Each mode is provided with a set of parameters defined by [sk.TaskParams](/sleepkit/api/sleepkit/defines). Additional task-specific parameters can be extended to the `TaskParams` class. These tasks are then registered and accessed via the `TaskFactory` using a unique task name as the key and the custom Task class as the value.
+A [Task](../tasks/index.md) inherits from the [sk.Task](/sleepkit/api/sleepkit/tasks/task) class and provides implementations for each of the main modes: download, feature, train, evaluate, export, and demo. Each mode is provided with a set of parameters defined by [sk.TaskParams](/sleepkit/api/sleepkit/defines). Additional task-specific parameters can be extended to the `TaskParams` class. These tasks are then registered and accessed via the `sk.TaskFactory` using a unique task name as the key and the custom Task class as the value.
 
 ```py linenums="1"
 import sleepkit as sk
@@ -34,7 +34,7 @@ Since each task will require specific transformations of the data, a feature sto
 
 ### [Models](../models/index.md)
 
-Lastly, SleepKit leverages [neuralspot-edge's](https://ambiqai.github.io/neuralspot-edge/) customizable model architectures. To enable creating custom network topologies from configuration files, SleepKit provides a `ModelFactory` that allows you to create models by specifying the model key and the model parameters. Each item in the factory is a callable that takes a `keras.Input`, model parameters, and number of classes as arguments and returns a `keras.Model`.
+Lastly, SleepKit leverages [neuralspot-edge's](https://ambiqai.github.io/neuralspot-edge/) customizable model architectures. To enable creating custom network topologies from configuration files, SleepKit provides a `sk.ModelFactory` that allows you to create models by specifying the model key and the model parameters. Each item in the factory is a callable that takes a `keras.Input`, model parameters, and number of classes as arguments and returns a `keras.Model`.
 
 ```
 import keras
@@ -58,7 +58,7 @@ model = sk.ModelFactory.get('tcn')(
 
 1. Create a task configuration file defining the model, datasets, class labels, mode parameters, and so on. Have a look at the [sk.TaskParams](../modes/configuration.md#taskparams) for more details on the available parameters.
 
-2. Leverage `TaskFactory` to get the desired built-in task.
+2. Leverage `sk.TaskFactory` to get the desired built-in task.
 
 3. Run the task's main modes: `download`, `feature`, `train`, `evaluate`, `export`, and/or `demo`.
 

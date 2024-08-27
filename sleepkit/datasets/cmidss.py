@@ -29,7 +29,6 @@ class CmidssSleepStage(IntEnum):
 
 
 class CmidssDataset(Dataset):
-
     def __init__(
         self,
         target_rate: int = 1,

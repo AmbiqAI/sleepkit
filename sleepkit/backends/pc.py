@@ -7,7 +7,6 @@ from .backend import InferenceBackend
 
 
 class PcBackend(InferenceBackend):
-
     def __init__(self, params: TaskParams) -> None:
         """PC inference engine backend.
 

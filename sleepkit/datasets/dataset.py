@@ -8,7 +8,7 @@ from .defines import SubjectGenerator
 class Dataset(abc.ABC):
     path: Path
 
-    def __init__(self, path: os.PathLike|None = None, **kwargs) -> None:
+    def __init__(self, path: os.PathLike | None = None, **kwargs) -> None:
         """Dataset serves as a base class to download and provide unified access to datasets.
 
         Args:

@@ -69,7 +69,7 @@ def demo(params: TaskParams):
     # Load entire subject's features
     subject_id = random.choice(dataloader.subject_ids)
     logger.debug(f"Loading subject {subject_id} data")
-    features, _, _ = dataloader.load_subject_data(subject_id=subject_id, preprocessor=subject_data_preprocessor)
+    features, _, _ = dataloader.load_subject_data(subject_id=subject_id, preprocessor=None)
     x, y_true, y_mask = dataloader.load_subject_data(subject_id=subject_id, preprocessor=subject_data_preprocessor)
 
     # Run inference

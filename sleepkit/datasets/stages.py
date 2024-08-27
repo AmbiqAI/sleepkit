@@ -38,7 +38,6 @@ class StagesSleepStage(IntEnum):
 
 
 class StagesDataset(Dataset):
-
     def __init__(
         self,
         target_rate: int = 128,

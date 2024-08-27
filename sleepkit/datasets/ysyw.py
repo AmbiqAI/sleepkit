@@ -43,7 +43,6 @@ YsywStageMap = {
 
 
 class YsywDataset(Dataset):
-
     def __init__(
         self,
         target_rate: int = 128,

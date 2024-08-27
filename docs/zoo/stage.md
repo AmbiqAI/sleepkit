@@ -180,3 +180,43 @@ TOTAL: 20736+442368+442368+7895040+75816 -->
 
 
 ---
+
+## <span class="sk-h2-span">Downloads</span>
+
+=== "SS-2-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-2-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-2-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-2-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-2-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+=== "SS-3-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-3-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-3-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-3-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-3-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+=== "SS-4-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-4-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-4-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-4-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-4-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+=== "SS-5-TCN-SM"
+
+    | Asset                                                                | Description                   |
+    | -------------------------------------------------------------------- | ----------------------------- |
+    | [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-5-tcn-sm/latest/configuration.json)   | Configuration file            |
+    | [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-5-tcn-sm/latest/model.keras)            | Keras Model file              |
+    | [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-5-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+    | [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/stage/ss-5-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+---

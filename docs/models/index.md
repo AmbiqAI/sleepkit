@@ -21,7 +21,7 @@ SleepKit provides a number of model architectures that can be used for training 
 
 ## <span class="sk-h2-span">Model Factory</span>
 
-SleepKit includes a model factory, `ModelFactory`, that eases the processes of creating models for training. The factory allows you to create models by specifying the model key and the model parameters. The factory will then create the model using the specified parameters. The factory also allows you to register custom models that can be used for training. By leveraring a factory, a task only needs to provide the architecture key and the parameters, and the factory will take care of the rest.
+SleepKit includes a model factory, `sk.ModelFactory`, that eases the processes of creating models for training. The factory allows you to create models by specifying the model key and the model parameters. The factory will then create the model using the specified parameters. The factory also allows you to register custom models that can be used for training. By leveraring a factory, a task only needs to provide the architecture key and the parameters, and the factory will take care of the rest.
 
 The model factory provides the following methods:
 

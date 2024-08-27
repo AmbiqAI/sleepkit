@@ -1,15 +1,15 @@
-# Bring-Your-Own-Feature-Set (BYOFS)
+# Bring-Your-Own-Features (BYOFS)
 
-The Bring-Your-Own-Feature-Set (BYOFS) allows users to add custom feature set generators to the feature store.
+The Bring-Your-Own-Features (BYOFS) allows users to add custom feature sets to SleepKit to be used with built-in or custom tasks.
 
 ## How it Works
 
-1. **Create a Feature Set Generator**: Define a new feature set generator by creating a new Python file. The file should contain a class that inherits from the `SKFeatureSet` base class and implements the required methods.
+1. **Create a Feature Set**: Define a new feature set class that subclasses `sk.FeatureSet` and implements all abstract methods.
 
-    ```python
+    ```py linenums="1"
     import sleepkit as sk
 
-    class CustomFeatureSet(sk.SKFeatureSet):
+    class CustomFeatureSet(sk.FeatureSet):
         @staticmethod
         def name() -> str:
             return "custom"
@@ -19,23 +19,35 @@ The Bring-Your-Own-Feature-Set (BYOFS) allows users to add custom feature set ge
             return ["feature1", "feature2", "feature3"]
 
         @staticmethod
-        def generate_features(ds_subject: tuple[str, str], args: SKFeatureParams):
+        def generate_subject_features(subject_id: str, ds_name: str, params: sk.TaskParams):
             pass
     ```
 
-2. **Register the Feature Set Generator**: Register the new feature set generator with the feature store by calling the `register` method. This method takes the feature set name and the feature set class as arguments.
+2. **Register the Feature Set**: Register the new feature set with the `sk.FeatureFactory` by calling the `register` method. This method takes the feature set name and the feature set class as arguments.
 
-    ```python
+    ```py linenums="1"
     import sleepkit as sk
-    sk.FeatureStore.register(CustomFeatureSet.name, CustomFeatureSet)
+    sk.FeatureFactory.register(CustomFeatureSet.name, CustomFeatureSet)
     ```
-3. **Use the Feature Set Generator**: The new feature set generator can now be used with the `FeatureStore` to generate feature sets. Note:` generate_feature_set` will utilize a thread pool to generate features in parallel.
 
-    ```python
+3. **Use the Feature Set**: The new feature set can now be used to generate feature sets.
+
+    ```py linenums="1"
     import sleepkit as sk
 
-    # Generate feature set
-    sk.generate_feature_set(args=sk.SKFeatureParams(
+    # Create a task params object
+    params = sk.TaskParams(
         ...
-    ))
+        feature=sk.FeatureParams(
+            name="custom",
+            ...
+        )
+    )
+
+    # Load a task
+    task = sk.TaskFactory.get("stage")
+
+    # Use the custom feature set
+    task.feature(params)
+
     ```

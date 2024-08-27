@@ -1,7 +1,7 @@
 
 # :material-database: Datasets
 
-SleepKit provides support for a number of datasets to facilitate training the __sleep-monitoring tasks__. Most of the datasets are readily available and can be downloaded and used for training and evaluation. The datasets inherit from [Dataset](/sleepkit/api/sleepkit/datasets/dataset) and can be accessed either directly or through the factory singleton [`DatasetFactory`](#dataset-factory).
+SleepKit provides support for a number of datasets to facilitate training the __sleep-monitoring tasks__. Most of the datasets are readily available and can be downloaded and used for training and evaluation. The datasets inherit from [Dataset](/sleepkit/api/sleepkit/datasets/dataset) and can be accessed either directly or through the factory singleton [`sk.DatasetFactory`](#dataset-factory).
 
 
 ## <span class="sk-h2-span">Available Datasets</span>
@@ -16,7 +16,7 @@ Below is a list of the currently available datasets in SleepKit. Please make sur
 
 * **[STAGES](./stages.md)**: The Stanford Technology Analytics and Genomics in Sleep (STAGES) study is a prospective cross-sectional, multi-site study involving 20 data collection sites from six centers including Stanford University, Bogan Sleep Consulting, Geisinger Health, Mayo Clinic, MedSleep, and St. Luke's Hospital.
 
-* **[Bring-Your-Own-Data](./byod.md)**: Add new datasets to SleepKit by providing your own data. Subclass `Dataset` and register it with the `DatasetFactory`.
+* **[Bring-Your-Own-Data](./byod.md)**: Add new datasets to SleepKit by providing your own data. Subclass `Dataset` and register it with the `sk.DatasetFactory`.
 
 ---
 

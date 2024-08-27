@@ -1,4 +1,5 @@
 import os
+import json
 
 import numpy as np
 import pandas as pd
@@ -129,3 +130,8 @@ def evaluate(params: TaskParams):
     logger.info("Testing Results")
     rsts = model.evaluate(test_ds, verbose=params.verbose, return_dict=True)
     logger.info("[TEST SET] " + ", ".join([f"{k}={v:.2%}" for k, v in rsts.items()]))
+
+    rsts["flops"] = flops
+    rsts["parameters"] = model.count_params()
+    with open(params.job_dir / "metrics.json", "w") as fp:
+        json.dump(rsts, fp)

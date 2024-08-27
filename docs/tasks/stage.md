@@ -1,4 +1,4 @@
-# :sleeping: Sleep Stage Task
+# :material-sleep: Sleep Stage Task
 
 ## <span class="sk-h2-span">Overview</span>
 

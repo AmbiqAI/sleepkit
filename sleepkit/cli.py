@@ -13,6 +13,7 @@ SleepKit CLI Options:
 ```
 
 """
+
 import os
 from typing import Type, TypeVar
 
@@ -28,7 +29,8 @@ logger = nse.utils.setup_logger(__name__)
 
 B = TypeVar("B", bound=BaseModel)
 
-cli = ArgParser()
+parser = ArgParser()
+
 
 def parse_content(cls: Type[B], content: str) -> B:
     """Parse file or raw content into Pydantic model.
@@ -46,7 +48,7 @@ def parse_content(cls: Type[B], content: str) -> B:
     return cls.model_validate_json(json_data=content)
 
 
-@cli.command(name="run")
+@parser.command()
 def run(
     mode: TaskMode = ArgField("-m", description="Mode", default="train"),
     task: str = ArgField("-t", description="Task", default="detect"),
@@ -89,5 +91,9 @@ def run(
     logger.info(f"#FINISHED MODE={mode} TASK={task}")
 
 
+def main():
+    parser()
+
+
 if __name__ == "__main__":
-    cli()
+    main()
