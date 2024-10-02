@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sleepkit"
-version = "0.7.0"
+version = "0.8.0"
 description = "AI driven sleep monitoring kit for ultra low-power wearables."
 license = "BSD-3-Clause"
 authors = ["Ambiq AI <support.aitg@ambiq.com>"]

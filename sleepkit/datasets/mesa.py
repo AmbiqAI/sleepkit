@@ -65,6 +65,7 @@ class MesaDataset(Dataset):
     def __init__(
         self,
         target_rate: int = 128,
+        commercial: bool = True,
         **kwargs,
     ) -> None:
         """MESA dataset
@@ -75,6 +76,7 @@ class MesaDataset(Dataset):
         """
 
         super().__init__(**kwargs)
+        self.commercial = commercial
         # If last folder is not "mesa", then add it
         if self.path.parts[-1] != "mesa":
             self.path = self.path / "mesa"
@@ -438,12 +440,12 @@ class MesaDataset(Dataset):
             num_workers (int | None, optional): # parallel workers. Defaults to None.
             force (bool, optional): Force redownload. Defaults to False.
         """
-
+        db_slug = "mesa-commercial-use" if self.commercial else "mesa"
         download_nsrr(
-            db_slug=self.path.stem,
+            db_slug=db_slug,
             subfolder="",
             pattern="*",
-            data_dir=self.path.parent,
+            data_dir=self.path,
             checksum_type="size",
             num_workers=num_workers,
         )

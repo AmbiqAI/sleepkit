@@ -384,7 +384,7 @@ class StagesDataset(Dataset):
             # subfolder will be URL-encoded
             subfolder="original/STAGES PSGs",
             pattern="*",
-            data_dir=self.path.parent,
+            data_dir=self.path,
             checksum_type="size",
             num_workers=num_workers,
         )

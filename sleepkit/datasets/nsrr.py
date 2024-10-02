@@ -10,12 +10,73 @@ from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import Literal
 import requests
+from tqdm import tqdm
 
 from tqdm.contrib.concurrent import thread_map
 
 import neuralspot_edge as nse
 
 _nsrr_token = None
+
+logger = nse.utils.setup_logger(__name__)
+
+
+def download_file(
+    src: str,
+    dst: Path,
+    progress: bool = True,
+    chunk_size: int = 8192,
+    checksum: str | None = None,
+    checksum_type: str = "size",
+    timeout: int = 3600 * 24,
+):
+    """Download file from supplied url to destination streaming.
+
+    checksum: hd5, sha256, sha512, size
+
+    Args:
+        src (str): Source URL path
+        dst (PathLike): Destination file path
+        progress (bool, optional): Display progress bar. Defaults to True.
+        chunk_size (int, optional): Chunk size. Defaults to 8192.
+        checksum (str|None, optional): Checksum value. Defaults to None.
+        checksum_type (str|None, optional): Checksum type or size. Defaults to None.
+
+    Raises:
+        ValueError: If checksum doesn't match
+
+    """
+
+    # If file exists and checksum matches, skip download
+    if dst.is_file() and checksum:
+        match checksum_type:
+            case "size":
+                # Get number of bytes in file
+                calculated_checksum = str(dst.stat().st_size)
+            case _:
+                calculated_checksum = nse.utils.compute_checksum(dst, checksum_type, chunk_size)
+        if calculated_checksum == checksum:
+            logger.debug(f"File {dst} already exists and checksum matches. Skipping...")
+            return
+        # END IF
+    # END IF
+
+    # Create parent directory if not exists
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    # Download file in chunks
+    with requests.get(src, stream=True, timeout=timeout) as r:
+        r.raise_for_status()
+        req_len = int(r.headers.get("Content-length", 0))
+        prog_bar = tqdm(total=req_len, unit="iB", unit_scale=True) if progress else None
+        with open(dst, "wb") as f:
+            for chunk in r.iter_content(chunk_size=chunk_size):
+                f.write(chunk)
+                if prog_bar:
+                    prog_bar.update(len(chunk))
+            # END FOR
+        # END WITH
+    # END WITH
 
 
 def authenticate_nsrr(token: str | None = None) -> str:
@@ -38,6 +99,11 @@ def authenticate_nsrr(token: str | None = None) -> str:
     # If token is not provided, check the environment variable
     if token is None:
         token = os.environ.get("NSRR_TOKEN", "")
+
+    if token is None:
+        raise RuntimeError(
+            "No NSRR token provided! Either call `authenticate_nsrr` with a token or set the `NSRR_TOKEN` environment variable."
+        )
 
     # Attempt to authenticate
     response = requests.get(
@@ -96,7 +162,8 @@ def list_nsrr_items(
     """
     api_url = f"https://sleepdata.org/api/v1/datasets/{db_slug}/files.json"
 
-    response = requests.get(api_url, params={"path": subfolder}, timeout=30)
+    params = dict(path=subfolder, auth_token=_nsrr_token)
+    response = requests.get(api_url, params=params, timeout=30)
     try:
         response_json = response.json()
     except JSONDecodeError:
@@ -125,7 +192,7 @@ def download_nsrr_file(url: str, dst: Path, checksum: str, checksum_type: Litera
     """
 
     try:
-        nse.utils.download_file(
+        download_file(
             src=url,
             dst=dst,
             checksum=checksum,
@@ -167,7 +234,7 @@ def download_nsrr(
         num_workers (int | None, optional): Number of parallel download workers. Defaults to `None`.
 
     """
-    db_dir = Path(data_dir) / db_slug
+    db_dir = Path(data_dir)
 
     download_url = _get_nsrr_url(db_slug)
     files_to_download = list_nsrr_items(db_slug, subfolder, pattern, shallow)
