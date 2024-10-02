@@ -5,7 +5,7 @@
     "features": {
         "ghcr.io/devcontainers/features/git:1": {
             "ppa": true,
-            "version": "latest"
+            "version": "system"
         },
         "ghcr.io/devcontainers/features/nvidia-cuda:1": {
             "installCudnn": true,

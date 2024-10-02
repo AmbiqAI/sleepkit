@@ -16,4 +16,4 @@ This section contains experiments to investigate the impact of different design 
 
 This section contains Jupyter notebook examples to demonstrate the training process of SleepKit.
 
-- **[Train Sleep Detection Model](./train-detect-model.md)**: Train a wrist-based sleep detection model using only accelerometer data.
+- **[Train Sleep Detect Model](train-detect-model.ipynb)**: Training simple sleep detection model using IMU data on wrist.

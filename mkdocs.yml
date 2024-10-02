@@ -90,7 +90,7 @@ nav:
   - Guides:
     - guides/index.md
     - "Sleep Staging Ablation": guides/stage-ablation.md
-    - "Train Sleep Detection": guides/train-detect-model.md
+    - Train Sleep Detect Model: guides/train-detect-model.ipynb
 
   - API: api/
 

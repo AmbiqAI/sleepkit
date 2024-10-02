@@ -4,6 +4,8 @@ import random
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from tqdm import tqdm
 import neuralspot_edge as nse
 
@@ -218,6 +220,57 @@ def demo(params: TaskParams):
         title=f"Sleep {'Detect' if params.num_classes == 2 else 'Stage'} Demo (subject {subject_id})",
     )
     fig.write_html(params.job_dir / "demo.html", include_plotlyjs="cdn", full_html=False)
-    fig.show()
-
+    if params.display_report:
+        fig.show()
     logger.debug(f"Report saved to {params.job_dir / 'demo.html'}")
+
+    fig = plt.figure(layout="constrained", figsize=(10, 6))
+    gs = GridSpec(2, 2, figure=fig)
+    ax1 = fig.add_subplot(gs[0, :])
+    ax21 = fig.add_subplot(gs[1, 0])
+    ax22 = fig.add_subplot(gs[1, 1])
+
+    # ax1.set_title("Sleep Stage Plot")
+    ax1.set_xlabel("Time")
+    ax1.set_yticks(range(len(class_names)))
+    ax1.set_yticklabels(class_names)
+    ax1.set_ylim(len(class_names) - 0.5, -0.5)
+    ax1.grid(True)
+    for i in range(1, len(sleep_bounds)):
+        start, stop = sleep_bounds[i - 1], sleep_bounds[i]
+        label = y_pred[start]
+        color = class_colors.get(label, None)
+        ax1.plot(ts[start:stop], y_pred[start:stop], color=color, linewidth=8)
+    # END FOR
+    # Rotate x-axis labels 45 degrees
+    plt.setp(ax1.get_xticklabels(), rotation=45, ha="right")
+
+    # # Data Plot
+    # for f in range(features.shape[1]):
+    #     name = f"FEAT{f+1}"
+    #     feat_y = np.where(y_mask == 1, features[:, f], np.nan)
+    #     ax1.plot(ts, feat_y, label=name, alpha=0.5)
+    # # END FOR
+
+    # Cycle Plot
+    # ax21.set_title("Sleep Stage Distribution")
+    ax21.pie(
+        [pred_sleep_durations.get(c, 0) for c in sleep_classes],
+        labels=class_names,
+        autopct="%1.1f%%",
+        colors=[class_colors.get(c, None) for c in sleep_classes],
+    )
+
+    # Efficiency Plot
+    # ax22.set_title("Sleep Stage Durations")
+    ax22.barh(class_names, class_durations, color=[class_colors.get(c, "red") for c in sleep_classes])
+    for i, duration in enumerate(class_durations):
+        duration_str = f"{duration:0.0f} min"
+        if duration > 60:
+            duration_str = f"{duration/60:0.1f} hr"
+        ax22.text(duration, i, duration_str, ha="left", va="center")
+
+    plt.suptitle(f"Sleep {'Detect' if params.num_classes == 2 else 'Stage'} Demo (subject {subject_id})")
+
+    fig.tight_layout()
+    fig.savefig(params.job_dir / "demo.png")
