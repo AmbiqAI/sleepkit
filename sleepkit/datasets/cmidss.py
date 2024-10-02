@@ -3,6 +3,7 @@ import glob
 import logging
 import math
 import os
+import zipfile
 from datetime import datetime
 from enum import IntEnum
 from pathlib import Path
@@ -171,14 +172,23 @@ class CmidssDataset(Dataset):
             num_workers (int | None, optional): # parallel workers. Defaults to None.
             force (bool, optional): Force redownload. Defaults to False.
         """
-        self.download_raw_dataset(num_workers=num_workers, force=force)
+        os.makedirs(self.path, exist_ok=True)
+        zip_path = self.path / "cmidss.zip"
+
+        did_download = nse.utils.download_s3_file(
+            key="cmidss/cmidss.zip",
+            dst=zip_path,
+            bucket="ambiq-ai-datasets",
+            checksum="size",
+        )
+        if did_download:
+            with zipfile.ZipFile(zip_path, "r") as zf:
+                zf.extractall(self.path)
 
     def download_raw_dataset(self, num_workers: int | None = None, force: bool = False):
         """Download raw dataset"""
 
         # kaggle import will raise OSError if config is not set...
-        import zipfile  # pylint: disable=import-outside-toplevel
-
         import kaggle  # pylint: disable=import-outside-toplevel
 
         os.makedirs(self.path, exist_ok=True)

@@ -14,6 +14,7 @@ from ...defines import TaskParams
 from ...models import ModelFactory
 from ...features import H5Dataloader
 from .utils import create_data_pipeline
+from ...utils import dark_theme, setup_plotting
 
 
 def train(params: TaskParams):
@@ -194,6 +195,7 @@ def train(params: TaskParams):
         logger.warning("Stopping training due to keyboard interrupt")
 
     logger.debug(f"Model saved to {params.model_file}")
+    setup_plotting(dark_theme)
 
     nse.plotting.plot_history_metrics(
         history.history,

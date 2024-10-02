@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sleepkit"
-version = "0.6.0"
+version = "0.7.0"
 description = "AI driven sleep monitoring kit for ultra low-power wearables."
 license = "BSD-3-Clause"
 authors = ["Ambiq AI <support.aitg@ambiq.com>"]
@@ -20,7 +20,7 @@ lint = "ruff check"
 test = "pytest tests/"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.11,<3.12"
 tensorflow = {version = "^2.17.0"}
 tensorflow-metal = {version = "^1.1.0", markers = "sys_platform == 'darwin'"}
 numpy = "^1.26.4"
@@ -69,6 +69,7 @@ black = "^24.8.0"
 ipython = "^8.13.2"
 wfdb = "^4.1.1"
 jupyterlab = "^4.0.0"
+notebook = "^7.0.2"
 tensorboard-plugin-profile = "^2.14.0"
 ruff = "^0.5.1"
 

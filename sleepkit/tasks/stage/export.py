@@ -64,7 +64,7 @@ def export(params: TaskParams):
 
     logger.debug(f"Model requires {flops/1e6:0.2f} MFLOPS")
 
-    logger.debug(f"Converting model to TFLite (quantization={params.quantization.mode})")
+    logger.debug(f"Converting model to TFLite (quantization={params.quantization.format})")
     converter = nse.converters.tflite.TfLiteKerasConverter(model=model)
 
     tflite_content = converter.convert(
