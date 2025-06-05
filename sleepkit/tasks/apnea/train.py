@@ -154,7 +154,7 @@ def train(params: TaskParams):
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
     model(inputs)
     model.summary(print_fn=logger.debug)
-    logger.debug(f"Model requires {flops/1e6:0.2f} MFLOPS")
+    logger.debug(f"Model requires {flops / 1e6:0.2f} MFLOPS")
 
     # Remove existing logs
     if os.path.exists(params.job_dir / "logs"):

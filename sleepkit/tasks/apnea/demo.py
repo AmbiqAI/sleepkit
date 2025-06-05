@@ -167,7 +167,7 @@ def demo(params: TaskParams):
 
     # Data Plot
     for f in range(features.shape[1]):
-        name = f"FEAT{f+1}"
+        name = f"FEAT{f + 1}"
         feat_y = np.where(y_mask == 1, x[:, f], np.nan)
         fig.add_trace(
             go.Scatter(
