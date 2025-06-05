@@ -47,8 +47,5 @@ sudo apt install -y libopenblas-dev libyaml-dev ffmpeg wget ca-certificates awsc
 #     sudo rm -rf /var/lib/apt/lists/*
 # fi
 
-# Install poetry
-pipx install poetry --pip-args '--no-cache-dir --force-reinstall'
-
 # Install project dependencies
-poetry install
+uv sync

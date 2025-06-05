@@ -8,7 +8,8 @@ import sklearn.metrics
 import sklearn.model_selection
 import sklearn.utils
 import wandb
-import wandb.keras
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+
 
 from ...defines import TaskParams
 from ...models import ModelFactory
@@ -180,7 +181,7 @@ def train(params: TaskParams):
             )
         )
     if nse.utils.env_flag("WANDB"):
-        model_callbacks.append(wandb.keras.WandbMetricsLogger())
+        model_callbacks.append(WandbMetricsLogger())
 
     try:
         history = model.fit(
