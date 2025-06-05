@@ -7,16 +7,20 @@
             "ppa": true,
             "version": "system"
         },
+        "ghcr.io/devcontainers-extra/features/pipenv:2": {
+            "version": "latest"
+        },
+        "ghcr.io/va-h/devcontainers-features/uv:1": {
+            "shellautocompletion": true,
+            "version": "latest"
+        },
         "ghcr.io/devcontainers/features/nvidia-cuda:1": {
             "installCudnn": true,
             "installCudnnDev": true,
             "installNvtx": true,
             "installToolkit": true,
-            "cudaVersion": "12.2",
-            "cudnnVersion": "8.9.5.29"
-        },
-        "ghcr.io/devcontainers-contrib/features/pipenv:2": {
-            "version": "latest"
+            "cudaVersion": "12.5",
+            "cudnnVersion": "9.3.0.75"
         }
     },
 
@@ -36,5 +40,20 @@
     "remoteEnv": {
         "LD_LIBRARY_PATH": "${containerEnv:LD_LIBRARY_PATH}:/usr/local/cuda/lib64",
         "TF_FORCE_GPU_ALLOW_GROWTH": "true"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.jupyter-renderers",
+                "ms-toolsai.tensorboard",
+                "tamasfe.even-better-toml",
+                "mechatroner.rainbow-csv",
+                "ms-python.python",
+                "charliermarsh.ruff"
+            ]
+        }
     }
 }

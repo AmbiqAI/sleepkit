@@ -2,13 +2,13 @@
 
 ## <span class="sk-h2-span">Install SleepKit</span>
 
-We provide several installation methods including pip, poetry, and Docker. Install __SleepKit__ via pip/poetry for the latest stable release or by cloning the GitHub repo for the most up-to-date. Additionally, a [VSCode Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) is available and defined in [./.devcontainer](https://github.com/AmbiqAI/sleepkit/tree/main/.devcontainer) to run in an isolated Docker environment.
+We provide several installation methods including pip, uv, and Docker. Install __SleepKit__ via pip/uv for the latest stable release or by cloning the GitHub repo for the most up-to-date. Additionally, a [VSCode Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) is available and defined in [./.devcontainer](https://github.com/AmbiqAI/sleepkit/tree/main/.devcontainer) to run in an isolated Docker environment.
 
 !!! install
 
     === "Git clone"
 
-        Clone the repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package. In this mode, Poetry is recommended.
+        Clone the repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package. In this mode, uv is recommended.
 
         ```bash
         # Clone the repository
@@ -18,15 +18,15 @@ We provide several installation methods including pip, poetry, and Docker. Insta
         cd sleepkit
 
         # Install the package in editable mode for development
-        poetry install
+        uv sync
         ```
 
-        When using editable mode via Poetry, be sure to activate the python environment: `poetry shell`. <br>
-        On Windows using Powershell, use `.venv\Scripts\activate.ps1`.
+        When using editable mode via uv, be sure to activate the python environment: `source .venv/bin/activate`. <br>
+        On Windows using Powershell, use `.venv\Scripts\activate`.
 
     === "PyPI install"
 
-        Install the SleepKit package using pip or Poetry.
+        Install the SleepKit package using pip or uv.
         Visit the Python Package Index (PyPI) for more details on the package: [https://pypi.org/project/sleepkit/](https://pypi.org/project/sleepkit/)
 
         ```bash
@@ -34,11 +34,11 @@ We provide several installation methods including pip, poetry, and Docker. Insta
         pip install sleepkit
         ```
 
-        Or, if you prefer to use Poetry, you can install the package with the following command:
+        Or, if you prefer to use uv, you can install the package with the following command:
 
         ```bash
-        # Install with poetry
-        poetry add sleepkit
+        # Install with uv
+        uv add sleepkit
         ```
 
         Alternatively, you can install the latest development version directly from the GitHub repository. Make sure to have the Git command-line tool installed on your system. The @main command installs the main branch and may be modified to another branch, i.e. @canary.
@@ -47,16 +47,16 @@ We provide several installation methods including pip, poetry, and Docker. Insta
         pip install git+https://github.com/AmbiqAI/sleepkit.git@main
         ```
 
-        Or, using Poetry:
+        Or, using uv:
 
         ```bash
-        poetry add git+https://github.com/AmbiqAI/sleepkit.git@main
+        uv add git+https://github.com/AmbiqAI/sleepkit.git@main
         ```
 
 ## <span class="sk-h2-span">Requirements</span>
 
 * [Python ^3.11+](https://www.python.org)
-* [Poetry ^1.6.1+](https://python-poetry.org/docs/#installation)
+* [uv ^1.6.1+](https://docs.astral.sh/uv/getting-started/installation/)
 
 Check the project's [pyproject.toml](https://github.com/AmbiqAI/sleepkit/blob/main/pyproject.toml) file for a list of up-to-date Python dependencies. Note that the installation methods above install all required dependencies. The following are optional dependencies only needed when running `demo` command using Ambiq's evaluation board (`EVB`) backend:
 

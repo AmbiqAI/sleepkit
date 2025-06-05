@@ -155,7 +155,7 @@ def demo(params: TaskParams):
 
     # Data Plot
     for f in range(features.shape[1]):
-        name = f"FEAT{f+1}"
+        name = f"FEAT{f + 1}"
         feat_y = np.where(y_mask == 1, features[:, f], np.nan)
         fig.add_trace(
             go.Scatter(
@@ -267,7 +267,7 @@ def demo(params: TaskParams):
     for i, duration in enumerate(class_durations):
         duration_str = f"{duration:0.0f} min"
         if duration > 60:
-            duration_str = f"{duration/60:0.1f} hr"
+            duration_str = f"{duration / 60:0.1f} hr"
         ax22.text(duration, i, duration_str, ha="left", va="center")
 
     plt.suptitle(f"Sleep {'Detect' if params.num_classes == 2 else 'Stage'} Demo (subject {subject_id})")

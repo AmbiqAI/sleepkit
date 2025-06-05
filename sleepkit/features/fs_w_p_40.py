@@ -41,7 +41,7 @@ class FS_W_P_40(FeatureSet):
     @staticmethod
     def feature_names() -> list[str]:
         """Feature names."""
-        return [f"ppg_freq_bin_{i+1}" for i in range(40)]
+        return [f"ppg_freq_bin_{i + 1}" for i in range(40)]
 
     @staticmethod
     def generate_subject_features(subject_id: str, ds_name: str, params: TaskParams):

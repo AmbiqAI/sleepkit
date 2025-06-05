@@ -7,7 +7,7 @@ import numpy as np
 import sklearn.model_selection
 import sklearn.utils
 import wandb
-import wandb.keras
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 from ...defines import TaskParams
 from ...models import ModelFactory
@@ -154,7 +154,7 @@ def train(params: TaskParams):
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
     model(inputs)
     model.summary(print_fn=logger.debug)
-    logger.debug(f"Model requires {flops/1e6:0.2f} MFLOPS")
+    logger.debug(f"Model requires {flops / 1e6:0.2f} MFLOPS")
 
     # Remove existing logs
     if os.path.exists(params.job_dir / "logs"):
@@ -162,7 +162,7 @@ def train(params: TaskParams):
 
     ModelCheckpoint = keras.callbacks.ModelCheckpoint
     if nse.utils.env_flag("WANDB"):
-        ModelCheckpoint = wandb.keras.WandbModelCheckpoint
+        ModelCheckpoint = WandbModelCheckpoint
     model_callbacks = [
         keras.callbacks.EarlyStopping(
             monitor=f"val_{params.val_metric}",
@@ -187,7 +187,7 @@ def train(params: TaskParams):
             )
         )
     if nse.utils.env_flag("WANDB"):
-        model_callbacks.append(wandb.keras.WandbMetricsLogger())
+        model_callbacks.append(WandbMetricsLogger())
 
     try:
         history = model.fit(
