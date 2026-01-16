@@ -1,12 +1,12 @@
 # Sleep Apnea Detection
 
-## <span class="sk-h2-span">Model Overview</span>
+## Model Overview
 
 The following table provides the latest pre-trained models for sleep apnea. Below we also provide additional details including training configuration, accuracy metrics, and hardware performance results for the models.
 
 --8<-- "assets/zoo/apnea/apnea-model-zoo-table.md"
 
-## <span class="sk-h2-span">Model Details</span>
+## Model Details
 
 === "SA-2-TCN-SM"
 
@@ -18,7 +18,7 @@ The following table provides the latest pre-trained models for sleep apnea. Belo
     - **Datasets**: [MESA](../datasets/mesa.md)
     - **Features**: [FS-W-P-5](../features/fs_w_p_5.md)
 
-## <span class="sk-h2-span">Model Performance</span>
+## Model Performance
 
 === "SA-2-TCN-SM"
 
@@ -43,7 +43,7 @@ The following table provides the latest pre-trained models for sleep apnea. Belo
 
 ---
 
-## <span class="sk-h2-span">EVB Performance</span>
+## EVB Performance
 
 
 The following table provides the latest performance results when running on Apollo4 Plus EVB. These results are obtained using neuralSPOTs [Autodeploy tool](https://ambiqai.github.io/neuralSPOT/docs/From%20TF%20to%20EVB%20-%20testing%2C%20profiling%2C%20and%20deploying%20AI%20models.html). From neuralSPOT repo, the following command can be used to capture EVB results via Autodeploy:
@@ -59,7 +59,7 @@ python -m ns_autodeploy \
 
 --8<-- "assets/zoo/apnea/apnea-model-hw-table.md"
 
-## <span class="sk-h2-span">Downloads</span>
+## Downloads
 
 === "SA-2-TCN-SM"
 

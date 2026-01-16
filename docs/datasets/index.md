@@ -1,12 +1,12 @@
 
 # :material-database: Datasets
 
-SleepKit provides support for a number of datasets to facilitate training the __sleep-monitoring tasks__. Most of the datasets are readily available and can be downloaded and used for training and evaluation. The datasets inherit from [Dataset](/sleepkit/api/sleepkit/datasets/dataset) and can be accessed either directly or through the factory singleton [`sk.DatasetFactory`](#dataset-factory).
+sleepKIT provides support for a number of datasets to facilitate training the __sleep-monitoring tasks__. Most of the datasets are readily available and can be downloaded and used for training and evaluation. The datasets inherit from [Dataset](/sleepkit/api/sleepkit/datasets/dataset) and can be accessed either directly or through the factory singleton [`sk.DatasetFactory`](#dataset-factory).
 
 
-## <span class="sk-h2-span">Available Datasets</span>
+## Available Datasets
 
-Below is a list of the currently available datasets in SleepKit. Please make sure to review each dataset's license for terms and limitations.
+Below is a list of the currently available datasets in sleepKIT. Please make sure to review each dataset's license for terms and limitations.
 
 * **[MESA](./mesa.md)**: A longitudinal investigation of factors associated with the development of subclinical cardiovascular disease and the progression of subclinical to clinical cardiovascular disease in 6,814 black, white, Hispanic, and Chinese
 
@@ -16,11 +16,11 @@ Below is a list of the currently available datasets in SleepKit. Please make sur
 
 * **[STAGES](./stages.md)**: The Stanford Technology Analytics and Genomics in Sleep (STAGES) study is a prospective cross-sectional, multi-site study involving 20 data collection sites from six centers including Stanford University, Bogan Sleep Consulting, Geisinger Health, Mayo Clinic, MedSleep, and St. Luke's Hospital.
 
-* **[Bring-Your-Own-Data](./byod.md)**: Add new datasets to SleepKit by providing your own data. Subclass `Dataset` and register it with the `sk.DatasetFactory`.
+* **[Bring-Your-Own-Data](./byod.md)**: Add new datasets to sleepKIT by providing your own data. Subclass `Dataset` and register it with the `sk.DatasetFactory`.
 
 ---
 
-## <span class="sk-h2-span">Dataset Factory</span>
+## Dataset Factory
 
 The dataset factory, `sk.DatasetFactory`, provides a convenient way to access the datasets. The factory is a thread-safe singleton class that provides a single point of access to the datasets via the datasets' slug names. The benefit of using the factory is it allows registering new additional datasets that can then be leveraged by existing and new tasks.
 

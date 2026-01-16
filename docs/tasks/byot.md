@@ -3,7 +3,7 @@
 The Bring-Your-Own-Task (BYOT) feature allows users to create custom tasks for training, evaluating, and deploying sleep-related AI models. This feature is useful for creating custom workflows for a given application with minimal coding.
 
 
-## <span class="sk-h2-span">How it Works</span>
+## How it Works
 
 1. **Create a Task**: Define a new task by creating a new Python file. The file should contain a class that inherits from the `sk.Task` base class and implements the required methods.
 

@@ -16,13 +16,13 @@ import h5py
 import numpy as np
 import physiokit as pk
 import scipy.signal
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from ..datasets import MesaDataset
 from ..defines import TaskParams
 from .featureset import FeatureSet
 
-logger = nse.utils.setup_logger(__name__)
+logger = helia.utils.setup_logger(__name__)
 
 
 class FS_W_P_5(FeatureSet):

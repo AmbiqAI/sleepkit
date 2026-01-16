@@ -1,7 +1,7 @@
 """
 # :simple-task: Tasks API
 
-SleepKit provides several built-in __sleep-monitoring__ tasks.
+sleepKIT provides several built-in __sleep-monitoring__ tasks.
 Each task is designed to address a unique aspect such as ECG denoising, segmentation, and rhythm/beat classification.
 The tasks are designed to be modular and can be used independently or in combination to address specific use cases.
 
@@ -35,10 +35,10 @@ from .apnea import ApneaTask
 from .stage import StageTask
 from .task import Task
 
-import neuralspot_edge as nse
+import helia_edge as helia
 
 
-TaskFactory = nse.utils.create_factory(factory="SKTaskFactory", type=Task)
+TaskFactory = helia.utils.create_factory(factory="SKTaskFactory", type=Task)
 
 TaskFactory.register("detect", StageTask)
 TaskFactory.register("stage", StageTask)

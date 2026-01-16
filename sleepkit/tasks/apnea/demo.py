@@ -5,7 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from tqdm import tqdm
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from ...defines import TaskParams
 from ...backends import BackendFactory
@@ -13,7 +13,7 @@ from ...features import H5Dataloader
 from .metrics import compute_apnea_hypopnea_index
 from .utils import subject_data_preprocessor
 
-logger = nse.utils.setup_logger(__name__)
+logger = helia.utils.setup_logger(__name__)
 
 
 def get_apnea_color_map(num_classes) -> dict[int, str]:

@@ -1,10 +1,10 @@
 # :simple-python: Python Usage
 
-__SleepKit__ python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for both built-in taks and custom tasks. In addition, custom datasets and model architectures can be created and registered with corresponding factories.
+__sleepKIT__ python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for both built-in taks and custom tasks. In addition, custom datasets and model architectures can be created and registered with corresponding factories.
 
-## <span class="sk-h2-span">Overview</span>
+## Overview
 
-The main components of SleepKit include the following:
+The main components of sleepKIT include the following:
 
 ### [Tasks](../tasks/index.md)
 
@@ -34,7 +34,7 @@ Since each task will require specific transformations of the data, a feature sto
 
 ### [Models](../models/index.md)
 
-Lastly, SleepKit leverages [neuralspot-edge's](https://ambiqai.github.io/neuralspot-edge/) customizable model architectures. To enable creating custom network topologies from configuration files, SleepKit provides a `sk.ModelFactory` that allows you to create models by specifying the model key and the model parameters. Each item in the factory is a callable that takes a `keras.Input`, model parameters, and number of classes as arguments and returns a `keras.Model`.
+Lastly, sleepKIT leverages [helia-edge's](https://ambiqai.github.io/helia-edge/) customizable model architectures. To enable creating custom network topologies from configuration files, sleepKIT provides a `sk.ModelFactory` that allows you to create models by specifying the model key and the model parameters. Each item in the factory is a callable that takes a `keras.Input`, model parameters, and number of classes as arguments and returns a `keras.Model`.
 
 ```
 import keras
@@ -52,7 +52,7 @@ model = sk.ModelFactory.get('tcn')(
 
 ```
 
-## <span class="sk-h2-span">Usage</span>
+## Usage
 
 ### Running a built-in task w/ existing datasets
 

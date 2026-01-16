@@ -1,7 +1,7 @@
-site_name: SleepKit
+site_name: sleepKIT
 site_dir: "site"
 site_url: "https://ambiqai.github.io/sleepkit"
-site_description: SleepKit, perform AI-based sleep monitoring tasks
+site_description: sleepKIT, perform AI-based sleep monitoring tasks
 repo_name: AmbiqAI/sleepkit
 repo_url: https://github.com/AmbiqAI/sleepkit
 copyright: Copyright &copy; 2023 Ambiq

@@ -1,12 +1,12 @@
-# SleepKit Task Modes
+# sleepKIT Task Modes
 
-## <span class="sk-h2-span">Introduction</span>
+## Introduction
 
-Rather than offering a handful of static models, SleepKit provides a complete framework designed to cover the entire design process of creating customized ML models well-suited for low-power, wearable applications. Each mode serves a specific purpose and is engineered to offer you the flexibility and efficiency required for different tasks and use-cases.
+Rather than offering a handful of static models, sleepKIT provides a complete framework designed to cover the entire design process of creating customized ML models well-suited for low-power, wearable applications. Each mode serves a specific purpose and is engineered to offer you the flexibility and efficiency required for different tasks and use-cases.
 
 ---
 
-## <span class="sk-h2-span">Available Modes</span>
+## Available Modes
 
 <div class="grid cards" markdown>
 
@@ -21,37 +21,37 @@ Rather than offering a handful of static models, SleepKit provides a complete fr
 
 ---
 
-## <span class="sk-h2-span">[Download](./download.md)</span>
+## [Download](./download.md)
 
 [Download mode](./download.md) is used to download the specified datasets for the task. The routine can be customized via the configuration file or by setting the parameters directly in the code. The download process involves fetching the dataset(s) from the specified source and storing them in the specified directory.
 
 ---
 
-## <span class="sk-h2-span">[Feature](../features/index.md)</span>
+## [Feature](../features/index.md)
 
 [Feature mode](../features/index.md) is used to generate features from the specified dataset(s). The routine can be customized via the configuration file or by setting the parameters directly in the code. The feature extraction process involves transforming the raw data into a format that can be used for training a machine learning model.
 
 ---
 
-## <span class="sk-h2-span">[Train](./train.md)</span>
+## [Train](./train.md)
 
 [Train mode](./train.md) is used to train a model for the specified task and features. In this mode, the model is trained for a given task using the specified features, model architecture, and hyperparameters. The training process involves optimizing the model's parameters to maximize its performance on the training data.
 
 ---
 
-## <span class="sk-h2-span">[Evaluate](./evaluate.md)</span>
+## [Evaluate](./evaluate.md)
 
 [Evaluate mode](./evaluate.md) is used to test the performance of the model on the reserved test set for the specified task. The routine can be customized via the configuration file or by setting the parameters directly in the code. The evaluation process involves testing the model's performance on the test data to measure its accuracy, precision, recall, and F1 score.
 
 ---
 
-## <span class="sk-h2-span">[Export](./export.md)</span>
+## [Export](./export.md)
 
 [Export mode](./export.md) is used to convert the trained model into a format that can be used for deployment onto Ambiq's family of SoCs. Currently, the command will convert the TensorFlow model into both TensorFlow Lite (TFL) and TensorFlow Lite for micro-controller (TFLM) variants. The command will also verify the models' outputs match.
 
 ---
 
-## <span class="sk-h2-span">[Demo](./demo.md)</span>
+## [Demo](./demo.md)
 
 [Demo mode](./demo.md) is used to run a task-level demonstration on the trained model using the specified backend inference engine (e.g. PC or EVB). This is useful to showcase the model's performance in real-time and to verify its accuracy in a real-world scenario.
 

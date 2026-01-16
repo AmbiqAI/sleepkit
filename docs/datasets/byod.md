@@ -1,6 +1,6 @@
 # Bring-Your-Own-Dataset (BYOD)
 
-The Bring-Your-Own-Dataset (BYOD) feature allows users to add custom datasets for training and evaluating models. This feature is useful when working with proprietary or custom datasets that are not available in the SleepKit library.
+The Bring-Your-Own-Dataset (BYOD) feature allows users to add custom datasets for training and evaluating models. This feature is useful when working with proprietary or custom datasets that are not available in the sleepKIT library.
 
 ## How it Works
 

@@ -1,12 +1,12 @@
 """
-# :octicons-terminal-24: SleepKit CLI API
+# :octicons-terminal-24: sleepKIT CLI API
 
-The SleepKit CLI provides a command-line interface to interact with the SleepKit library.
+The sleepKIT CLI provides a command-line interface to interact with the sleepKIT library.
 
 ```bash
 $ sleepkit --help
 
-SleepKit CLI Options:
+sleepKIT CLI Options:
     --task [detect, stage, apnea]
     --mode [download, feature, train, evaluate, export, demo]
     --config ["./path/to/config.json", or '{"raw: "json"}']
@@ -19,13 +19,13 @@ from typing import Type, TypeVar
 
 from argdantic import ArgField, ArgParser
 from pydantic import BaseModel
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from .defines import TaskParams, TaskMode
 
 from .tasks import TaskFactory
 
-logger = nse.utils.setup_logger(__name__)
+logger = helia.utils.setup_logger(__name__)
 
 B = TypeVar("B", bound=BaseModel)
 
@@ -54,7 +54,7 @@ def run(
     task: str = ArgField("-t", description="Task", default="detect"),
     config: str = ArgField("-c", description="File path or JSON content", default="{}"),
 ):
-    """SleepKit CLI"""
+    """sleepKIT CLI"""
 
     logger.info(f"#STARTED MODE={mode} TASK={task}")
 

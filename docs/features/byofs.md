@@ -1,6 +1,6 @@
 # Bring-Your-Own-Features (BYOFS)
 
-The Bring-Your-Own-Features (BYOFS) allows users to add custom feature sets to SleepKit to be used with built-in or custom tasks.
+The Bring-Your-Own-Features (BYOFS) allows users to add custom feature sets to sleepKIT to be used with built-in or custom tasks.
 
 ## How it Works
 

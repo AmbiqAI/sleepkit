@@ -14,13 +14,13 @@ Classes:
 
 import h5py
 import numpy as np
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from ..datasets import MesaDataset
 from ..defines import TaskParams
 from .featureset import FeatureSet
 
-logger = nse.utils.setup_logger(__name__)
+logger = helia.utils.setup_logger(__name__)
 
 
 class FS_H_E_10(FeatureSet):

@@ -1,11 +1,11 @@
-# :octicons-terminal-24: SleepKit CLI
+# :octicons-terminal-24: sleepKIT CLI
 
 <div class="termy">
 
 ```console
 $ sleepkit --help
 
-SleepKit CLI Options:
+sleepKIT CLI Options:
     --task [detect, stage, apnea, arousal]
     --mode [download, feature, train, evaluate, export, demo]
     --config ["./path/to/config.json", or '{"raw: "json"}']
@@ -13,7 +13,7 @@ SleepKit CLI Options:
 
 </div>
 
-The SleepKit command line interface (CLI) makes it easy to run a variety of single-line commands without the need for writing any code. You can run all tasks and modes from the terminal with the `sleepkit` command.
+The sleepKIT command line interface (CLI) makes it easy to run a variety of single-line commands without the need for writing any code. You can run all tasks and modes from the terminal with the `sleepkit` command.
 
 !!! example
 
@@ -108,7 +108,7 @@ The `feature` command is used to extract features from the datasets specified in
 
 ## [Train](../modes/train.md)
 
-The `train` command is used to train a SleepKit model for the specified `task` and `feature set`. Each task provides a reference routine for training the model. The routine can be customized via the configuration file. Please refer to [TaskParams](../modes/configuration.md#taskparams) to see supported options.
+The `train` command is used to train a sleepKIT model for the specified `task` and `feature set`. Each task provides a reference routine for training the model. The routine can be customized via the configuration file. Please refer to [TaskParams](../modes/configuration.md#taskparams) to see supported options.
 
 !!! Example "CLI"
 

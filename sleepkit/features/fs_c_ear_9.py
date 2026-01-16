@@ -17,12 +17,12 @@ import h5py
 import numpy as np
 import physiokit as pk
 import scipy.signal
-import neuralspot_edge as nse
+import helia_edge as helia
 from ..datasets import YsywDataset
 from ..defines import TaskParams
 from .featureset import FeatureSet
 
-logger = nse.utils.setup_logger(__name__)
+logger = helia.utils.setup_logger(__name__)
 
 
 class FS_C_EAR_9(FeatureSet):
@@ -75,21 +75,25 @@ class FS_C_EAR_9(FeatureSet):
 
             # Load dataset specific signals
             if ds_name == "ysyw":
-                ds_params = next((ds.params for ds in params.datasets if ds.name == ds_name), {})
-                ds = YsywDataset(target_rate=sample_rate, **ds_params)
+                try:
+                    ds_params = next((ds.params for ds in params.datasets if ds.name == ds_name), {})
+                    ds = YsywDataset(target_rate=sample_rate, **ds_params)
 
-                duration = int(ds.get_subject_duration(subject_id=subject_id) * sample_rate)
-                duration = max(0, duration - win_size)
+                    duration = int(ds.get_subject_duration(subject_id=subject_id) * sample_rate)
+                    duration = max(0, duration - win_size)
 
-                # Load signals
-                ecg = ds.load_signal_for_subject(subject_id, "ECG", start=0, data_size=duration)
-                rsp = ds.load_signal_for_subject(subject_id, "ABD", start=0, data_size=duration)
+                    # Load signals
+                    ecg = ds.load_signal_for_subject(subject_id, "ECG", start=0, data_size=duration)
+                    rsp = ds.load_signal_for_subject(subject_id, "ABD", start=0, data_size=duration)
 
-                sleep_labels = ds.load_sleep_stages_for_subject(subject_id, start=0, data_size=duration)
+                    sleep_labels = ds.load_sleep_stages_for_subject(subject_id, start=0, data_size=duration)
 
-                # Clean signals
-                ecg = pk.ppg.clean(ecg, lowcut=0.5, highcut=30, sample_rate=sample_rate)
-                mov = pk.signal.filter_signal(rsp, lowcut=2, highcut=11, order=3, sample_rate=sample_rate)
+                    # Clean signals
+                    ecg = pk.ppg.clean(ecg, lowcut=0.5, highcut=30, sample_rate=sample_rate)
+                    mov = pk.signal.filter_signal(rsp, lowcut=2, highcut=11, order=3, sample_rate=sample_rate)
+                except Exception as e:
+                    logger.error(f"Error loading data for subject {subject_id} in dataset {ds_name}: {e}")
+                    return
             else:
                 raise NotImplementedError(f"Dataset {ds_name} not implemented")
             # END IF
@@ -108,11 +112,15 @@ class FS_C_EAR_9(FeatureSet):
                     break
 
                 # Extract peaks and RR intervals
-                rpeaks = pk.ecg.find_peaks(ecg_win, sample_rate=sample_rate)
-                rri = pk.ecg.compute_rr_intervals(rpeaks)
-                rri_mask = pk.ecg.filter_rr_intervals(rri, sample_rate=sample_rate, min_rr=0.5, max_rr=2, min_delta=0.3)
-                rpeaks = rpeaks[rri_mask == 0]
-                rri = rri[rri_mask == 0]
+                try:
+                    rpeaks = pk.ecg.find_peaks(ecg_win, sample_rate=sample_rate)
+                    rri = pk.ecg.compute_rr_intervals(rpeaks)
+                    rri_mask = pk.ecg.filter_rr_intervals(rri, sample_rate=sample_rate, min_rr=0.5, max_rr=2, min_delta=0.3)
+                    rpeaks = rpeaks[rri_mask == 0]
+                    rri = rri[rri_mask == 0]
+                except Exception:
+                    masks[i] = 0
+                    continue
                 if rpeaks.size < 4 or rri.size < 4:
                     masks[i] = 0
                     continue

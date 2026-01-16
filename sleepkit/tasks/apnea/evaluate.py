@@ -4,7 +4,7 @@ import json
 import numpy as np
 import pandas as pd
 import keras
-import neuralspot_edge as nse
+import helia_edge as helia
 from tqdm import tqdm
 
 from ...defines import TaskParams
@@ -24,10 +24,10 @@ def evaluate(params: TaskParams):
         params (TaskParams): Task parameters
     """
     os.makedirs(params.job_dir, exist_ok=True)
-    logger = nse.utils.setup_logger(__name__, level=params.verbose, file_path=params.job_dir / "test.log")
+    logger = helia.utils.setup_logger(__name__, level=params.verbose, file_path=params.job_dir / "test.log")
     logger.debug(f"Creating working directory in {params.job_dir}")
 
-    params.seed = nse.utils.set_random_seed(params.seed)
+    params.seed = helia.utils.set_random_seed(params.seed)
     logger.debug(f"Random seed {params.seed}")
 
     class_names = params.class_names or [f"Class {i}" for i in range(params.num_classes)]
@@ -55,8 +55,8 @@ def evaluate(params: TaskParams):
     pt_metrics = []
 
     logger.debug("Loading model")
-    model = nse.models.load_model(params.model_file)
-    flops = nse.metrics.flops.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
+    model = helia.models.load_model(params.model_file)
+    flops = helia.metrics.flops.get_flops(model, batch_size=1, fpath=params.job_dir / "model_flops.log")
     model.summary(print_fn=logger.debug)
     logger.debug(f"Model requires {flops / 1e6:0.2f} MFLOPS")
 
@@ -109,7 +109,7 @@ def evaluate(params: TaskParams):
     df_results = pd.DataFrame(dict(y_true=test_true, y_pred=test_pred))
     df_results.to_csv(params.job_dir / "results.csv", header=True, index=False)
 
-    nse.plotting.cm.confusion_matrix_plot(
+    helia.plotting.cm.confusion_matrix_plot(
         y_true=test_true,
         y_pred=test_pred,
         labels=class_names,

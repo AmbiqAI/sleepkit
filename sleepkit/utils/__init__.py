@@ -1,5 +1,5 @@
 """
-# :material-tools: SleepKit Utilities API
+# :material-tools: sleepKIT Utilities API
 
 """
 

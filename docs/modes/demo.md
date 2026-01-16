@@ -1,8 +1,8 @@
 # :material-hexagon-multiple: Task-Level Model Demo
 
-## <span class="sk-h2-span">Introduction </span>
+## Introduction 
 
-Each task in SleepKit has a corresponding demo mode that allows you to run a task-level demonstration using the specified backend inference engine (e.g. PC or EVB). This is useful to showcase the model's performance in real-time and to verify its accuracy in a real-world scenario. Similar to other modes, the demo can be invoked either via CLI or within `sleepkit` python package. At a high level, the demo mode performs the following actions based on the provided configuration parameters:
+Each task in sleepKIT has a corresponding demo mode that allows you to run a task-level demonstration using the specified backend inference engine (e.g. PC or EVB). This is useful to showcase the model's performance in real-time and to verify its accuracy in a real-world scenario. Similar to other modes, the demo can be invoked either via CLI or within `sleepkit` python package. At a high level, the demo mode performs the following actions based on the provided configuration parameters:
 
 1. Load the configuration data (e.g. `configuration.json`)
 1. Load the desired features (e.g. `FS-W-A-5`)
@@ -50,9 +50,9 @@ F ==> G
 
 ---
 
-## <span class="sk-h2-span">Inference Backends</span>
+## Inference Backends
 
-SleepKit includes two built-in backend inference engines: PC and EVB. Additional backends can be easily added to the SleepKit framework by creating a new backend class and registering it to the backend factory.
+sleepKIT includes two built-in backend inference engines: PC and EVB. Additional backends can be easily added to the sleepKIT framework by creating a new backend class and registering it to the backend factory.
 
 ### PC Backend
 
@@ -76,7 +76,7 @@ The EVB backend is used to run the task-level demo on an Ambiq EVB. This is usef
 
 ### Bring-Your-Own-Backend
 
-Similar to datasets, tasks, and models, the demo mode can be customized to use your own backend inference engine. SleepKit includes a backend factory (`BackendFactory`) that is used to create and run the backend engine.
+Similar to datasets, tasks, and models, the demo mode can be customized to use your own backend inference engine. sleepKIT includes a backend factory (`BackendFactory`) that is used to create and run the backend engine.
 
 #### How it Works
 
@@ -143,7 +143,7 @@ Similar to datasets, tasks, and models, the demo mode can be customized to use y
 
 ---
 
-## <span class="sk-h2-span">Usage </span>
+## Usage 
 
 The following is an example of a task-level demo report for the sleep staging task.
 
@@ -171,7 +171,7 @@ The following is an example of a task-level demo report for the sleep staging ta
 
 ---
 
-## <span class="sk-h2-span">Arguments </span>
+## Arguments 
 
 Please refer to [TaskParams](../modes/configuration.md#taskparams) for the list of arguments that can be used with the `demo` command.
 
