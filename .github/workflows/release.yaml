@@ -9,6 +9,10 @@ on:
       - "v*"
   workflow_dispatch:
 
+env:
+  PACKAGE_NAME: sleepkit
+  PYTHON_VERSION: '3.12'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,7 +38,7 @@ jobs:
       - build
     environment:
       name: pypi
-      url: https://pypi.org/p/sleepkit
+      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
     permissions:
       id-token: write
     steps:
