@@ -1,19 +1,11 @@
----
-title:
----
 #
 
-<p align="center">
-  <a href="https://github.com/AmbiqAI/sleepkit"><img src="./assets/sleepkit-banner.png" alt="sleepKIT"></a>
-</p>
+[![](./assets/sleepkit-logo-light.png#only-light)](https://ambiqai.github.io/sleepkit/)
+[![](./assets/sleepkit-logo-dark.png#only-dark)](https://ambiqai.github.io/sleepkit/)
 
----
+*An AI Development Kit for real-time sleep-monitoring on ultra-low power Ambiq SoCs*
 
-**Documentation**: <a href="https://ambiqai.github.io/sleepkit" target="_blank">https://ambiqai.github.io/sleepkit</a>
-
-**Source Code**: <a href="https://github.com/AmbiqAI/sleepkit" target="_blank">https://github.com/AmbiqAI/sleepkit</a>
-
----
+## Overview
 
 sleepKIT is an AI Development Kit (ADK) that enables developers to easily build and deploy real-time __sleep-monitoring__ models on Ambiq's family of ultra-low power SoCs. sleepKIT explores a number of sleep related tasks including sleep detection, staging, and sleep apnea detection. The kit includes a variety of datasets, feature sets, efficient model architectures, and a number of pre-trained models. The objective of the models is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices. Furthermore, the included models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand. The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
 

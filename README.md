@@ -1,6 +1,10 @@
-<p align="center">
-  <a href="https://github.com/AmbiqAI/sleepkit"><img src="./docs/assets/sleepkit-banner.png" alt="sleepKIT"></a>
-</p>
+# sleepKIT
+
+> An AI Development Kit for real-time sleep-monitoring on ultra-low power Ambiq SoCs.
+
+[![CI](https://github.com/AmbiqAI/sleepkit/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/AmbiqAI/sleepkit/actions/workflows/ci.yaml)
+[![Docs](https://github.com/AmbiqAI/sleepkit/actions/workflows/docs.yaml/badge.svg?branch=main)](https://github.com/AmbiqAI/sleepkit/actions/workflows/docs.yaml)
+[![Release](https://github.com/AmbiqAI/sleepkit/actions/workflows/release.yaml/badge.svg?branch=main)](https://github.com/AmbiqAI/sleepkit/actions/workflows/release.yaml)
 
 ---
 
@@ -82,7 +86,7 @@ __sleepKIT__ provides a number of **modes** that can be invoked for a given task
 
 ## Datasets
 
-__sleepKIT__ includes several open-source datasets for training each of the sleepKIT tasks via a __dataset factory__. For certain tasks, we also provide synthetic data provided by [PhysioKit](https://ambiqai.github.io/physiokit) to help improve model generalization. Each dataset has a corresponding Python class to aid in downloading and generating data for the given task. Additional datasets can be easily added to the sleepKIT framework by creating a new dataset class and registering it to the dataset factory.
+__sleepKIT__ includes several open-source datasets for training each of the sleepKIT tasks via a __dataset factory__. For certain tasks, we also provide synthetic data provided by [physioKIT](https://ambiqai.github.io/physiokit) to help improve model generalization. Each dataset has a corresponding Python class to aid in downloading and generating data for the given task. Additional datasets can be easily added to the sleepKIT framework by creating a new dataset class and registering it to the dataset factory.
 
 - **MESA**: A large-scale polysomnography dataset with 6,814 subjects collected from 6 field centers.
 - **CMIDSS**: A dataset of 300 subjects with over 500 multi-day recordings of wrist-worn accelerometer data annotated with two event types: onset, the beginning of sleep, and wakeup, the end of sleep.

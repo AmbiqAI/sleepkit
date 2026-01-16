@@ -105,21 +105,21 @@ theme:
     code: Roboto Mono
   palette:
     - media: "(prefers-color-scheme)"
-      primary: blue
+      primary: pink
       accent: indigo
       toggle:
         icon: material/brightness-auto
         name: Use system theme
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: blue
+      primary: pink
       accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to light theme
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: blue
+      primary: pink
       accent: indigo
       toggle:
         icon: material/brightness-4
