@@ -1,6 +1,6 @@
 # Sleep Detection Model
 
-## <span class="sk-h2-span">Model Overview</span>
+## Model Overview
 
 The following table provides the latest pre-trained models for sleep detection. Below we also provide additional details including training configuration, accuracy metrics, and hardware performance results for the models.
 
@@ -8,7 +8,7 @@ The following table provides the latest pre-trained models for sleep detection. 
 
 ---
 
-## <span class="sk-h2-span">Model Details</span>
+## Model Details
 
 === "SD-2-TCN-SM"
 
@@ -20,7 +20,7 @@ The following table provides the latest pre-trained models for sleep detection. 
     - **Datasets**: [MESA](../datasets/mesa.md)
     - **Features**: [FS-W-A-5](../features/fs_w_a_5.md)
 
-## <span class="sk-h2-span">Model Performance</span>
+## Model Performance
 
 === "SD-2-TCN-SM"
 
@@ -50,7 +50,7 @@ The following table provides the latest pre-trained models for sleep detection. 
 
 ---
 
-## <span class="sk-h2-span">EVB Performance</span>
+## EVB Performance
 
 
 The following table provides the latest performance results when running on Apollo4 Plus EVB. These results are obtained using neuralSPOTs [Autodeploy tool](https://ambiqai.github.io/neuralSPOT/docs/From%20TF%20to%20EVB%20-%20testing%2C%20profiling%2C%20and%20deploying%20AI%20models.html). From neuralSPOT repo, the following command can be used to capture EVB results via Autodeploy:
@@ -67,7 +67,7 @@ python -m ns_autodeploy \
 --8<-- "assets/zoo/detect/detect-model-hw-table.md"
 
 
-## <span class="sk-h2-span">Downloads</span>
+## Downloads
 
 === "SD-2-TCN-SM"
 

@@ -19,9 +19,9 @@ from .mesa import MesaDataset
 from .stages import StagesDataset
 from .ysyw import YsywDataset
 
-import neuralspot_edge as nse
+import helia_edge as helia
 
-DatasetFactory = nse.utils.create_factory(factory="SKDatasetFactory", type=Dataset)
+DatasetFactory = helia.utils.create_factory(factory="SKDatasetFactory", type=Dataset)
 
 DatasetFactory.register("cmidss", CmidssDataset)
 DatasetFactory.register("mesa", MesaDataset)

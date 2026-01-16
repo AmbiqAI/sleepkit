@@ -26,10 +26,9 @@ from .fs_w_p_40 import FS_W_P_40
 from .featureset import FeatureSet
 from .h5dataloader import H5Dataloader
 
-import neuralspot_edge as nse
+import helia_edge as helia
 
-FeatureFactory = nse.utils.ItemFactory[FeatureSet].shared("SKFeatureFactory")
-
+FeatureFactory = helia.utils.ItemFactory[FeatureSet].shared("SKFeatureFactory")
 FeatureFactory.register(FS_W_PA_14.name(), FS_W_PA_14)
 FeatureFactory.register(FS_C_EAR_9.name(), FS_C_EAR_9)
 FeatureFactory.register(FS_W_A_5.name(), FS_W_A_5)

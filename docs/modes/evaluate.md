@@ -1,6 +1,6 @@
 # :material-ab-testing: Model Evaluation
 
-## <span class="sk-h2-span">Introduction </span>
+## Introduction 
 
 Evaluate mode is used to test the performance of the model on the reserved test set for the specified task. Similar to training, the routine can be customized via CLI configuration file or by setting the parameters directly in the code. The evaluation process involves testing the model's performance on the test data to measure its accuracy, precision, recall, and F1 score. A number of results and metrics will be generated and saved to the `job_dir`.
 
@@ -53,7 +53,7 @@ E ==> F
 
 ---
 
-## <span class="sk-h2-span">Usage</span>
+## Usage
 
 ### CLI
 
@@ -83,7 +83,7 @@ task.evaluate(params)
 
 ---
 
-## <span class="sk-h2-span">Arguments </span>
+## Arguments 
 
 Please refer to [TaskParams](../modes/configuration.md#taskparams) for the list of arguments that can be used with the `evaluate` command.
 

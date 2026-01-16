@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from tqdm import tqdm
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from ...defines import TaskParams
 from ...backends import BackendFactory
@@ -43,7 +43,7 @@ def demo(params: TaskParams):
     Args:
         params (TaskParams): Demo parameters
     """
-    logger = nse.utils.setup_logger(__name__)
+    logger = helia.utils.setup_logger(__name__)
 
     bg_color = "rgba(38,42,50,1.0)"
     plotly_template = "plotly_dark"

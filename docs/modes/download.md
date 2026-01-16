@@ -1,8 +1,8 @@
 # :material-download: Download Datasets
 
-The `download` command is used to download all datasets specified. Please refer to [Datasets](../datasets/index.md) for details on the available datasets. Additional datasets can be added by creating a new dataset class and registering it with __SleepKit__ dataset factory.
+The `download` command is used to download all datasets specified. Please refer to [Datasets](../datasets/index.md) for details on the available datasets. Additional datasets can be added by creating a new dataset class and registering it with __sleepKIT__ dataset factory.
 
-## <span class="sk-h2-span">Usage</span>
+## Usage
 
 ### CLI
 
@@ -24,7 +24,7 @@ ds.download()
 
 ```
 
-## <span class="sk-h2-span">Arguments </span>
+## Arguments 
 
 Please refer to [TaskParams](../modes/configuration.md#taskparams) for the list of arguments that can be used with the `download` command.
 

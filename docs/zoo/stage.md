@@ -1,12 +1,12 @@
 # Sleep Stage Models
 
-## <span class="sk-h2-span">Model Overview</span>
+## Model Overview
 
 The following table provides the latest pre-trained models for sleep detection. Below we also provide additional details including training configuration, accuracy metrics, and hardware performance results for the models.
 
 --8<-- "assets/zoo/stage/stage-model-zoo-table.md"
 
-## <span class="sk-h2-span">Model Details</span>
+## Model Details
 
 === "SS-2-TCN-SM"
 
@@ -77,7 +77,7 @@ The following table provides the latest pre-trained models for sleep detection. 
 
 ---
 
-## <span class="sk-h2-span">Model Performance</span>
+## Model Performance
 
 === "SS-2-TCN-SM"
 
@@ -126,7 +126,7 @@ The following table provides the latest pre-trained models for sleep detection. 
 
 ---
 
-## <span class="sk-h2-span">EVB Performance</span>
+## EVB Performance
 
 The following table provides the latest performance and accuracy results of all models when running on Apollo4 Plus EVB. These results are obtained using neuralSPOTs [Autodeploy tool](https://ambiqai.github.io/neuralSPOT/docs/From%20TF%20to%20EVB%20-%20testing%2C%20profiling%2C%20and%20deploying%20AI%20models.html). From neuralSPOT repo, the following command can be used to capture EVB results via Autodeploy:
 
@@ -150,7 +150,7 @@ In addition, we can capture statistics from each layer. The following bar plot p
 
 ---
 
-## <span class="sk-h2-span">Comparison</span>
+## Comparison
 
 We compare our 3-stage and 4-stage model to the SLAMSS model from [Song et al., 2023](https://doi.org/10.1371/journal.pone.0285703). Their model was also trained on MESA dataset using only motor and cardiac physiological signals. In particular, they extract activity count, heart rate, and heart rate standard deviation in 30 second epochs. They fed 12 epochs (6 minutes) of the 3 features (12x6) as input to the network. The newtork consists of 3 1-D CNN layers, 2 LSTM layers, and 1 attention layer. The underlying design of the attention block is unclear but using only the 3 CNN and 2 LSTM layers the network requires roughly 8.8 MFLOPS per epoch. This equates to roughly __450X__ more computation (__1,056 MFLOPS/hr__) compared to our 4-stage sleep classification model (__2.3 MFLOPS/hr__).
 
@@ -168,7 +168,7 @@ TOTAL: 20736+442368+442368+7895040+75816 -->
 | Reference         | Acc       | F1        | WAKE      | NREM      | REM       |
 | ----------------- | --------- | --------- | --------- | --------- | --------- |
 | [Song et al., 2023](https://doi.org/10.1371/journal.pone.0285703) | 79.1      | 80.0      | 78.0      | 81.8      | 70.9      |
-| **SleepKit**      | **83.9**  | **84.2**  | **80.3**  | **86.6**  | **83.5**  |
+| **sleepKIT**      | **83.9**  | **84.2**  | **80.3**  | **86.6**  | **83.5**  |
 
 
 ### 4-Stage Sleep Classification (MESA)
@@ -176,12 +176,12 @@ TOTAL: 20736+442368+442368+7895040+75816 -->
 | Reference         | Acc       | F1        | WAKE      | CORE      | DEEP      | REM       |
 | ----------------- | --------- | --------- | --------- | --------- | --------- | --------- |
 | [Song et al., 2023](https://doi.org/10.1371/journal.pone.0285703) | 70.0      | 72.0      | 78.7      | 66.3      | **55.9**      | 63.0      |
-| SleepKit          | **75.8**  | **76.4**  | **80.6**  | **73.9**  | 52.2  | **81.7**  |
+| sleepKIT          | **75.8**  | **76.4**  | **80.6**  | **73.9**  | 52.2  | **81.7**  |
 
 
 ---
 
-## <span class="sk-h2-span">Downloads</span>
+## Downloads
 
 === "SS-2-TCN-SM"
 

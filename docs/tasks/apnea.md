@@ -1,10 +1,10 @@
 # :fontawesome-regular-face-surprise: Sleep Apnea Task
 
-## <span class="sk-h2-span">Overview</span>
+## Overview
 
 Sleep apnea detection is the process of identifying hypopnea/apnea events. This task is useful for identifying sleep disorders and for monitoring sleep quality.
 
-## <span class="sk-h2-span">Sleep Apnea Types</span>
+## Sleep Apnea Types
 
 There are three main types of sleep apnea: obstructive, central, and mixed. Obstructive sleep apnea (OSA) is the most common type of sleep apnea. It occurs when the throat muscles relax and block the airway during sleep. Central sleep apnea (CSA) occurs when the brain fails to send the proper signals to the muscles that control breathing. Mixed sleep apnea is a combination of both obstructive and central sleep apnea. Hypopnea is a partial blockage of the airway that results in shallow breathing.
 
@@ -25,7 +25,7 @@ There are three main types of sleep apnea: obstructive, central, and mixed. Obst
     Hypopnea is a partial blockage of the airway that results in shallow breathing. It is less severe than apnea but can still disrupt sleep and lead to daytime sleepiness. Clinically, hypopnea is defined as a reduction in airflow of at least 30% for at least 10 seconds, accompanied by a decrease in oxygen saturation of at least 3%.
 
 
-## <span class="sk-h2-span">Model Zoo</span>
+## Model Zoo
 
 The following table provides the latest performance and accuracy results for pre-trained models. Additional result details can be found in [Model Zoo → Apnea](../zoo/apnea.md).
 
@@ -34,13 +34,13 @@ The following table provides the latest performance and accuracy results for pre
 
 ---
 
-## <span class="sk-h2-span">Target Classes</span>
+## Target Classes
 
 Below outlines the classes available for apnea classification. When training a model, the number of classes, mapping, and names must be provided.
 
 --8<-- "assets/tasks/apnea/apnea-classes.md"
 
-## <span class="sk-h2-span">References</span>
+## References
 
 * [ApSense: Data-driven Algorithm in PPG-based Sleep Apnea Sensing](https://doi.org/10.48550/arXiv.2306.10863)
 * [Multimodal Sleep Apnea Detection with Missing or Noisy Modalities](https://arxiv.org/pdf/2402.17788v1.pdf)

@@ -11,7 +11,7 @@ import numpy as np
 import numpy.typing as npt
 import physiokit as pk
 import scipy.io
-import neuralspot_edge as nse
+import helia_edge as helia
 from tqdm.contrib.concurrent import process_map
 
 from ..defines import SleepStage
@@ -131,7 +131,7 @@ class YsywDataset(Dataset):
         """
         if subject_ids is None:
             subject_ids = self.subject_ids
-        for idx in nse.utils.uniform_id_generator(list(range(len(subject_ids))), repeat=repeat, shuffle=shuffle):
+        for idx in helia.utils.uniform_id_generator(list(range(len(subject_ids))), repeat=repeat, shuffle=shuffle):
             subject_id = subject_ids[idx]
             yield (subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id)
 
@@ -205,11 +205,12 @@ class YsywDataset(Dataset):
             num_workers (int | None, optional): # parallel workers. Defaults to None.
             force (bool, optional): Force redownload. Defaults to False.
         """
-
-        nse.utils.download_s3_objects(
-            bucket="ambiqai-ysyw-2018-dataset",
-            prefix="training",
-            dst=self.path,
+        print("Downloading YSYW dataset...")
+        os.makedirs(self.path, exist_ok=True)
+        helia.utils.download_s3_objects(
+            bucket="ambiq-ai-datasets",
+            prefix=self.path.stem,
+            dst=self.path.parent,
             checksum="size",
             num_workers=num_workers,
         )

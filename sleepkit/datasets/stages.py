@@ -12,7 +12,7 @@ import numpy.typing as npt
 import pandas as pd
 import physiokit as pk
 import pyedflib
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from ..defines import SleepStage
 from .dataset import Dataset
@@ -132,7 +132,7 @@ class StagesDataset(Dataset):
         if subject_ids is None:
             subject_ids = self.subject_ids
 
-        for idx in nse.utils.uniform_id_generator(list(range(len(subject_ids))), repeat=repeat, shuffle=shuffle):
+        for idx in helia.utils.uniform_id_generator(list(range(len(subject_ids))), repeat=repeat, shuffle=shuffle):
             subject_id = subject_ids[idx]
             yield (subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id)
 

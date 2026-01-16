@@ -11,7 +11,7 @@ import functools
 
 import numpy as np
 import tensorflow as tf
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from ...features import H5Dataloader
 
@@ -54,12 +54,12 @@ def create_data_pipeline(
 
     data_gen = functools.partial(
         dataloader.signal_generator,
-        subject_generator=nse.utils.uniform_id_generator(subject_ids),
+        subject_generator=helia.utils.uniform_id_generator(subject_ids),
         samples_per_subject=samples_per_subject,
         preprocessor=subject_data_preprocessor,
     )
 
-    sig = nse.utils.get_output_signature_from_gen(data_gen)
+    sig = helia.utils.get_output_signature_from_gen(data_gen)
 
     dataloader = tf.data.Dataset.from_generator(data_gen, output_signature=sig).map(
         lambda data, labels: (

@@ -14,7 +14,7 @@ import numpy.typing as npt
 import pandas as pd
 import physiokit as pk
 from tqdm import tqdm
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from .dataset import Dataset
 from .defines import SubjectGenerator
@@ -100,7 +100,7 @@ class CmidssDataset(Dataset):
         if subject_ids is None:
             subject_ids = self.subject_ids
 
-        for idx in nse.utils.uniform_id_generator(list(range(len(subject_ids))), repeat=repeat, shuffle=shuffle):
+        for idx in helia.utils.uniform_id_generator(list(range(len(subject_ids))), repeat=repeat, shuffle=shuffle):
             subject_id = subject_ids[idx]
             yield (subject_id.decode("ascii") if isinstance(subject_id, bytes) else subject_id)
 
@@ -175,7 +175,7 @@ class CmidssDataset(Dataset):
         os.makedirs(self.path, exist_ok=True)
         zip_path = self.path / "cmidss.zip"
 
-        did_download = nse.utils.download_s3_file(
+        did_download = helia.utils.download_s3_file(
             key="cmidss/cmidss.zip",
             dst=zip_path,
             bucket="ambiq-ai-datasets",

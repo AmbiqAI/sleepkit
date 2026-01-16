@@ -3,7 +3,7 @@ import os
 import functools
 
 from tqdm.contrib.concurrent import process_map
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from ..features import FeatureFactory
 from ..defines import TaskParams
@@ -22,7 +22,7 @@ class Task(abc.ABC):
 
         """
         os.makedirs(params.job_dir, exist_ok=True)
-        logger = nse.utils.setup_logger(__name__, level=params.verbose, file_path=params.job_dir / "download.log")
+        logger = helia.utils.setup_logger(__name__, level=params.verbose, file_path=params.job_dir / "download.log")
         logger.debug(f"Creating working directory in {params.job_dir}")
 
         for ds in params.datasets:
@@ -44,7 +44,7 @@ class Task(abc.ABC):
             params (TaskParams): Task parameters
         """
         os.makedirs(params.job_dir, exist_ok=True)
-        logger = nse.utils.setup_logger(__name__, level=params.verbose, file_path=params.job_dir / "download.log")
+        logger = helia.utils.setup_logger(__name__, level=params.verbose, file_path=params.job_dir / "download.log")
         logger.debug(f"Creating working directory in {params.job_dir}")
 
         if not FeatureFactory.has(params.feature.name):

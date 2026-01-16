@@ -1,8 +1,8 @@
 # :material-clock-fast: Quickstart
 
-## <span class="sk-h2-span">Install SleepKit</span>
+## Install sleepKIT
 
-We provide several installation methods including pip, uv, and Docker. Install __SleepKit__ via pip/uv for the latest stable release or by cloning the GitHub repo for the most up-to-date. Additionally, a [VSCode Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) is available and defined in [./.devcontainer](https://github.com/AmbiqAI/sleepkit/tree/main/.devcontainer) to run in an isolated Docker environment.
+We provide several installation methods including pip, uv, and Docker. Install __sleepKIT__ via pip/uv for the latest stable release or by cloning the GitHub repo for the most up-to-date. Additionally, a [VSCode Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) is available and defined in [./.devcontainer](https://github.com/AmbiqAI/sleepkit/tree/main/.devcontainer) to run in an isolated Docker environment.
 
 !!! install
 
@@ -26,7 +26,7 @@ We provide several installation methods including pip, uv, and Docker. Install _
 
     === "PyPI install"
 
-        Install the SleepKit package using pip or uv.
+        Install the sleepKIT package using pip or uv.
         Visit the Python Package Index (PyPI) for more details on the package: [https://pypi.org/project/sleepkit/](https://pypi.org/project/sleepkit/)
 
         ```bash
@@ -53,9 +53,9 @@ We provide several installation methods including pip, uv, and Docker. Install _
         uv add git+https://github.com/AmbiqAI/sleepkit.git@main
         ```
 
-## <span class="sk-h2-span">Requirements</span>
+## Requirements
 
-* [Python ^3.11+](https://www.python.org)
+* [Python ^3.12+](https://www.python.org)
 * [uv ^1.6.1+](https://docs.astral.sh/uv/getting-started/installation/)
 
 Check the project's [pyproject.toml](https://github.com/AmbiqAI/sleepkit/blob/main/pyproject.toml) file for a list of up-to-date Python dependencies. Note that the installation methods above install all required dependencies. The following are optional dependencies only needed when running `demo` command using Ambiq's evaluation board (`EVB`) backend:
@@ -63,13 +63,13 @@ Check the project's [pyproject.toml](https://github.com/AmbiqAI/sleepkit/blob/ma
 * [Arm GNU Toolchain ^12.2](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
 * [Segger J-Link ^7.92](https://www.segger.com/downloads/jlink/)
 
-Once installed, __SleepKit__ can be used as either a CLI-based tool or as a Python package to perform advanced experimentation.
+Once installed, __sleepKIT__ can be used as either a CLI-based tool or as a Python package to perform advanced experimentation.
 
 ---
 
-## <span class="sk-h2-span">Use SleepKit with CLI</span>
+## Use sleepKIT with CLI
 
-The SleepKit command line interface (CLI) allows for simple single-line commands without the need for a Python environment. The CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `sleepkit` command. Check out the [CLI Guide](./usage/cli.md) to learn more about available options.
+The sleepKIT command line interface (CLI) allows for simple single-line commands without the need for a Python environment. The CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `sleepkit` command. Check out the [CLI Guide](./usage/cli.md) to learn more about available options.
 
 !!! example
 
@@ -126,11 +126,11 @@ The SleepKit command line interface (CLI) allows for simple single-line commands
         sleepkit -m demo -t stage -c ./configuration.json
         ```
 
-## <span class="sk-h2-span">Use SleepKit with Python</span>
+## Use sleepKIT with Python
 
-The __SleepKit__ Python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for a variety of tasks. The package is designed to be simple and easy to use.
+The __sleepKIT__ Python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for a variety of tasks. The package is designed to be simple and easy to use.
 
-For example, you can create a custom model, train it, evaluate its performance on a validation set, and even export a quantized TensorFlow Lite model for deployment. Check out the [Python Guide](./usage/python.md) to learn more about using SleepKit as a Python package.
+For example, you can create a custom model, train it, evaluate its performance on a validation set, and even export a quantized TensorFlow Lite model for deployment. Check out the [Python Guide](./usage/python.md) to learn more about using sleepKIT as a Python package.
 
 !!! Example
 

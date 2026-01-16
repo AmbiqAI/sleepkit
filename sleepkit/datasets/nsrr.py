@@ -14,11 +14,11 @@ from tqdm import tqdm
 
 from tqdm.contrib.concurrent import thread_map
 
-import neuralspot_edge as nse
+import helia_edge as helia
 
 _nsrr_token = None
 
-logger = nse.utils.setup_logger(__name__)
+logger = helia.utils.setup_logger(__name__)
 
 
 def download_file(
@@ -54,7 +54,7 @@ def download_file(
                 # Get number of bytes in file
                 calculated_checksum = str(dst.stat().st_size)
             case _:
-                calculated_checksum = nse.utils.compute_checksum(dst, checksum_type, chunk_size)
+                calculated_checksum = helia.utils.compute_checksum(dst, checksum_type, chunk_size)
         if calculated_checksum == checksum:
             logger.debug(f"File {dst} already exists and checksum matches. Skipping...")
             return

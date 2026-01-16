@@ -1,6 +1,6 @@
 # :material-chart-ppf: Model Training
 
-## <span class="sk-h2-span">Introduction </span>
+## Introduction 
 
 Each task provides a mode to train a model on the specified features. The training mode can be invoked either via CLI or within `sleepkit` python package. At a high level, the training mode performs the following actions based on the provided configuration parameters:
 
@@ -55,7 +55,7 @@ E ==> F
 
 ---
 
-## <span class="sk-h2-span">Usage</span>
+## Usage
 
 ### CLI
 
@@ -86,16 +86,16 @@ task.train(params)
 
 ---
 
-## <span class="sk-h2-span">Arguments </span>
+## Arguments 
 
 Please refer to [TaskParams](../modes/configuration.md#taskparams) for the list of arguments that can be used with the `train` command.
 
 ---
 
 
-## <span class="sk-h2-span">Logging</span>
+## Logging
 
-__SleepKit__ provides built-in support for logging to several third-party services including [Weights & Biases](https://wandb.ai/site) (WANDB) and [TensorBoard](https://www.tensorflow.org/tensorboard).
+__sleepKIT__ provides built-in support for logging to several third-party services including [Weights & Biases](https://wandb.ai/site) (WANDB) and [TensorBoard](https://www.tensorflow.org/tensorboard).
 
 ### WANDB
 

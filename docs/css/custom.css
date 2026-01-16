@@ -38,7 +38,7 @@ a.internal-link::after {
 }
 
 .md-grid {
-  max-width: 1440px;
+  max-width: 1840px;
 }
 
 
@@ -203,8 +203,6 @@ th, td {
   margin-bottom: 2rem;
 }
 
-.sk-h2-span {
-  color:rgb(201,48,198);
-  font-size: 24px;
-  font-weight: 300;
+.md-typeset h2 {
+  color: #E92063;
 }

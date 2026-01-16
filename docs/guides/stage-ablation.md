@@ -1,7 +1,7 @@
 # Sleep Staging Ablation Studies
 
 
-## <span class="sk-h2-span">Overview</span>
+## Overview
 
 In the following, we perform ablation studies to investigate the impact of different design choices on the performance of the model. All ablation studies are performed using the 4-stage sleep classification model trained on the MESA dataset. Unless otherwise noted, all experiments are carried out with identical training procedures.
 

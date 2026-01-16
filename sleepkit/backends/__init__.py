@@ -10,7 +10,7 @@ Classes:
 
 """
 
-import neuralspot_edge as nse
+import helia_edge as helia
 
 from . import backend, utils, evb, pc
 
@@ -18,7 +18,7 @@ from .backend import InferenceBackend
 from .evb import EvbBackend
 from .pc import PcBackend
 
-BackendFactory = nse.utils.create_factory("SKDemoBackend", InferenceBackend)
+BackendFactory = helia.utils.create_factory("SKDemoBackend", InferenceBackend)
 
 BackendFactory.register("pc", PcBackend)
 BackendFactory.register("evb", EvbBackend)
