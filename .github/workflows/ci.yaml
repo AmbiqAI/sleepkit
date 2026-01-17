@@ -1,6 +1,10 @@
 name: sleepKIT CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 env:
   PYTHON_VERSION: '3.12'
