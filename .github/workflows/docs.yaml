@@ -1,10 +1,18 @@
 name: Deploy to GitHub Pages
 
 on:
-  release:
-    types:
-      - created
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref (branch, tag, or SHA) to publish from
+        required: false
+        type: string
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref (branch, tag, or SHA) to publish from
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -28,6 +36,8 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
