@@ -1,6 +1,6 @@
 [project]
 name = "sleepkit"
-version = "0.11.0"
+version = "0.11.1"
 description = "AI driven sleep monitoring kit for ultra low-power wearables."
 readme = "README.md"
 license = { text = "BSD-3-Clause" }
