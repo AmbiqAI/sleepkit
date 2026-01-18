@@ -63,13 +63,26 @@ jobs:
   publish-pypi:
     needs: release-please
     if: needs.release-please.outputs.releases_created == 'true' || needs.release-please.outputs.release_created == 'true'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/sleepkit
     permissions:
       contents: read
       id-token: write
-    uses: ./.github/workflows/pypi.yaml
-    with:
-      ref: ${{ needs.release-please.outputs.tag_name }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Build distributions
+        run: uv build
+      - name: Publish to PyPI 📦
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   publish-docs:
     needs: release-please
