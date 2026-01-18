@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/AmbiqAI/sleepkit/compare/v0.11.0...v0.11.1) (2026-01-18)
+
+
+### Bug Fixes
+
+* publish to PyPI without reusable workflow ([#15](https://github.com/AmbiqAI/sleepkit/issues/15)) ([10a68d1](https://github.com/AmbiqAI/sleepkit/commit/10a68d13e103f78f7dc6d726738a31eeba70316d))
+
 ## [0.11.0](https://github.com/AmbiqAI/sleepkit/compare/v0.10.0...v0.11.0) (2026-01-18)
 
 
