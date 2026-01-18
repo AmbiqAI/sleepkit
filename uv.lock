@@ -3299,7 +3299,7 @@ wheels = [
 
 [[package]]
 name = "sleepkit"
-version = "0.9.0"
+version = "0.10.0"
 source = { editable = "." }
 dependencies = [
     { name = "argdantic", extra = ["all"] },
@@ -3582,8 +3582,8 @@ name = "tensorflow-metal"
 version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "six" },
-    { name = "wheel" },
+    { name = "six", marker = "sys_platform != 'linux'" },
+    { name = "wheel", marker = "sys_platform != 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dc/bf/988b619322d5617a928e7f31cbb1ed8dd7f375f69dfa73dab26409a00382/tensorflow_metal-1.2.0-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:4bece0ecb154b713b9f5ad4aec676a366d312822161e3cf0e1dea737c64cec04", size = 1357400, upload-time = "2025-01-31T00:52:57.924Z" },
