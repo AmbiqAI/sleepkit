@@ -29,4 +29,4 @@ jobs:
         run: |
           uv sync
           uv run ruff check
-          uv run pytest tests/
+          uv run pytest -vv tests/
