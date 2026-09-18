@@ -10,11 +10,16 @@ import numpy as np
 import pytest
 
 
+DETECTION_DEPENDENCIES = ("tensorflow", "keras", "h5py", "ai_edge_litert")
+MISSING_DEPENDENCIES = [name for name in DETECTION_DEPENDENCIES if importlib.util.find_spec(name) is None]
+
+
 @pytest.mark.skipif(
-    any(importlib.util.find_spec(name) is None for name in ("tensorflow", "keras", "h5py", "ai_edge_litert")),
+    bool(MISSING_DEPENDENCIES) and os.environ.get("SLEEPKIT_REQUIRE_DETECTION") != "1",
     reason="Detection integration requires TensorFlow/Keras, HDF5, and LiteRT",
 )
 def test_detection_train_export_and_unlabeled_inference(tmp_path):
+    assert not MISSING_DEPENDENCIES, f"Required detection dependencies missing: {MISSING_DEPENDENCIES}"
     # Keep TensorFlow initialization/threads isolated from lightweight unit tests.
     code = """
 import json
