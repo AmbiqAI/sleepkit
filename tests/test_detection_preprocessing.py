@@ -22,7 +22,13 @@ def test_feature_order_cadence_alignment_and_tail():
     np.testing.assert_array_equal(features.times, [55, 85, 115, 145])
     np.testing.assert_allclose(
         features.values[0],
-        [np.cos(2 * np.pi * 27.5 / 86400), 5.5, np.std(np.arange(12)), 11, np.std(np.arange(12) * 2)],
+        [
+            np.cos(2 * np.pi * np.arange(12) * 5 / 86400).mean(),
+            5.5,
+            np.std(np.arange(12)),
+            11,
+            np.std(np.arange(12) * 2),
+        ],
         rtol=1e-6,
     )
     labels = (np.arange(31) % 2).astype(np.int32)
@@ -150,7 +156,7 @@ def test_cache_invalidates_on_implementation_version(tmp_path, monkeypatch):
 
     data = sensor_data()
     prepare(data, tmp_path)
-    monkeypatch.setitem(preprocessing.SPEC, "implementation_version", 2)
+    monkeypatch.setitem(preprocessing.SPEC, "implementation_version", preprocessing.SPEC["implementation_version"] + 1)
     prepare(data, tmp_path)
     assert len(list(tmp_path.glob("*.npz"))) == 2
 
@@ -164,3 +170,26 @@ def test_reader_rejects_incompatible_channel_metadata(tmp_path):
         stream.attrs["channel_names"] = ["TS", "ZANGLE", "ENMO"]
     with pytest.raises(ValueError, match="channel_names"):
         read_subject(tmp_path, "subject", labels=False)
+
+
+@pytest.mark.parametrize("start", [86345, 86370, 86395, 0, 43200])
+def test_time_of_day_averages_cyclic_values_across_midnight(start):
+    data = sensor_data(12)
+    data[0] = (start + np.arange(12) * 5) % 86400
+    actual = extract(data).values[0, 0]
+    # For equally spaced samples, the cosine mean equals the midpoint cosine
+    # multiplied by sin(n*delta/2)/(n*sin(delta/2)). Compute using unwrapped time.
+    delta = 2 * np.pi * 5 / 86400
+    expected = np.cos(2 * np.pi * (start + 27.5) / 86400) * np.sin(6 * delta) / (12 * np.sin(delta / 2))
+    assert actual == pytest.approx(expected, abs=1e-7)
+    if start >= 86345 or start == 0:
+        assert actual > 0.999
+
+
+def test_v1_fitted_state_is_rejected():
+    state = json.loads(json.dumps(Normalizer.fit([extract(sensor_data())]).to_dict()))
+    state["spec"]["kind"] = "sleepkit.cmidss_wrist/v1"
+    state["spec"]["implementation_version"] = 1
+    state["spec"].pop("tod_formula")
+    with pytest.raises(ValueError, match="Unsupported preprocessing"):
+        Normalizer.from_dict(state)
