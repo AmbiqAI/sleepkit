@@ -48,4 +48,4 @@ sudo apt install -y libopenblas-dev libyaml-dev ffmpeg wget ca-certificates awsc
 # fi
 
 # Install project dependencies
-uv sync
+uv sync --extra train --extra runtime --extra features --extra datasets --extra hf

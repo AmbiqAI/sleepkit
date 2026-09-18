@@ -89,6 +89,7 @@ nav:
 
   - Guides:
     - guides/index.md
+    - "1.0 Experiment Workflow": guides/v1-experiments.md
     - "Sleep Staging Ablation": guides/stage-ablation.md
     - Train Sleep Detect Model: guides/train-detect-model.ipynb
 

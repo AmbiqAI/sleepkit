@@ -1,13 +1,8 @@
+import subprocess
+import sys
+
+
 def test_app_cli_help():
-    """Verify APP CLI provides help dialog."""
-    assert True
-
-
-def test_tf_model():
-    """Verify TF model produces correct results on small sample set."""
-    assert True
-
-
-def test_tfl_model():
-    """Verify TFLite and micro models produces correct results on small sample set."""
-    assert True
+    result = subprocess.run([sys.executable, "-m", "sleepkit", "--help"], capture_output=True, text=True, check=True)
+    assert "smoke" in result.stdout
+    assert "publish" in result.stdout

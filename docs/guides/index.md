@@ -2,6 +2,8 @@
 
 These guides cover a wide range of sleepKIT topics, from core concepts to experiments to complete notebook training examples. The goal is to provide a comprehensive understanding of the sleepKIT ADK framework and its capabilities.
 
+- **[1.0 Experiment Workflow](v1-experiments.md)**: Integrated preprocessing, training, evaluation, and deployment.
+
 ## Core Concepts
 
 This section contains guides to explain the core concepts of sleepKIT.

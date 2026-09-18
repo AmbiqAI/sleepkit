@@ -1,5 +1,13 @@
 # sleepKIT
 
+> **1.0 alpha development:** the new composable preprocessing and experiment API is
+> described in [the v1 guide](docs/guides/v1-experiments.md). Start with
+> `uv sync --extra train --extra runtime` and
+> `uv run --no-sync sleepkit smoke --output results/v1-smoke`.
+> The historical 0.x workflow below remains available via `sleepkit-legacy`
+> with the `legacy` extra; model artifacts have not been replaced.
+
+
 > An AI Development Kit for real-time sleep-monitoring on ultra-low power Ambiq SoCs.
 
 [![CI](https://github.com/AmbiqAI/sleepkit/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/AmbiqAI/sleepkit/actions/workflows/ci.yaml)

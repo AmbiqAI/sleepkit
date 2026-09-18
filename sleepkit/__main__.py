@@ -1,3 +1,4 @@
-from sleepkit import cli
+from .recipes import main
 
-cli.main()
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.0a1 (unreleased)
+
+- Introduce composable raw-record preprocessing with explicit signal semantics,
+  deterministic caching, subject splits, and training-only fitted normalization.
+- Add a synthetic staging recipe, independent LiteRT evaluation/inference,
+  validated INT8 bundles, and Hugging Face staging with explicit upload.
+- Upgrade TensorFlow to 2.21 and Keras to 3.15; separate optional dependencies
+  and preserve historical artifacts and the legacy CLI.
+- Add core-only and training/export CI checks. Historical physiological feature
+  recipes and baseline release metadata are still being migrated.
+
+
 ## [0.11.1](https://github.com/AmbiqAI/sleepkit/compare/v0.11.0...v0.11.1) (2026-01-18)
 
 

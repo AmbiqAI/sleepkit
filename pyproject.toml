@@ -1,6 +1,6 @@
 [project]
 name = "sleepkit"
-version = "0.11.1"
+version = "1.0.0a1"
 description = "AI driven sleep monitoring kit for ultra low-power wearables."
 readme = "README.md"
 license = { text = "BSD-3-Clause" }
@@ -10,43 +10,49 @@ authors = [
 requires-python = ">=3.12,<3.14"
 
 dependencies = [
-  "tensorflow>=2.20.0,<3.0",
-  "tensorflow-metal>=1.1.0,<2.0; sys_platform == 'darwin'",
-  "numpy>=2.1.0,<3.0",
-  "scikit-learn>=1.4.0,<2.0",
-  "wfdb>=4.1.2,<5.0",
-  "fastparquet>=2023.10.1,<2024.0",
-  "plotly>=5.18.0,<6.0",
-  "tqdm>=4.66.1,<5.0",
-  "seaborn>=0.13.2,<1.0",
-  "matplotlib>=3.9.0,<4.0",
-  "pydantic>=2.5.3,<3.0",
-  "pyserial>=3.5,<4.0",
-  "rich>=13.7.0,<14.0",
-  "wandb>=0.17.0,<1.0",
-  "scipy>=1.12.0,<2.0",
-  "boto3>=1.34.36,<2.0",
-  "orjson>=3.9.13,<4.0",
-  "physiokit>=0.10.1,<1.0",
-  "requests>=2.31.0,<3.0",
-  "argdantic[all]>=1.0.0,<2.0",
-  "h5py>=3.13.0",
-  "pyedflib>=0.1.40",
-  "kaggle>=1.7.4.5",
-  "helia-edge>=0.4.1",
+  "numpy>=2.1,<3",
+]
+
+[project.optional-dependencies]
+train = [
+  "tensorflow>=2.21,<2.22",
+  "keras>=3.15.1,<4",
+  "h5py>=3.14,<3.15",
+]
+features = ["physiokit>=0.11,<0.12", "scipy>=1.15,<2"]
+datasets = ["pyedflib>=0.1.42", "pandas>=2.3,<3", "pyarrow>=19"]
+runtime = ["ai-edge-litert>=2.2,<3"]
+hf = ["huggingface-hub>=1,<2"]
+reports = ["matplotlib>=3.10,<4", "plotly>=6,<8", "scikit-learn>=1.7,<2"]
+tracking = ["wandb>=0.17,<1", "tensorboard>=2.20,<3"]
+evb = ["pyserial>=3.5,<4"]
+legacy = [
+  "sleepkit[train,features,datasets,reports,tracking,evb]",
+  "helia-edge>=0.6.2,<0.7",
+  "wfdb>=4.1,<5",
+  "tqdm>=4.66,<5",
+  "seaborn>=0.13,<1",
+  "pydantic>=2.12,<3",
+  "rich>=13.7",
+  "boto3>=1.34,<2",
+  "orjson>=3.9,<4",
+  "requests>=2.32,<3",
+  "argdantic[all]>=1,<2",
+  "kaggle>=1.7,<2",
 ]
 
 [project.scripts]
-sleepkit = "sleepkit.cli:main"
+sleepkit = "sleepkit.recipes:main"
+sleepkit-legacy = "sleepkit.cli:main"
 
 [dependency-groups]
 dev = [
   "ipython>=8.21.0,<9.0",
-  "pytest>=8.0.0,<9.0",
+  "pytest>=8,<10",
   "taskipy>=1.12.0,<2.0",
   "pre-commit>=3.6.0,<4.0",
   "notebook>=7.0.2,<8.0",
-  "tensorboard-plugin-profile>=2.14.0,<=2.19.8",
+
   "pydot>=2.0.0,<3.0",
   "ruff>=0.5.1,<1.0",
 ]

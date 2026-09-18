@@ -50,8 +50,8 @@ jobs:
           CI: ""
           PUBLIC_URL: "${{ steps.pages.outputs.base_url }}/"
         run: |
-          uv sync --only-group docs
-          uv run mkdocs build
+          uv sync --locked --group docs --extra legacy --extra runtime
+          uv run --no-sync mkdocs build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

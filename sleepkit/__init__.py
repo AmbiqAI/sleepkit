@@ -1,29 +1,32 @@
-"""
-# sleepKIT API
+"""SleepKit: composable sleep experiments and deployment tools.
 
-sleepKIT is an AI Development Kit (ADK) that enables developers to easily build and deploy real-time __sleep-monitoring__ models on Ambiq's family of ultra-low power SoCs.
-sleepKIT explores a number of sleep related tasks including sleep staging, and sleep apnea detection.
-The kit includes a variety of datasets, efficient model architectures, and a number of pre-trained models.
-The objective of the models is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices.
-Furthermore, the included models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand.
-The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
-
+Legacy exports are resolved only when requested. Importing the package does not
+initialize TensorFlow, dataset clients, logging, plotting, or hardware backends.
 """
 
-import os
-from importlib.metadata import version
-import helia_edge as helia
+from importlib import import_module
+from importlib.metadata import PackageNotFoundError, version
 
-from . import cli, datasets, models, backends, tasks, features
-from .datasets import DatasetFactory, Dataset
-from .defines import QuantizationParams, FeatureParams, TaskParams, TaskMode, NamedParams, SleepApnea, SleepStage
-from .features import FeatureFactory, FeatureSet, H5Dataloader
-from .models import ModelFactory
-from .tasks import TaskFactory, Task, ApneaTask, StageTask
+try:
+    __version__ = version("sleepkit")
+except PackageNotFoundError:
+    __version__ = "1.0.0a1"
+
+_LEGACY = {
+    **dict.fromkeys(["DatasetFactory", "Dataset"], "datasets"),
+    **dict.fromkeys(
+        ["QuantizationParams", "FeatureParams", "TaskParams", "TaskMode", "NamedParams", "SleepApnea", "SleepStage"],
+        "defines",
+    ),
+    **dict.fromkeys(["FeatureFactory", "FeatureSet", "H5Dataloader"], "features"),
+    "ModelFactory": "models",
+    **dict.fromkeys(["TaskFactory", "Task", "ApneaTask", "StageTask"], "tasks"),
+}
 
 
-__version__ = version(__name__)
-
-if "TF_CPP_MIN_LOG_LEVEL" not in os.environ:
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-helia.utils.setup_logger(__name__)
+def __getattr__(name):
+    if name not in _LEGACY:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    value = getattr(import_module(f".{_LEGACY[name]}", __name__), name)
+    globals()[name] = value
+    return value
