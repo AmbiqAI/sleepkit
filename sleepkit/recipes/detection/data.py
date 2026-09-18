@@ -22,7 +22,8 @@ def read_subject(root, subject, *, labels=True):
     if not isinstance(subject, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", subject):
         raise ValueError("Subject ID must be a filename stem without directories")
     with h5py.File(Path(root) / f"{subject}.h5", "r") as stream:
-        if float(stream.attrs.get("sample_rate_hz", 0.2)) != 0.2:
+        # HDF5 attributes may use float32: 0.2 is then approximately 0.200000003.
+        if not np.isclose(float(stream.attrs.get("sample_rate_hz", 0.2)), 0.2, rtol=0, atol=1e-8):
             raise ValueError("This reader requires 0.2 Hz CMIDSS sensor channels")
         if "channel_names" in stream.attrs:
             channels = [v.decode() if isinstance(v, bytes) else str(v) for v in stream.attrs["channel_names"]]
