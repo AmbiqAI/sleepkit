@@ -112,3 +112,9 @@ A number of pre-trained models are available for each task. These models are tra
 Checkout the [Guides](https://ambiqai.github.io/sleepkit/guides) to see detailed examples and tutorials on how to use sleepKIT for a variety of tasks. The guides provide step-by-step instructions on how to train, evaluate, and deploy models for a given task. In addition, the guides provide insights into the design choices and performance metrics for the models. The guides are designed to help you get up and running quickly and to provide a deeper understanding of the models and tasks available in sleepKIT.
 
 ---
+
+### Hugging Face baseline artifacts
+
+See [the artifact publishing guide](docs/huggingface-artifacts.md) for the additive
+`python -m sleepkit.artifacts` workflow, starting with the historical SD-2-TCN-SM
+TFLite baseline. Staging and publication dry runs require no training runtime.

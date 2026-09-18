@@ -36,8 +36,13 @@ dependencies = [
   "helia-edge>=0.4.1",
 ]
 
+[project.optional-dependencies]
+hf = ["huggingface-hub>=1,<2"]
+artifact-runtime = ["ai-edge-litert>=2.2,<3"]
+
 [project.scripts]
 sleepkit = "sleepkit.cli:main"
+sleepkit-artifacts = "sleepkit.artifacts.cli:main"
 
 [dependency-groups]
 dev = [

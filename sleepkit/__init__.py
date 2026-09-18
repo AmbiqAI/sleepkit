@@ -1,29 +1,33 @@
-"""
-# sleepKIT API
+"""SleepKit public API, resolved lazily to keep artifact tools independent."""
 
-sleepKIT is an AI Development Kit (ADK) that enables developers to easily build and deploy real-time __sleep-monitoring__ models on Ambiq's family of ultra-low power SoCs.
-sleepKIT explores a number of sleep related tasks including sleep staging, and sleep apnea detection.
-The kit includes a variety of datasets, efficient model architectures, and a number of pre-trained models.
-The objective of the models is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices.
-Furthermore, the included models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand.
-The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
+from importlib import import_module
+from importlib.metadata import PackageNotFoundError, version
 
-"""
+try:
+    __version__ = version("sleepkit")
+except PackageNotFoundError:
+    __version__ = "0.11.1"
 
-import os
-from importlib.metadata import version
-import helia_edge as helia
+_MODULES = {"cli", "datasets", "models", "backends", "tasks", "features"}
+_EXPORTS = {
+    **dict.fromkeys(["DatasetFactory", "Dataset"], "datasets"),
+    **dict.fromkeys(
+        ["QuantizationParams", "FeatureParams", "TaskParams", "TaskMode", "NamedParams", "SleepApnea", "SleepStage"],
+        "defines",
+    ),
+    **dict.fromkeys(["FeatureFactory", "FeatureSet", "H5Dataloader"], "features"),
+    "ModelFactory": "models",
+    **dict.fromkeys(["TaskFactory", "Task", "ApneaTask", "StageTask"], "tasks"),
+}
+__all__ = ["__version__", *sorted(_MODULES), *_EXPORTS]
 
-from . import cli, datasets, models, backends, tasks, features
-from .datasets import DatasetFactory, Dataset
-from .defines import QuantizationParams, FeatureParams, TaskParams, TaskMode, NamedParams, SleepApnea, SleepStage
-from .features import FeatureFactory, FeatureSet, H5Dataloader
-from .models import ModelFactory
-from .tasks import TaskFactory, Task, ApneaTask, StageTask
 
-
-__version__ = version(__name__)
-
-if "TF_CPP_MIN_LOG_LEVEL" not in os.environ:
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-helia.utils.setup_logger(__name__)
+def __getattr__(name):
+    if name in _MODULES:
+        value = import_module(f".{name}", __name__)
+    elif name in _EXPORTS:
+        value = getattr(import_module(f".{_EXPORTS[name]}", __name__), name)
+    else:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    globals()[name] = value
+    return value
