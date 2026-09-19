@@ -27,6 +27,6 @@ jobs:
           enable-cache: true
       - name: Install dependencies 🔧
         run: |
-          uv sync --locked --extra detection
-          uv run --locked --extra detection ruff check
-          SLEEPKIT_REQUIRE_DETECTION=1 uv run --locked --extra detection pytest -vv tests/
+          uv sync --locked --extra detection --extra source-audit
+          uv run --locked --extra detection --extra source-audit ruff check
+          SLEEPKIT_REQUIRE_DETECTION=1 SLEEPKIT_REQUIRE_SOURCE_AUDIT=1 uv run --locked --extra detection --extra source-audit pytest -vv tests/
