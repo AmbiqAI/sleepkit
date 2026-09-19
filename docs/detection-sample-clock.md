@@ -55,8 +55,8 @@ requested audit; an entirely missing event set does not pass. The report binds t
 events file hash and detects file changes during verification.
 
 This verifies event timing, not sleep/wake semantics, independent-person grouping,
-or historical model training exposure. Candidate interval construction and its
-annotation-protocol review remain the next label-policy checkpoint.
+or historical model training exposure. The [candidate interval builder and coverage audit](detection-label-policy.md) are
+implemented separately. Annotation-protocol review remains a gate before benchmarking.
 
 On the audited local snapshot, all 9,585 available event rows match raw UTC exactly;
 4,923 of 14,508 rows have neither step nor timestamp. Raw alignment still passes all
