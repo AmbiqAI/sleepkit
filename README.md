@@ -118,3 +118,9 @@ Checkout the [Guides](https://ambiqai.github.io/sleepkit/guides) to see detailed
 See [the artifact publishing guide](docs/huggingface-artifacts.md) for the additive
 `python -m sleepkit.artifacts` workflow, starting with the historical SD-2-TCN-SM
 TFLite baseline. Staging and publication dry runs require no training runtime.
+
+### Python detection recipe
+
+See [the detection recipe guide](docs/detection-recipe.md) for a sensor-to-artifact
+pipeline with built-in feature generation, fitted preprocessing, held-out evaluation,
+and unlabeled inference. It is additive to the legacy task CLI.

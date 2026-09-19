@@ -10,7 +10,8 @@ authors = [
 requires-python = ">=3.12,<3.14"
 
 dependencies = [
-  "tensorflow>=2.20.0,<3.0",
+  "tensorflow>=2.21.0,<2.22",
+  "tensorboard>=2.20,<3",
   "tensorflow-metal>=1.1.0,<2.0; sys_platform == 'darwin'",
   "numpy>=2.1.0,<3.0",
   "scikit-learn>=1.4.0,<2.0",
@@ -39,6 +40,7 @@ dependencies = [
 [project.optional-dependencies]
 hf = ["huggingface-hub>=1,<2"]
 artifact-runtime = ["ai-edge-litert>=2.2,<3"]
+detection = ["keras>=3.15.1,<4", "ai-edge-litert>=2.2,<3"]
 
 [project.scripts]
 sleepkit = "sleepkit.cli:main"
