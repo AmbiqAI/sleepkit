@@ -142,3 +142,11 @@ or treating review approval as a substitute for source evidence.
 Next implementation checkpoint: raw-series alignment and a reviewed annotation
 policy. Historical model exposure and model licensing remain unresolved. No model
 publication is authorized by producing an audit report.
+
+The next policy candidate is described in [event-supported labels](detection-label-policy.md).
+It is a proposal requiring annotation-protocol evidence, not a relabeling of the audit output.
+
+The [raw-source verification](detection-source-alignment.md) now confirms step/index,
+UTC cadence, and channel alignment for the audited local snapshot. Its 44 local-clock
+jumps coincide with timezone-offset changes. This supplies source-alignment evidence;
+annotation semantics and historical training exposure remain separate open questions.
