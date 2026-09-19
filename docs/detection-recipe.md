@@ -93,8 +93,14 @@ other policies explicitly in Python.
 
 A feature window contains 12 source samples (60 seconds), advancing 6 samples
 (30 seconds). Features are cosine time of day, ENMO mean/std, ZANGLE mean/std,
-with population standard deviations. The cosine is taken after averaging time of
-day to retain the legacy feature formula, including its midnight discontinuity.
+with population standard deviations. The time-of-day feature averages the cosine
+of each source timestamp: `mean(cos(2*pi*TS/86400))`. Encoding before averaging
+keeps windows spanning midnight close to +1 rather than interpreting them as noon.
+This corrects the legacy formula and changes the preprocessing contract to v2.
+Old v1 caches are bypassed, and v1 fitted states are rejected by this implementation.
+Retrain and export a new bundle; do not pair v1 model weights or normalization with
+v2 features. Historical baseline packaging and its original feature requirements
+remain unchanged.
 A window is invalid if any source sample is nonfinite; invalid windows are not
 imputed. Fitted normalization uses valid feature windows from training subjects
 only, including training features without target labels, and saves mean and
@@ -150,7 +156,7 @@ There is no base trainer or plugin registry. Optional integrations are explicit
 Python imports; a second recipe will determine which blocks merit extraction.
 Bump `SPEC.implementation_version` whenever feature extraction behavior changes,
 so caches and saved states cannot silently reuse an older implementation.
-The `sleepkit.cmidss_wrist/v1` preprocessing identifier and `sleepkit.detection/v1`
+The `sleepkit.cmidss_wrist/v2` preprocessing identifier and `sleepkit.detection/v1`
 recipe identifier are versioned compatibility contracts. Inference refuses unknown
 contracts; manifests never specify arbitrary code to import.
 

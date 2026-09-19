@@ -9,8 +9,9 @@ import tempfile
 import numpy as np
 
 SPEC = {
-    "kind": "sleepkit.cmidss_wrist/v1",
-    "implementation_version": 1,
+    "kind": "sleepkit.cmidss_wrist/v2",
+    "implementation_version": 2,
+    "tod_formula": "mean(cos(2*pi*TS/86400))",
     "source_channels": ["TS", "ENMO", "ZANGLE"],
     "source_rate_hz": 0.2,
     "features": ["tod", "mov_mu", "mov_std", "angle_mu", "angle_std"],
@@ -63,7 +64,7 @@ def extract(data):
             valid[i] = False
             continue
         values[i] = [
-            np.cos(2 * np.pi * np.mean(window[0].astype(float) / 86400)),
+            np.mean(np.cos(2 * np.pi * window[0].astype(float) / 86400)),
             np.mean(window[1], dtype=float),
             np.std(window[1], dtype=float),
             np.mean(window[2], dtype=float),
