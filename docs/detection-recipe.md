@@ -201,3 +201,6 @@ int8 conversion with representative training inputs.
 
 The export path follows the native [Keras export API](https://keras.io/api/models/model_saving_apis/export/)
 and [TensorFlow-to-LiteRT conversion](https://developers.google.com/edge/litert/conversion/tensorflow/convert_tf).
+
+Before interpreting model scores, follow the [evaluation checkpoint](detection-evaluation-protocol.md).
+It includes a read-only annotation audit and the provenance requirements for a fair comparison.
