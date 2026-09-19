@@ -47,12 +47,11 @@ person, or that historical model training excluded any particular subject.
 
 ## Reader change supported by this evidence
 
-The current detector validates cadence using local TS and rejects these 44 files.
-The correct next adapter should preserve raw UTC/elapsed sample time alongside
-local TS, validate continuity against the independent clock, and use local TS only
-for the time-of-day feature. Carry that input contract through feature caching,
-training, and unlabeled inference. Keep strict handling for inputs without verified
-clock evidence; do not whitelist arbitrary one-hour jumps or silently omit subjects.
+The legacy detector path validates cadence using local TS and rejects these 44 files.
+The [independent sample-clock adapter](detection-sample-clock.md) now preserves an explicit UTC clock alongside
+local TS, validates continuity against it, and uses local TS only for the time-of-day
+feature. This contract carries through caching, training, and unlabeled inference.
+Inputs without independent clock evidence retain the strict local-TS check.
 
 The [candidate event-supported label policy](detection-label-policy.md) is still a
 proposal. It must be reviewed against the source annotation protocol before being
