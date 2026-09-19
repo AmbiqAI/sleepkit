@@ -2,16 +2,105 @@
 
 import argparse
 from collections import Counter
+from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 import json
 from pathlib import Path
+import re
 
 import numpy as np
 
+from .hdf5 import require_self_contained
+
 from sleepkit.artifacts.package import sha256
+from .audit import load_events
 
 
-def verify(data_root, parquet_path, *, batch_size=65536):
-    """Read all source samples; the resulting evidence does not validate annotations."""
+def _load_event_clock(path, details):
+    """Keep missing annotations separate from comparable source-clock claims."""
+    events = load_events(path)
+    counts, issues, pending = Counter(), Counter(), {}
+    epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    for subject, nights in events.items():
+        for rows in nights.values():
+            for row in rows:
+                counts["event_rows"] += 1
+                step_text, timestamp_text = (row["step"] or "").strip(), (row["timestamp"] or "").strip()
+                missing_step, missing_timestamp = not step_text, not timestamp_text
+                counts["missing_step_rows"] += missing_step
+                counts["missing_timestamp_rows"] += missing_timestamp
+                counts["missing_step_or_timestamp_rows"] += missing_step or missing_timestamp
+                invalid = False
+                if subject not in details:
+                    issues["unknown_subject_rows"] += 1
+                    invalid = True
+                if not missing_step:
+                    try:
+                        value = Decimal(step_text)
+                        if not value.is_finite() or value < 0 or value != value.to_integral_value():
+                            raise ValueError("Invalid step")
+                        if subject in details and value >= details[subject]["h5_samples"]:
+                            issues["out_of_range_step_rows"] += 1
+                            invalid = True
+                        elif subject in details:
+                            step = int(value)
+                    except (ValueError, InvalidOperation, OverflowError):
+                        issues["invalid_step_rows"] += 1
+                        invalid = True
+                if not missing_timestamp:
+                    try:
+                        # datetime silently truncates submicrosecond fractions. Reject
+                        # unsupported precision rather than report false exact equality.
+                        if not re.fullmatch(
+                            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:?\d{2})",
+                            timestamp_text,
+                        ):
+                            raise ValueError("Events require ISO seconds with at most microsecond precision")
+                        timestamp = datetime.fromisoformat(timestamp_text)
+                        if timestamp.utcoffset() is None:
+                            raise ValueError("Naive event timestamp")
+                        delta = timestamp.astimezone(timezone.utc) - epoch
+                        micros = (delta.days * 86400 + delta.seconds) * 1000000 + delta.microseconds
+                    except (ValueError, OverflowError):
+                        issues["invalid_timestamp_rows"] += 1
+                        invalid = True
+                if invalid or missing_step or missing_timestamp:
+                    continue
+                counts["available_event_rows"] += 1
+                pending.setdefault(subject, {}).setdefault(step, []).append([micros, 0, 0])
+    return counts, issues, pending
+
+
+def _finish_event_clock(path, initial_hash, counts, issues, pending):
+    if sha256(path) != initial_hash:
+        raise ValueError("Events CSV changed during verification")
+    for entries in pending.values():
+        for rows in entries.values():
+            for _, seen, mismatches in rows:
+                if seen == 0:
+                    issues["unmatched_event_rows"] += 1
+                elif seen != 1:
+                    issues["ambiguous_source_step_rows"] += 1
+                if mismatches:
+                    issues["timestamp_mismatch_rows"] += 1
+                if seen == 1 and not mismatches:
+                    counts["matched_event_rows"] += 1
+    if not counts["available_event_rows"]:
+        issues["no_available_events"] += 1
+    return {
+        "events_sha256": initial_hash,
+        "status": "failed" if issues else "passed_for_available_events",
+        **{key: counts[key] for key in (
+            "event_rows", "available_event_rows", "matched_event_rows", "missing_step_rows",
+            "missing_timestamp_rows", "missing_step_or_timestamp_rows",
+        )},
+        "issues": dict(issues),
+        "scope": "Exact UTC equality at each available event's raw source step; missing annotations remain missing. No label-semantic claim.",
+    }
+
+
+def verify(data_root, parquet_path, *, batch_size=65536, events_path=None):
+    """Read all samples and optionally check event clocks, not annotation semantics."""
     import h5py
     import pyarrow as pa
     import pyarrow.compute as pc
@@ -27,6 +116,7 @@ def verify(data_root, parquet_path, *, batch_size=65536):
     details, previous = {}, {}
     for subject, path in sorted(files.items()):
         with h5py.File(path, "r") as stream:
+            require_self_contained(stream)
             shape = stream["data"].shape
             if len(shape) != 2 or shape[0] != 3:
                 raise ValueError("Expected HDF5 data in TS/ENMO/ZANGLE order")
@@ -38,6 +128,10 @@ def verify(data_root, parquet_path, *, batch_size=65536):
             "offset_changes": 0,
             "local_clock_changes": Counter(),
         }
+    if events_path is not None:
+        events_path = Path(events_path)
+        events_hash = sha256(events_path)
+        event_counts, event_issues, pending = _load_event_clock(events_path, details)
     parquet = pq.ParquetFile(parquet_path)
     columns = ["series_id", "step", "timestamp", "enmo", "anglez"]
     if not set(columns) <= set(parquet.schema_arrow.names):
@@ -78,6 +172,14 @@ def verify(data_root, parquet_path, *, batch_size=65536):
             detail = details[subject]
             start, stop = detail["raw_samples"], detail["raw_samples"] + count
             steps, times, tod, zone = raw_steps[selected], utc[selected], local[selected], offsets[selected]
+            if events_path is not None and subject in pending:
+                event_steps = pending[subject]
+                # Look up actual source steps, never substitute the HDF5 row index.
+                hits = np.flatnonzero(np.isin(steps, list(event_steps)))
+                for index in hits:
+                    for entry in event_steps[int(steps[index])]:
+                        entry[1] += 1
+                        entry[2] += entry[0] != int(times[index]) * 1000000
             detail["issues"]["step_index_mismatch"] += int((steps != np.arange(start, stop)).sum())
             if subject in previous:
                 prev_utc, prev_tod, prev_zone = previous[subject]
@@ -85,6 +187,7 @@ def verify(data_root, parquet_path, *, batch_size=65536):
                 tod_for_diff = np.r_[prev_tod, tod]
                 zones_for_diff = np.concatenate(([prev_zone], zone))
             else:
+                detail["first_utc_seconds"] = int(times[0])
                 times_for_diff, tod_for_diff, zones_for_diff = times, tod, zone
             utc_delta = np.diff(times_for_diff)
             tod_delta = np.mod(np.diff(tod_for_diff), 86400)
@@ -115,10 +218,14 @@ def verify(data_root, parquet_path, *, batch_size=65536):
         total_issues.update(detail["issues"])
     if sha256(parquet_path) != source_hash:
         raise ValueError("Parquet source changed during verification")
+    event_clock = None
+    if events_path is not None:
+        event_clock = _finish_event_clock(events_path, events_hash, event_counts, event_issues, pending)
     return {
         "schema": "sleepkit.source_alignment/v1",
+        **({"event_clock": event_clock} if event_clock is not None else {}),
         "parquet_sha256": source_hash,
-        "status": "passed" if not total_issues and not unknown else "failed",
+        "status": "passed" if not total_issues and not unknown and not (event_clock and event_clock["issues"]) else "failed",
         "raw_samples": parquet.metadata.num_rows,
         "h5_subjects": len(files),
         "subjects_passed": sum(d["status"] == "passed" for d in details.values()),
@@ -135,11 +242,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, required=True)
     parser.add_argument("--parquet", type=Path, required=True)
+    parser.add_argument("--events", type=Path, help="Optionally verify available annotation timestamps against raw UTC")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.output.exists():
         parser.error("Output exists; choose a new local report path")
-    report = verify(args.data, args.parquet)
+    report = verify(args.data, args.parquet, events_path=args.events)
     with args.output.open("x", encoding="utf-8") as stream:
         json.dump(report, stream, indent=2, sort_keys=True, allow_nan=False)
         stream.write("\n")

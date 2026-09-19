@@ -174,6 +174,7 @@ Install this recipe's implementation and `numpy`, `h5py`, `ai-edge-litert`, then
 ```python
 from sleepkit.recipes.detection.inference import predict
 result = predict("bundle-directory", sensor_data)  # shape [3, samples], no labels needed
+# For v3 inputs with an independent clock, pass sample_time=utc_seconds.
 # result includes target times, context availability times, logits, and probabilities
 ```
 

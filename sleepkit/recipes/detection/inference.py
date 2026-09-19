@@ -9,7 +9,7 @@ from sleepkit.artifacts.package import validate_bundle
 from .preprocessing import Normalizer, contexts, prepare
 
 
-def predict(bundle, data):
+def predict(bundle, data, *, sample_time=None):
     from ai_edge_litert.interpreter import Interpreter
 
     bundle = Path(bundle)
@@ -35,7 +35,7 @@ def predict(bundle, data):
         or o["dtype"] != np.float32
     ):
         raise ValueError("Incompatible runtime tensor contract")
-    features = normalizer.transform(prepare(data))
+    features = normalizer.transform(prepare(data, sample_time=sample_time, spec=normalizer.spec))
     predictions, times, availability = [], [], []
     for values, _, timestamps in contexts(features, context):
         runner.set_tensor(i["index"], values[None])
