@@ -1,6 +1,7 @@
 """Explicit feature and fitted-state contracts shared by this recipe and inference."""
 
-from dataclasses import dataclass
+from copy import deepcopy
+from dataclasses import dataclass, field
 import hashlib
 import json
 from pathlib import Path
@@ -28,6 +29,42 @@ SPEC = {
 }
 
 
+V2_SPEC = deepcopy(SPEC)
+SPEC = {
+    **SPEC,
+    "kind": "sleepkit.cmidss_wrist/v3",
+    "implementation_version": 3,
+    "sample_clock": "Optional signed int64 Unix seconds; strictly increasing at five seconds. Without it, validate local TS cadence.",
+}
+
+
+def validate_input(data, sample_time=None, *, spec=None):
+    """Validate source clocks before any cache access; clocks are never inferred from row indices."""
+    spec = SPEC if spec is None else spec
+    if spec != SPEC and spec != V2_SPEC:
+        raise ValueError("Unsupported preprocessing implementation or feature contract")
+    data = np.asarray(data, dtype=np.float32)
+    if data.ndim != 2 or data.shape[0] != 3:
+        raise ValueError("Expected sensor data [3, samples] in TS, ENMO, ZANGLE order")
+    ts = data[0]
+    finite = np.isfinite(ts)
+    if ((ts[finite] < 0) | (ts[finite] >= 86400)).any():
+        raise ValueError("TS must contain seconds of day in [0, 86400)")
+    if sample_time is not None:
+        if spec == V2_SPEC:
+            raise ValueError("Preprocessing v2 does not accept an independent sample clock")
+        sample_time = np.asarray(sample_time)
+        if sample_time.shape != (data.shape[1],) or sample_time.dtype.kind != "i" or sample_time.dtype.itemsize != 8:
+            raise ValueError("sample_time must be signed int64 Unix seconds aligned with sensor samples")
+        if (sample_time[1:] <= sample_time[:-1]).any() or (np.diff(sample_time) != 5).any():
+            raise ValueError("sample_time must contain contiguous increasing 5-second samples")
+    else:
+        adjacent = finite[1:] & finite[:-1]
+        if not np.allclose(np.mod(np.diff(ts)[adjacent], 86400), 5, atol=1e-3, rtol=0):
+            raise ValueError("Expected contiguous 5-second samples; gaps must be explicitly represented")
+    return data, sample_time
+
+
 def fingerprint(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
@@ -43,18 +80,9 @@ class Features:
         return self.ends * 5.0
 
 
-def extract(data):
-    """Read aligned 5-second TS/ENMO/ZANGLE samples; no labels or fitted state."""
-    data = np.asarray(data, dtype=np.float32)
-    if data.ndim != 2 or data.shape[0] != 3:
-        raise ValueError("Expected sensor data [3, samples] in TS, ENMO, ZANGLE order")
-    ts = data[0]
-    finite = np.isfinite(ts)
-    if ((ts[finite] < 0) | (ts[finite] >= 86400)).any():
-        raise ValueError("TS must contain seconds of day in [0, 86400)")
-    adjacent = finite[1:] & finite[:-1]
-    if not np.allclose(np.mod(np.diff(ts)[adjacent], 86400), 5, atol=1e-3, rtol=0):
-        raise ValueError("Expected contiguous 5-second samples; gaps must be explicitly represented")
+def extract(data, *, sample_time=None, spec=None):
+    """Read aligned samples, using an optional independent source UTC clock for cadence."""
+    data, _ = validate_input(data, sample_time, spec=spec)
     starts = np.arange(0, max(0, data.shape[1] - 11), 6)
     values = np.zeros((len(starts), 5), np.float32)
     valid = np.ones(len(starts), bool)
@@ -73,12 +101,17 @@ def extract(data):
     return Features(values, valid, starts + 11)
 
 
-def prepare(data, cache=None):
+def prepare(data, cache=None, *, sample_time=None, spec=None):
     """Cache stateless features only: annotations and normalization never enter the key."""
+    spec = SPEC if spec is None else spec
+    data, sample_time = validate_input(data, sample_time, spec=spec)
     if cache is None:
-        return extract(data)
+        return extract(data, sample_time=sample_time, spec=spec)
     data = np.ascontiguousarray(data, dtype=np.float32)
-    digest = hashlib.sha256(fingerprint(SPEC).encode() + str(data.shape).encode() + data.tobytes()).hexdigest()
+    clock_bytes = b"absent" if sample_time is None else b"unix_seconds:" + sample_time.astype("<i8").tobytes()
+    digest = hashlib.sha256(
+        fingerprint(spec).encode() + str(data.shape).encode() + data.tobytes() + clock_bytes
+    ).hexdigest()
     cache = Path(cache)
     cache.mkdir(parents=True, exist_ok=True)
     path = cache / f"{digest}.npz"
@@ -95,7 +128,7 @@ def prepare(data, cache=None):
         ):
             raise ValueError("Invalid feature cache")
         return result
-    result = extract(data)
+    result = extract(data, sample_time=sample_time, spec=spec)
     with tempfile.NamedTemporaryFile(dir=cache, suffix=".npz", delete=False) as stream:
         temporary = Path(stream.name)
         try:
@@ -112,10 +145,12 @@ class Normalizer:
     mean: np.ndarray
     scale: np.ndarray
     count: int
+    spec: dict = field(default_factory=lambda: deepcopy(SPEC))
 
     def __post_init__(self):
         if (
-            np.shape(self.mean) != (5,)
+            (self.spec != SPEC and self.spec != V2_SPEC)
+            or np.shape(self.mean) != (5,)
             or np.shape(self.scale) != (5,)
             or self.count < 1
             or not np.isfinite([self.mean, self.scale]).all()
@@ -149,13 +184,23 @@ class Normalizer:
         return Features(values, features.valid, features.ends)
 
     def to_dict(self):
-        return {"spec": SPEC, "mean": self.mean.tolist(), "scale": self.scale.tolist(), "count": self.count}
+        return {
+            "spec": deepcopy(self.spec),
+            "mean": self.mean.tolist(),
+            "scale": self.scale.tolist(),
+            "count": self.count,
+        }
 
     @classmethod
     def from_dict(cls, value):
-        if value.get("spec") != SPEC:
+        if value.get("spec") != SPEC and value.get("spec") != V2_SPEC:
             raise ValueError("Unsupported preprocessing implementation or feature contract")
-        return cls(np.asarray(value["mean"], dtype=float), np.asarray(value["scale"], dtype=float), value["count"])
+        return cls(
+            np.asarray(value["mean"], dtype=float),
+            np.asarray(value["scale"], dtype=float),
+            value["count"],
+            deepcopy(value["spec"]),
+        )
 
 
 def contexts(features, context, labels=None):

@@ -62,8 +62,9 @@ The first adversarial review identified two implementation gates: compare every
 available event timestamp directly with raw UTC at its source step (pair durations
 alone cannot detect an equal shift of both timestamps), and test a pure interval
 builder that enforces consecutive integer night IDs and excludes incomplete or
-conflicting intervening groups. Neither check is implemented by the source-alignment
-verifier, which intentionally audits sensor samples only.
+conflicting intervening groups. The optional event-clock audit now implements the first check; see
+[independent sample clocks](detection-sample-clock.md). The pure interval builder
+and annotation-semantics review remain pending.
 
 ## Cadence handling boundary
 
@@ -72,7 +73,7 @@ sample clock. A source alignment report can establish that a particular snapshot
 is continuous in UTC even when local clocks jump. That finding does not justify
 accepting arbitrary one-hour jumps from other inputs.
 
-A future verified source adapter should supply an explicit UTC/elapsed sample
+The [verified source adapter](detection-sample-clock.md) supplies an explicit UTC sample
 clock alongside local TS. Validate cadence against that clock, use local TS only
 for time-of-day features, and carry the clock contract through training and
 unlabeled inference. Keep the existing strict check for inputs without sufficient
