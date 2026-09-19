@@ -150,3 +150,12 @@ The [raw-source verification](detection-source-alignment.md) now confirms step/i
 UTC cadence, and channel alignment for the audited local snapshot. Its 44 local-clock
 jumps coincide with timezone-offset changes. This supplies source-alignment evidence;
 annotation semantics and historical training exposure remain separate open questions.
+
+
+## Current implementation status
+
+The audit, raw alignment, independent-clock path, and candidate policy are merged.
+The [frozen assignment and target contract](detection-frozen-split.md) record the
+recovered primary annotation evidence and seed-zero evaluation cohort. The next
+implementation checkpoint is a target-aware dataset adapter and common scoring
+index. Historical model exposure and artifact licensing remain unresolved.
