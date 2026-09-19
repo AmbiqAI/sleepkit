@@ -8,6 +8,7 @@ import numpy as np
 from sleepkit.artifacts import Artifact, Check, TensorSpec, stage_bundle
 from sleepkit.artifacts.package import sha256, write_json
 from sleepkit.artifacts.runtime import create_reference
+from .output_contract import output_contract
 
 
 def export_bundle(model, normalizer, destination, metadata, metrics):
@@ -15,6 +16,7 @@ def export_bundle(model, normalizer, destination, metadata, metrics):
     import tensorflow as tf
     from ai_edge_litert.interpreter import Interpreter
 
+    recipe_kind, class_names = output_contract(metadata.get("target"))
     destination = Path(destination)
     workspace = destination.parent
     context = model.input_shape[1]
@@ -72,7 +74,7 @@ def export_bundle(model, normalizer, destination, metadata, metrics):
                 o["name"],
                 tuple(int(d) for d in o["shape_signature"]),
                 "float32",
-                "Per-epoch logits ordered WAKE, SLEEP; softmax once for probabilities",
+                f"Per-epoch logits ordered {', '.join(class_names)}; softmax once for probabilities",
             ),
         ),
     )
@@ -83,8 +85,8 @@ def export_bundle(model, normalizer, destination, metadata, metrics):
         {
             **metadata,
             "context": context,
-            "recipe": "sleepkit.detection/v1",
-            "class_names": ["WAKE", "SLEEP"],
+            "recipe": recipe_kind,
+            "class_names": class_names,
             "output": "logits",
             "versions": {name: version(name) for name in ("tensorflow", "keras", "numpy", "ai-edge-litert")},
         },
@@ -131,13 +133,13 @@ def export_bundle(model, normalizer, destination, metadata, metrics):
         title="Wrist detection recipe experiment",
         artifacts=artifacts,
         checks=checks,
-        metadata={"sleepkit": {"recipe": "sleepkit.detection/v1"}},
-        card=_card(),
+        metadata={"sleepkit": {"recipe": recipe_kind}},
+        card=_card(metadata.get("target")),
     )
 
 
-def _card():
-    return """---
+def _card(target=None):
+    card = """---
 tags:
 - sleepkit
 - tflite
@@ -180,3 +182,12 @@ result = predict("bundle-directory", sensor_data)  # shape [3, samples], no labe
 
 Model artifact licensing is not specified. Choose an artifact license before publication.
 """
+
+    if target is not None:
+        _, names = output_contract(target)
+        card = card.replace("logits ordered WAKE, SLEEP", "logits ordered " + ", ".join(names))
+        card = card.replace(
+            "The recipe evaluates provided HDF5 labels as-is: legacy CMIDSS conversion treats\nunannotated periods as wake, so annotation quality must be reviewed before any\nscientific comparison.",
+            "The target is annotated nightly-period membership: inside a supported annotation or\noutside between eligible consecutive nights. It does not establish clinical sleep/wake,\nconfirmed device wear, or absence of naps. Unknown targets are excluded. Frozen source,\nevent, split, and policy hashes bind the dataset; historical labels are not used.\nThe exact scoring index and predictions stay local; their hashes are in recipe.json.",
+        )
+    return card
