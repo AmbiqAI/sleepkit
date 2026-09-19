@@ -146,12 +146,9 @@ population, but this is not a model benchmark or evidence of label correctness.
 The [official competition overview](https://www.kaggle.com/competitions/child-mind-institute-detect-sleep-states)
 defines an event-detection task evaluated by average precision across timestamp
 tolerances. This does not by itself establish dense clinical sleep/wake ground truth.
-The [source data description](https://www.kaggle.com/competitions/child-mind-institute-detect-sleep-states/data)
-is the relevant annotation-convention reference; its detailed conventions were not
-retrievable in this review. We have not established that intervals between consecutive
-night events exclude naps or other unannotated sleep.
-
-Before benchmarking, document the source-supported target interpretation, freeze a
-subject/person grouping and split, and create a separate versioned candidate dataset
-only when that interpretation is justified. This PR provides the reusable policy and
-coverage evidence; it does not activate new labels or train on them.
+The [retrieved annotation contract and frozen split](detection-frozen-split.md)
+now support a derived annotated-period membership target, with explicit inside,
+outside-supported-period, and unknown semantics. They do not support clinical
+per-sample sleep/wake claims. The builder's historical candidate names remain
+unchanged; future training artifacts must declare the adopted target explicitly.
+A target-aware dataset adapter and scoring index remain required before benchmarking.
