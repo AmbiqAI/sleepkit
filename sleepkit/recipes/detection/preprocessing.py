@@ -86,18 +86,26 @@ def extract(data, *, sample_time=None, spec=None):
     starts = np.arange(0, max(0, data.shape[1] - 11), 6)
     values = np.zeros((len(starts), 5), np.float32)
     valid = np.ones(len(starts), bool)
-    for i, start in enumerate(starts):
-        window = data[:, start : start + 12]
-        if not np.isfinite(window).all():
-            valid[i] = False
-            continue
-        values[i] = [
-            np.mean(np.cos(2 * np.pi * window[0].astype(float) / 86400)),
-            np.mean(window[1], dtype=float),
-            np.std(window[1], dtype=float),
-            np.mean(window[2], dtype=float),
-            np.std(window[2], dtype=float),
-        ]
+    # A strided view avoids materializing every overlapping window. Bound all
+    # calculation temporaries independently of recording length (4096 x 12).
+    if len(starts):
+        windows = np.lib.stride_tricks.sliding_window_view(data, 12, axis=1)[:, ::6, :]
+        for begin in range(0, len(starts), 4096):
+            end = min(begin + 4096, len(starts))
+            block = windows[:, begin:end, :]
+            keep = np.isfinite(block).all(axis=(0, 2))
+            valid[begin:end] = keep
+            if not keep.any():
+                continue
+            # Copy only valid windows. Rows retain the original twelve-sample
+            # reduction order; float64 calculations precede float32 storage.
+            selected = np.ascontiguousarray(block[:, keep, :])
+            target = values[begin:end]
+            target[keep, 0] = np.mean(np.cos(2 * np.pi * selected[0].astype(float) / 86400), axis=1)
+            target[keep, 1] = np.mean(selected[1], axis=1, dtype=float)
+            target[keep, 2] = np.std(selected[1], axis=1, dtype=float)
+            target[keep, 3] = np.mean(selected[2], axis=1, dtype=float)
+            target[keep, 4] = np.std(selected[2], axis=1, dtype=float)
     return Features(values, valid, starts + 11)
 
 

@@ -1,0 +1,119 @@
+{
+  "counts": {
+    "batches": 1078,
+    "contexts": 34474,
+    "feature_frames": 14857307,
+    "feature_frames_trained": 8273760,
+    "last_batch_contexts": 10,
+    "normalization_frames": 14857307,
+    "subjects": 193,
+    "valid_feature_frames": 14857307
+  },
+  "declaration_sha256": "1ca0656ee1c47a2072813340c30c701d0751866028321cf7fa37679b315c4f2f",
+  "environment_sha256": "7eb9836762811ed85f2ccde3faab8cacc0c52dda564c1318202cbc205c8e1f80",
+  "framework_import_seconds": 1.445175411994569,
+  "limitations": [
+    "Cold means an empty feature cache, not a cold operating-system disk cache; preparation is serial.",
+    "Reader hashing, evidence validation and target reconstruction remain enabled, including uncached count checks.",
+    "Warm loader waits include next() and host materialization; prefetch overlaps work. They are not raw disk latency.",
+    "Resident steps repeat one host batch with transfers included; not device-only compute or an epoch schedule.",
+    "Fit is a fresh-model single training epoch after resident process/device warmup; includes tracing/compilation, excludes validation, export and model build.",
+    "RSS is process lifetime high-water memory, not stage allocation or device memory; no GPU memory measurement.",
+    "Single observations, not a speedup claim. Use fresh processes and repeated runs for comparisons."
+  ],
+  "normalizer_sha256": "ed46fca6adbf562c6f649c5b68562808e9c722f731f498f39153004b1578034b",
+  "resident_batch": {
+    "input_dtype": "float32",
+    "input_sha256": "0e2c989ac1313a59901a6bdf416e4f4b3dc7cc183f1bd30aeb43afb37c3503a5",
+    "input_shape": [
+      32,
+      240,
+      5
+    ],
+    "target_dtype": "int32",
+    "target_sha256": "27482d3645934af9903d995809924b9a2e3eb7f547bf7fc77776f3fb74980e06",
+    "target_shape": [
+      32,
+      240
+    ]
+  },
+  "schema": "sleepkit.detection_profile/v1",
+  "stages": {
+    "cold_feature_cache_prepare": {
+      "process_cpu_seconds": 18.566471045,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 18.572608634014614
+    },
+    "count_eligible_contexts": {
+      "process_cpu_seconds": 7.932683298999997,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 7.936381794977933
+    },
+    "end_to_end_fit_epoch": {
+      "batches": 1078,
+      "contexts_per_second": 2168.087423125587,
+      "process_cpu_seconds": 20.025574991000006,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 15.900650330004282
+    },
+    "end_to_end_model_build": {
+      "process_cpu_seconds": 0.021907558999998855,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 0.021908121998421848
+    },
+    "resident_compile_and_warmup": {
+      "process_cpu_seconds": 0.4367785519999998,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 0.43336363905109465
+    },
+    "resident_model_build": {
+      "process_cpu_seconds": 0.029224355000003754,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 0.02922601706814021
+    },
+    "resident_model_steps": {
+      "contexts": 640,
+      "contexts_per_second": 9160.97099373308,
+      "host_batch_bytes": 184320,
+      "process_cpu_seconds": 0.10007620100000025,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "steps": {
+        "count": 20,
+        "first_seconds": 0.0054636659333482385,
+        "median_seconds": 0.0027076974511146545,
+        "p95_seconds": 0.006852015660842881,
+        "total_seconds": 0.06985149905085564
+      },
+      "wall_seconds": 0.06986159004736692
+    },
+    "verify_after": {
+      "process_cpu_seconds": 0.3547142750000063,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 0.3548261820105836
+    },
+    "verify_before": {
+      "process_cpu_seconds": 0.34706214699999993,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 0.34720341896172613
+    },
+    "warm_fit_normalizer": {
+      "process_cpu_seconds": 6.598834359000001,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 6.599612261983566
+    },
+    "warm_loader_epoch": {
+      "batch_wait": {
+        "count": 1078,
+        "first_seconds": 0.22198758996091783,
+        "median_seconds": 0.003433214034885168,
+        "p95_seconds": 0.06333675111527554,
+        "total_seconds": 14.086204617517069
+      },
+      "contexts_per_second": 2441.2482142119097,
+      "process_cpu_seconds": 14.279911814999998,
+      "process_lifetime_peak_rss_bytes": 1476227072,
+      "wall_seconds": 14.121464502997696
+    }
+  },
+  "status": "complete"
+}

@@ -114,3 +114,5 @@ investigations. These timings do not isolate their individual sub-operations and
 do not establish a TensorFlow backend bottleneck. Candidate optimizations must
 preserve the recorded feature/normalizer and sample contracts and be compared in
 repeated, controlled runs before any improvement claim.
+
+The next measured change is [bounded vectorized feature preparation](detection-preparation-performance.md), with exact scalar-reference comparisons before reusing the existing feature contract.

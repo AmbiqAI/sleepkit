@@ -13,6 +13,7 @@ nav:
     - Shared foundation: shared-foundation.md
     - Golden experiment: detection-golden.md
     - Detection profiling: detection-profiling.md
+    - Preparation performance: detection-preparation-performance.md
     - Licensing: model-licensing-policy.md
     - Draft model terms: licenses/ambiq-device-model-license-draft.md
     - Modes:
