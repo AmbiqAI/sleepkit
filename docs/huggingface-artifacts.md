@@ -74,12 +74,80 @@ not been reproduced. Whole-record external preprocessing is required, and the
 configuration's sampling rate conflicts with the feature-generation cadence.
 These issues are documented in the model card and remain open for the next recipe.
 
+## Stage a licensed release from an experiment
+
+Once the [per-model license decision](model-licensing-policy.md) is established,
+promote the verified experiment into a new release directory:
+
+```sh
+python -m sleepkit.artifacts stage-release /path/to/experiment/bundle /path/to/release \
+  --license-file /path/to/chosen/LICENSE --license-id bsd-3-clause \
+  --card-body /path/to/release-card.md --decision-file /path/to/release-decision.md \
+  --profile runnable
+python -m sleepkit.artifacts validate /path/to/release --profile runnable --runtime
+```
+
+The BSD identifier above is an example for a model whose rights permit it, not a
+license choice for the current CMIDSS candidate. For an appropriate custom license,
+use `--license-id other --license-name "Your finalized license name"`. Standard IDs
+and custom metadata follow [Hugging Face's license conventions](https://huggingface.co/docs/hub/repositories-licenses).
+The identifier is checked for syntax, not against a live registry or the license
+text. The maintainer is responsible for choosing matching terms and metadata.
+
+`release-card.md` is Markdown **without YAML front matter**. Write the model's task,
+input/preprocessing contract, metrics, limitations and usage example there. The
+helper generates the license front matter and links to the supplied license and
+decision. To add tags, dataset identifiers, library information or model-index
+entries, supply `--card-metadata /path/to/card-metadata.json`, for example
+`{"tags": ["tflite", "time-series"]}`. Python callers can pass the same dictionary as
+`card_metadata`. License fields are reserved for the explicit license arguments.
+Values must be finite JSON-compatible data; no YAML parser is required. Original
+experiment metadata is retained in the old card but is not automatically copied
+into the active release card, so select the fields appropriate to this release.
+
+`release-decision.md` is a publication-ready human record of the covered filenames
+and hashes, dataset/parent-weight terms, permission basis, attribution, permitted
+uses, maintainer and decision date. Review this text for private information: it is
+copied verbatim, as is the original experiment card. Do not supply private agreements,
+subject lists or internal evidence files. A nonempty decision document records the
+maintainer's decision; the tool cannot establish rights or approve publication.
+
+The same operation is available as ordinary Python:
+
+```python
+from pathlib import Path
+from sleepkit.artifacts import stage_release
+
+release = stage_release(
+    "experiment/bundle", "release",
+    license_file="chosen/LICENSE", license_id="bsd-3-clause",
+    card_body=Path("release-card.md").read_text(encoding="utf-8"),
+    decision_file="release-decision.md", profile="runnable",
+)
+```
+
+Staging needs only the standard library. It snapshots and validates the source,
+preserves all declared artifact bytes/signatures and checks, and retains the source
+card as `experiment-card.md`. The source manifest, validation and checksum inventory
+hashes are recorded in `metadata.release_source`; recipe metadata stays intact.
+New documentation, license and checksums go into a new directory. Staging does not
+retrain, reconvert, rerun inference, improve a check status, or contact the Hub.
+`runnable` requires existing persisted runtime evidence; the separate `validate
+--runtime` command replays it.
+
+The source must have no model license recorded in its manifest. This operation
+refuses already licensed bundles, existing destinations, destinations inside the
+source, and collisions with its release documentation/provenance fields. An
+unspecified manifest license does not establish freedom to license the weights;
+review any existing grants and upstream terms first. Already licensed bundles can
+use the existing validate/publish commands without this promotion step.
+
 ## Actual publication
 
 Choose the model artifact license explicitly; the source-code license is not
-assumed to cover the weights. Stage a new bundle with `--license-file PATH` and
-`--license-id SPDX_ID` (or an appropriate Hugging Face license identifier). Include
-any required attribution in that license. Then install `huggingface-hub>=1,<2`,
+assumed to cover the weights. Use `stage-release` above for an existing experiment,
+or supply `--license-file PATH` and `--license-id HF_LICENSE_ID` when staging a
+historical baseline. Include required attribution and retain upstream notices. Then install `huggingface-hub>=1,<2`,
 authenticate using its standard token mechanism, and explicitly invoke:
 
 ```sh
@@ -142,9 +210,9 @@ non-classification tasks. It does not load Keras or infer semantics from a graph
 A future Keras validator can produce its own hash-bound evidence without changing
 this API. The schema is provisional until a second, independent recipe exercises it.
 
-Next: one native Python train/evaluate/export recipe with an explicit preprocessing
-step and a small recipe-specific config. Keep the legacy CLI available, then extract
-shared blocks only as additional recipes demonstrate the need.
+The native Python detection recipe now integrates preprocessing, training, evaluation
+and export. Next, exercise a deliberately different recipe before promoting shared
+blocks into a broader API; keep the legacy CLI available during this migration.
 
 The [membership int8 release preparation](detection-int8.md) now stages a new-model
 bundle with preserved float/checkpoint artifacts, train-only calibration evidence,

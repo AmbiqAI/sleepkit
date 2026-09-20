@@ -130,6 +130,7 @@ from sleepkit.recipes.detection.quantization import quantize_run, inspect_intege
 from sleepkit.recipes.detection.inference import predict
 from sleepkit.artifacts.package import sha256, validate_bundle
 from sleepkit.artifacts.runtime import replay_bundle
+from sleepkit.artifacts import stage_release
 root = Path(sys.argv[1])
 source = AnnotatedDataset(*make_dataset_fixture(root, context=2))
 run = root / "parent"
@@ -189,11 +190,28 @@ with np.load(output / "test-predictions.npz", allow_pickle=False) as arrays:
         loss = np.mean(np.log(np.exp(shifted).sum(axis=1)) - shifted[np.arange(len(targets)), targets])
         np.testing.assert_allclose(loss, recorded["cross_entropy"], rtol=1e-10, atol=1e-12)
     assert metrics["models"]["model.keras"]["feature_frames_evaluated"] == len(targets)
+# A local test-only release preserves both real runtimes and raw-sensor predictions.
+(root / "test-terms.txt").write_text("Test fixture only; no production model grant.")
+(root / "test-decision.md").write_text("Synthetic test data only. No publication.")
+release = stage_release(
+    bundle, root / "release", license_file=root / "test-terms.txt", license_id="other",
+    license_name="Synthetic fixture terms", card_body="# Synthetic fixture release",
+    decision_file=root / "test-decision.md", profile="runnable")
+assert validate_bundle(release, profile="runnable")["checks"] == validated["checks"]
+assert len(replay_bundle(release)) == 2
+for entry in validated["manifest"]["artifacts"]:
+    assert sha256(release / entry["path"]) == entry["sha256"]
 for subject in source.split["test"]:
     recording = source.read(subject, labels=False)
     integer = predict(bundle, recording.data, sample_time=recording.sample_time)
     floating = predict(bundle, recording.data, sample_time=recording.sample_time, model_name="model.float.tflite")
     parent = predict(run / "bundle", recording.data, sample_time=recording.sample_time)
+    for name, original in (("model.tflite", integer), ("model.float.tflite", floating)):
+        promoted = predict(release, recording.data, sample_time=recording.sample_time, model_name=name)
+        for key in ("times", "available_at", "logits", "probabilities"):
+            np.testing.assert_array_equal(promoted[key], original[key])
+        assert promoted["target"] == original["target"]
+        assert promoted["class_names"] == original["class_names"]
     assert integer["target"] == floating["target"] == source.target
     np.testing.assert_array_equal(integer["times"], floating["times"])
     np.testing.assert_array_equal(floating["logits"], parent["logits"])

@@ -14,6 +14,16 @@ def main(argv=None):
     stage.add_argument("--runtime-check", action="store_true")
     stage.add_argument("--license-file")
     stage.add_argument("--license-id")
+    release = commands.add_parser("stage-release", help="Stage a release from a license-unspecified experiment")
+    release.add_argument("source")
+    release.add_argument("output")
+    release.add_argument("--license-file", required=True)
+    release.add_argument("--license-id", required=True)
+    release.add_argument("--license-name")
+    release.add_argument("--card-metadata", help="Optional JSON object for Hub tags and other card metadata")
+    release.add_argument("--card-body", required=True, help="Markdown file without YAML front matter")
+    release.add_argument("--decision-file", required=True, help="Publication-ready maintainer decision and attribution")
+    release.add_argument("--profile", choices=("archive", "runnable"), default="archive")
     validate = commands.add_parser("validate", help="Verify integrity and optionally replay synthetic I/O")
     validate.add_argument("path")
     validate.add_argument("--profile", choices=("archive", "runnable"), default="archive")
@@ -42,6 +52,30 @@ def main(argv=None):
                         runtime_check=args.runtime_check,
                         license_file=args.license_file,
                         license_id=args.license_id,
+                    )
+                )
+            }
+        elif args.command == "stage-release":
+            from pathlib import Path
+
+            from .release import stage_release
+
+            result = {
+                "path": str(
+                    stage_release(
+                        args.source,
+                        args.output,
+                        license_file=args.license_file,
+                        license_id=args.license_id,
+                        license_name=args.license_name,
+                        card_metadata=(
+                            json.loads(Path(args.card_metadata).read_text(encoding="utf-8"))
+                            if args.card_metadata
+                            else None
+                        ),
+                        card_body=Path(args.card_body).read_text(encoding="utf-8"),
+                        decision_file=args.decision_file,
+                        profile=args.profile,
                     )
                 )
             }
