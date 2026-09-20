@@ -57,6 +57,63 @@ and dequantizes output logits using the declared per-tensor scale and zero point
 not prove clipping. Probabilities are computed with one softmax after dequantization.
 No acceptance threshold or target-hardware result is implied by conversion success.
 
+## First fixed conversion result
+
+On 2026-09-20, revision `86b98c2` converted the original five-epoch checkpoint in
+one attempt. Calibration selected 372 contexts (89,280 feature frames) from 186
+training series; the other seven assigned training series had no eligible context.
+All 193 were accounted for, and neither validation nor test features supplied
+calibration ranges. Whole-cohort source hashes were still checked for integrity.
+
+On the same 2,059,680 eligible frames from 43 test series:
+
+| Metric | Original Keras / float TFLite | Int8 TFLite |
+| --- | ---: | ---: |
+| Accuracy | 95.7657% | 95.7560% |
+| Macro-F1 | 0.955611 | 0.955520 |
+| Outside-period recall | 96.4934% | 96.4449% |
+| Inside-period recall | 94.6395% | 94.6899% |
+| Unweighted series mean accuracy | 95.8477% | 95.8249% |
+| Unweighted series mean macro-F1 | 0.933468 | 0.933174 |
+| TFLite file size | 23,212 bytes | 13,568 bytes |
+
+The int8 file is 41.5% smaller, with an accuracy reduction of 0.00966 percentage
+points. Its confusion matrix in outside/inside order is
+`[[1206725, 44481], [42931, 765543]]`. Small aggregate changes do not imply identical
+predictions: 23,343 decisions changed (1.1333%), including 11,771 correct-to-wrong
+and 11,572 wrong-to-correct changes. There were 21,649 int8 output ties, resolved
+to class zero. Only two of 10,298,400 normalized input values were clipped; 54
+encoded output values were at range endpoints.
+
+Int8 mean absolute logit difference from Keras was 0.301505 and the maximum was
+12.547834; probability/calibration equivalence is not established. Original float
+TFLite reproduced all Keras class decisions and passed full-test logit comparison
+at `atol=1e-5, rtol=1e-4` (maximum absolute difference `2.288818359375e-5`). The
+relative tolerance matters for that maximum. Evaluation coverage and single-class
+series conventions remain those of the first experiment.
+
+The integer graph contains 16 int8 tensors and seven int32 tensors, with builtin
+ADD, CONV_2D, FULLY_CONNECTED and RESHAPE operators. Int8 input scale/zero point are
+`0.14650388062000275 / -111`; output scale/zero point are
+`0.6170711517333984 / 82`. The int8 model SHA-256 is
+`46c8cdc4f10461818959c4100b9232c2d6ba09bad7ba94f89a357949d8854a13`.
+Calibration, conversion, evaluation and staging took 48.5 seconds locally; this
+is not a device-latency benchmark.
+
+Evidence is retained under
+`sleepkit-evaluation-evidence/experiments/membership-int8-seed0-20260920/` alongside
+the repository. Both synthetic runtime references replayed successfully. The public
+raw-sensor API also reproduced saved outputs exactly for the first eligible context
+of each test series: 10,320 frames per model, checking both default int8 and optional
+float inference, class semantics and timestamps.
+
+Independent review reconstructed all 372 calibration selections and all 89,280
+calibration feature frames directly from training sources, reproduced every pooled
+and per-series metric, and verified clipping counts, graph contents, preserved
+artifacts and bundle privacy. A separate preprocessing/runtime replay checked the
+first and last eligible context in each test series through both models: 86 contexts
+per model with bitwise-identical outputs. No material finding remained.
+
 The existing raw-sensor entry point supports both bundled models:
 
 ```python

@@ -145,3 +145,9 @@ this API. The schema is provisional until a second, independent recipe exercises
 Next: one native Python train/evaluate/export recipe with an explicit preprocessing
 step and a small recipe-specific config. Keep the legacy CLI available, then extract
 shared blocks only as additional recipes demonstrate the need.
+
+The [membership int8 release preparation](detection-int8.md) now stages a new-model
+bundle with preserved float/checkpoint artifacts, train-only calibration evidence,
+matched evaluation, and supported raw-sensor inference for both TFLite models.
+It can be validated and inspected through the same Hub dry-run interface. Model
+artifact licensing remains explicit; staging does not upload a model.
