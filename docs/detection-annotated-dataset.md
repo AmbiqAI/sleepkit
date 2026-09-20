@@ -89,7 +89,9 @@ historical labels, train-only fitted state, Keras/TFLite parity, exact scored ta
 metric reproduction from saved predictions, unlabeled inference, and artifact privacy.
 The legacy training/inference tests remain supported.
 
-Next: run a declared new-model experiment on the frozen cohort, report pooled and
-per-subject membership metrics, and implement a common scoring index for descriptive
-historical comparison. Historical training exposure, task acceptance thresholds,
-artifact licensing, quantization, and hardware validation remain separate questions.
+The [first declared experiment](detection-first-experiment.md) is complete, with
+pooled and per-series membership metrics and sampled real-input Keras/TFLite parity.
+Its read-only report can be reproduced from saved scoring evidence. Next: inspect
+errors and implement a common scoring intersection for descriptive historical
+comparison. Historical training exposure, task acceptance thresholds, artifact
+licensing, quantization, and hardware validation remain separate questions.
