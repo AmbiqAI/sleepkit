@@ -49,6 +49,26 @@ def dataset(root, subjects, normalizer, cfg, cache, *, training, count, reader=N
     return data.batch(cfg.batch_size).with_options(options).prefetch(1)
 
 
+def training_model(cfg, model_builder=build_model):
+    """Build and compile the recipe's logits model; usable without running the pipeline."""
+    import keras
+
+    keras.utils.set_random_seed(cfg.seed)
+    model = model_builder(cfg.context, 5)
+    if (
+        model.input_shape != (None, cfg.context, 5)
+        or model.output_shape != (None, cfg.context, 2)
+        or getattr(model.layers[-1], "activation", None) is not keras.activations.linear
+    ):
+        raise ValueError("Builder must return float32 [batch,context,5] → [batch,context,2] logits with linear output")
+    model.compile(
+        optimizer=keras.optimizers.Adam(cfg.learning_rate),
+        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[keras.metrics.SparseCategoricalAccuracy(name="accuracy")],
+    )
+    return model
+
+
 def evaluate(model, batches, *, class_names=None, prediction_batches=None):
     confusion = np.zeros((2, 2), dtype=np.int64)
     loss, count = 0.0, 0
@@ -125,19 +145,7 @@ def _run(
     }
     if not all(counts.values()):
         raise ValueError(f"Every partition needs complete valid labeled contexts; found {counts}")
-    keras.utils.set_random_seed(cfg.seed)
-    model = model_builder(cfg.context, 5)
-    if (
-        model.input_shape != (None, cfg.context, 5)
-        or model.output_shape != (None, cfg.context, 2)
-        or getattr(model.layers[-1], "activation", None) is not keras.activations.linear
-    ):
-        raise ValueError("Builder must return float32 [batch,context,5] → [batch,context,2] logits with linear output")
-    model.compile(
-        optimizer=keras.optimizers.Adam(cfg.learning_rate),
-        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=[keras.metrics.SparseCategoricalAccuracy(name="accuracy")],
-    )
+    model = training_model(cfg, model_builder)
     train = dataset(root, split["train"], normalizer, cfg, cache, training=True, count=counts["train"], reader=reader)
     validation = dataset(
         root, split["validation"], normalizer, cfg, cache, training=False, count=counts["validation"], reader=reader

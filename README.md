@@ -125,6 +125,10 @@ See [the detection recipe guide](docs/detection-recipe.md) for a sensor-to-artif
 pipeline with built-in feature generation, fitted preprocessing, held-out evaluation,
 and unlabeled inference. It is additive to the legacy task CLI.
 
+The [first golden experiment](docs/detection-golden.md) pins the membership
+baseline's config and dataset evidence. The [profiling harness](docs/detection-profiling.md)
+measures preparation, loading and training while preserving its finite sampling contract.
+
 ### Licensing
 
 The code and Ambiq-authored documentation/site content use [BSD-3-Clause](LICENSE),
