@@ -132,3 +132,9 @@ except material with a separate notice. Model weights and datasets have their ow
 terms; public availability does not imply commercial-use permission. See the
 [model licensing policy](docs/model-licensing-policy.md) for per-model choices,
 research restrictions and proposed optional Ambiq device terms.
+
+### Shared foundation direction
+
+The [cross-KIT architecture proposal](docs/shared-foundation.md) describes the path
+toward reusable heliaEDGE blocks, first-class TensorFlow/PyTorch workflows, measured
+input-pipeline improvements, and traceable golden releases across the KITs.
