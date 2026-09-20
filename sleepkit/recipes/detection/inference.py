@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 
 from sleepkit.artifacts.package import validate_bundle
+from .output_contract import validate_output
 from .preprocessing import Normalizer, contexts, prepare
 
 
@@ -14,15 +15,10 @@ def predict(bundle, data, *, sample_time=None):
 
     bundle = Path(bundle)
     report = validate_bundle(bundle, profile="runnable")
-    if report["manifest"].get("metadata", {}).get("sleepkit", {}).get("recipe") != "sleepkit.detection/v1":
-        raise ValueError("Not a supported detection recipe bundle")
     recipe = json.loads((bundle / "recipe.json").read_text())
-    if (
-        recipe["recipe"] != "sleepkit.detection/v1"
-        or recipe["output"] != "logits"
-        or recipe["class_names"] != ["WAKE", "SLEEP"]
-    ):
-        raise ValueError("Unsupported detection output contract")
+    if report["manifest"].get("metadata", {}).get("sleepkit", {}).get("recipe") != recipe.get("recipe"):
+        raise ValueError("Not a supported detection recipe bundle")
+    class_names = validate_output(recipe)
     normalizer = Normalizer.from_dict(json.loads((bundle / "preprocessing.json").read_text()))
     runner = Interpreter(model_path=str(bundle / "model.tflite"))
     runner.allocate_tensors()
@@ -51,6 +47,8 @@ def predict(bundle, data, *, sample_time=None):
     probabilities = np.exp(logits - logits.max(axis=-1, keepdims=True))
     probabilities /= probabilities.sum(axis=-1, keepdims=True)
     return {
+        "class_names": class_names,
+        "target": recipe.get("target"),
         "times": np.concatenate(times),
         "available_at": np.concatenate(availability),
         "logits": logits,

@@ -151,4 +151,5 @@ now support a derived annotated-period membership target, with explicit inside,
 outside-supported-period, and unknown semantics. They do not support clinical
 per-sample sleep/wake claims. The builder's historical candidate names remain
 unchanged; future training artifacts must declare the adopted target explicitly.
-A target-aware dataset adapter and scoring index remain required before benchmarking.
+The [annotated dataset adapter and scoring index](detection-annotated-dataset.md)
+now implement this contract without changing original labels.

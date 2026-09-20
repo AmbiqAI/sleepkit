@@ -9,6 +9,7 @@ import numpy as np
 from sleepkit.artifacts.package import sha256, write_json
 from .data import READER_SPEC, examples, load_split, subject_features
 from .model import build_model
+from .output_contract import output_contract
 from .preprocessing import Normalizer, fingerprint
 
 
@@ -32,11 +33,11 @@ class Config:
             raise ValueError("Learning rate must be finite and positive; seed must be a nonnegative integer")
 
 
-def dataset(root, subjects, normalizer, cfg, cache, *, training, count):
+def dataset(root, subjects, normalizer, cfg, cache, *, training, count, reader=None):
     import tensorflow as tf
 
     data = tf.data.Dataset.from_generator(
-        lambda: examples(root, subjects, normalizer, cfg.context, cache),
+        lambda: examples(root, subjects, normalizer, cfg.context, cache, reader=reader),
         output_signature=(tf.TensorSpec((cfg.context, 5), tf.float32), tf.TensorSpec((cfg.context,), tf.int32)),
     )
     data = data.apply(tf.data.experimental.assert_cardinality(count))
@@ -48,7 +49,7 @@ def dataset(root, subjects, normalizer, cfg, cache, *, training, count):
     return data.batch(cfg.batch_size).with_options(options).prefetch(1)
 
 
-def evaluate(model, batches):
+def evaluate(model, batches, *, class_names=None, prediction_batches=None):
     confusion = np.zeros((2, 2), dtype=np.int64)
     loss, count = 0.0, 0
     for x, y in batches:
@@ -56,6 +57,8 @@ def evaluate(model, batches):
         labels = np.asarray(y).reshape(-1)
         if not np.isfinite(logits).all():
             raise ValueError("Nonfinite evaluation logits")
+        if prediction_batches is not None:
+            prediction_batches.append((logits.copy(), labels.astype(np.int32)))
         predictions = np.argmax(logits, axis=-1)
         np.add.at(confusion, (labels, predictions), 1)
         shifted = logits - logits.max(axis=1, keepdims=True)
@@ -74,12 +77,21 @@ def evaluate(model, batches):
         "macro_f1": float(f1.mean()),
         "cross_entropy": loss / count,
         "f1_zero_division": 0,
-        "class_order": ["WAKE", "SLEEP"],
+        "class_order": ["WAKE", "SLEEP"] if class_names is None else list(class_names),
     }
 
 
-def run(
-    root, split_file, output, cfg=Config(), *, cache=None, model_builder=build_model, callbacks=(), data_kind="cmidss"
+def _run(
+    root,
+    split_file,
+    output,
+    cfg=Config(),
+    *,
+    cache=None,
+    model_builder=build_model,
+    callbacks=(),
+    data_kind="cmidss",
+    prepared=None,
 ):
     """Compose ordinary functions; replace the logits model builder or Keras callbacks in Python.
 
@@ -95,11 +107,20 @@ def run(
     output = Path(output)
     if output.exists():
         raise FileExistsError(f"Output already exists: {output}")
+    reader = None if prepared is None else prepared.read
+    target = None if prepared is None else prepared.target
+    _, class_names = output_contract(target)
+    if prepared is not None:
+        if cfg.context != prepared.context:
+            raise ValueError("Context must match the frozen evaluation protocol")
+        prepared.verify_unchanged()
     split = load_split(split_file, root)
+    if prepared is not None and split != prepared.split:
+        raise ValueError("Split differs from the frozen protocol")
     source_hashes = {subject: sha256(Path(root) / f"{subject}.h5") for group in split.values() for subject in group}
-    normalizer = Normalizer.fit(subject_features(root, split["train"], cache))
+    normalizer = Normalizer.fit(subject_features(root, split["train"], cache, reader=reader))
     counts = {
-        name: sum(1 for _ in examples(root, subjects, normalizer, cfg.context, cache))
+        name: sum(1 for _ in examples(root, subjects, normalizer, cfg.context, cache, reader=reader))
         for name, subjects in split.items()
     }
     if not all(counts.values()):
@@ -117,13 +138,19 @@ def run(
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[keras.metrics.SparseCategoricalAccuracy(name="accuracy")],
     )
-    train = dataset(root, split["train"], normalizer, cfg, cache, training=True, count=counts["train"])
-    validation = dataset(root, split["validation"], normalizer, cfg, cache, training=False, count=counts["validation"])
+    train = dataset(root, split["train"], normalizer, cfg, cache, training=True, count=counts["train"], reader=reader)
+    validation = dataset(
+        root, split["validation"], normalizer, cfg, cache, training=False, count=counts["validation"], reader=reader
+    )
     history = model.fit(
         train, validation_data=validation, epochs=cfg.epochs, callbacks=list(callbacks), shuffle=False, verbose=2
     )
+    prediction_batches = [] if prepared is not None else None
     metrics = evaluate(
-        model, dataset(root, split["test"], normalizer, cfg, cache, training=False, count=counts["test"])
+        model,
+        dataset(root, split["test"], normalizer, cfg, cache, training=False, count=counts["test"], reader=reader),
+        class_names=class_names,
+        prediction_batches=prediction_batches,
     )
     metadata = {
         "config": asdict(cfg),
@@ -135,6 +162,10 @@ def run(
         "source_sha256": fingerprint(source_hashes),
         "code_sha256": {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))},
     }
+    if prepared is not None:
+        metadata.update(target=target, dataset=prepared.provenance)
+        metrics["target"] = target
+        prepared.verify_unchanged()
     # Do not attach provenance to a run if source files changed during fitting/evaluation.
     if any(sha256(Path(root) / f"{subject}.h5") != digest for subject, digest in source_hashes.items()):
         raise ValueError("Source data changed during the run")
@@ -144,8 +175,66 @@ def run(
         write_json(directory / "split.json", split)
         write_json(directory / "sources.json", source_hashes)
         write_json(directory / "history.json", history.history)
+        if prepared is not None:
+            from .scoring import write_index
+
+            evaluated_targets = np.concatenate([y for _, y in prediction_batches])
+            index = write_index(
+                prepared,
+                split["test"],
+                cfg.context,
+                directory / "test-index.jsonl",
+                cache=cache,
+                expected_targets=evaluated_targets,
+            )
+            if index["eligible_outputs"] != metrics["feature_frames_evaluated"]:
+                raise ValueError("Scoring index does not match evaluated outputs")
+            np.savez_compressed(
+                directory / "test-predictions.npz",
+                logits=np.concatenate([x for x, _ in prediction_batches]),
+                targets=evaluated_targets,
+            )
+            index["predictions_sha256"] = sha256(directory / "test-predictions.npz")
+            write_json(directory / "test-index-summary.json", index)
+            metadata["scoring"] = index
+            prepared.verify_unchanged()
         from .export import export_bundle
 
         export_bundle(model, normalizer, directory / "bundle", metadata, metrics)
+        if prepared is not None:
+            prepared.verify_unchanged()
         directory.rename(output)
     return output
+
+
+def run(
+    root, split_file, output, cfg=Config(), *, cache=None, model_builder=build_model, callbacks=(), data_kind="cmidss"
+):
+    """Historical-label recipe, preserved for existing experiments."""
+    return _run(
+        root,
+        split_file,
+        output,
+        cfg,
+        cache=cache,
+        model_builder=model_builder,
+        callbacks=callbacks,
+        data_kind=data_kind,
+    )
+
+
+def run_membership(
+    source, output, cfg=Config(), *, cache=None, model_builder=build_model, callbacks=(), data_kind="cmidss"
+):
+    """Compose an AnnotatedDataset with training, evaluation, and versioned export."""
+    return _run(
+        source.root,
+        source.split_path,
+        output,
+        cfg,
+        cache=cache,
+        model_builder=model_builder,
+        callbacks=callbacks,
+        data_kind=data_kind,
+        prepared=source,
+    )

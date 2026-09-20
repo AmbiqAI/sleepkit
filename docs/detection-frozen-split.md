@@ -3,8 +3,8 @@
 The reviewed audit/clock/candidate stack (#22–#25) is integrated into `main`.
 This checkpoint defines the derived target and freezes a reproducible split. It
 is assignment-only: running the existing recipe with `split.json` still reads
-historical HDF5 labels. A target-aware dataset adapter and scoring index must be
-implemented before training/evaluating the derived benchmark.
+historical HDF5 labels. The separate [annotated dataset recipe](detection-annotated-dataset.md) applies the
+derived target and writes exact scoring evidence.
 
 ## Target: annotated nightly-period membership
 
@@ -86,6 +86,6 @@ training exposure remains unknown, so this new split cannot certify that model
 as held out. Preserve historical preprocessing and treat its results as descriptive
 until exposure evidence exists.
 
-Next: materialize a separate target-versioned dataset from the verified events,
-retain unknown masks, bind the frozen assignment, and persist exact scoring
-indices. Update exported class metadata for the derived target before training.
+The [read-only target adapter](detection-annotated-dataset.md) now derives labels
+in memory from verified events, retains unknown masks, uses this frozen assignment,
+and persists exact scoring indices with target-specific artifact metadata.

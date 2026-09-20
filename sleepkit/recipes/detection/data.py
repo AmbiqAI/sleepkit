@@ -89,15 +89,15 @@ def load_split(path, root):
     return split
 
 
-def subject_features(root, subjects, cache=None):
+def subject_features(root, subjects, cache=None, *, reader=None):
     for subject in subjects:
-        recording = read_recording(root, subject, labels=False)
+        recording = read_recording(root, subject, labels=False) if reader is None else reader(subject, labels=False)
         yield prepare(recording.data, cache, sample_time=recording.sample_time)
 
 
-def examples(root, subjects, normalizer, context, cache=None):
+def examples(root, subjects, normalizer, context, cache=None, *, reader=None):
     for subject in subjects:
-        recording = read_recording(root, subject)
+        recording = read_recording(root, subject) if reader is None else reader(subject)
         features = normalizer.transform(
             prepare(recording.data, cache, sample_time=recording.sample_time, spec=normalizer.spec)
         )
