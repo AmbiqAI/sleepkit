@@ -6,12 +6,13 @@ from pathlib import Path
 import numpy as np
 
 from sleepkit.artifacts.package import validate_bundle
+from sleepkit.artifacts.schema import Artifact, TensorSpec
 from .output_contract import validate_output
 from .preprocessing import Normalizer, contexts, prepare
+from .runtime import DetectionRuntime
 
 
-def predict(bundle, data, *, sample_time=None):
-    from ai_edge_litert.interpreter import Interpreter
+def predict(bundle, data, *, sample_time=None, model_name="model.tflite"):
 
     bundle = Path(bundle)
     report = validate_bundle(bundle, profile="runnable")
@@ -20,23 +21,21 @@ def predict(bundle, data, *, sample_time=None):
         raise ValueError("Not a supported detection recipe bundle")
     class_names = validate_output(recipe)
     normalizer = Normalizer.from_dict(json.loads((bundle / "preprocessing.json").read_text()))
-    runner = Interpreter(model_path=str(bundle / "model.tflite"))
-    runner.allocate_tensors()
-    i, o = runner.get_input_details()[0], runner.get_output_details()[0]
+    entries = [entry for entry in report["manifest"]["artifacts"] if entry["path"] == model_name]
+    if len(entries) != 1 or entries[0]["role"] != "model" or entries[0]["format"] != "tflite":
+        raise ValueError("Selected model must be a declared TFLite model artifact")
+    entry = entries[0]
+    artifact = Artifact(bundle / entry["path"], entry["path"], entry["role"], entry["format"], entry["origin"],
+                        tuple(TensorSpec(**spec) for spec in entry["inputs"]),
+                        tuple(TensorSpec(**spec) for spec in entry["outputs"]),
+                        expected_sha256=entry["sha256"])
     context = recipe["context"]
-    if (
-        tuple(i["shape"]) != (1, context, 5)
-        or tuple(o["shape"]) != (1, context, 2)
-        or i["dtype"] != np.float32
-        or o["dtype"] != np.float32
-    ):
-        raise ValueError("Incompatible runtime tensor contract")
+    runner = DetectionRuntime(bundle / model_name, context, artifact=artifact)
     features = normalizer.transform(prepare(data, sample_time=sample_time, spec=normalizer.spec))
     predictions, times, availability = [], [], []
     for values, _, timestamps in contexts(features, context):
-        runner.set_tensor(i["index"], values[None])
-        runner.invoke()
-        predictions.append(runner.get_tensor(o["index"])[0])
+        logits, _ = runner.predict(values)
+        predictions.append(logits)
         times.append(timestamps)
         availability.append(np.full(len(timestamps), timestamps[-1] + 5))
     if not predictions:
@@ -44,6 +43,7 @@ def predict(bundle, data, *, sample_time=None):
     logits = np.concatenate(predictions)
     if not np.isfinite(logits).all():
         raise ValueError("Nonfinite predictions")
+    runner.verify_unchanged()
     probabilities = np.exp(logits - logits.max(axis=-1, keepdims=True))
     probabilities /= probabilities.sum(axis=-1, keepdims=True)
     return {
