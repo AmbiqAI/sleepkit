@@ -72,6 +72,47 @@ one seed against today's files cannot resolve exposure. The historical configura
 top-level sampling-rate discrepancy also remains unsuitable as a deployment clock.
 This comparison derives timestamps from the verified source grid instead.
 
+## First descriptive comparison
+
+On 2026-09-20, source revision `8d83b23` verified all 3,470,018 historical feature
+rows across the 43 frozen test series against raw sensors with exact float32
+equality. Both pipelines had 14,433 complete native contexts, of which 8,582 were
+eligible and common. All 5,851 exclusions were due to unknown targets; none were
+due to nonfinite features. Historical truncation left 6,098 unused feature-tail
+rows, versus 6,227 for the new pipeline, but removed no complete context here.
+
+Both models were scored on exactly 2,059,680 common frames, with class support
+1,251,206 outside-period and 808,474 inside-period targets:
+
+| Metric on common frames | Historical SD-2 int8 | New membership Keras |
+| --- | ---: | ---: |
+| Accuracy | 92.2334% | 95.7657% |
+| Macro-F1 | 0.916214 | 0.955611 |
+| Outside-period recall | 98.1601% | 96.4934% |
+| Inside-period recall | 83.0611% | 94.6395% |
+| Unweighted series mean accuracy | 90.0772% | 95.8477% |
+| Unweighted series mean macro-F1 | 0.865632 | 0.933468 |
+
+The historical confusion matrix, with actual rows and predicted columns in
+outside/inside order, was `[[1228185, 23021], [136947, 671527]]`. The new matrix
+remained `[[1207331, 43875], [43338, 765136]]`. Both native eligible denominators
+equaled the intersection in this run. All 43 series contributed; the same two
+single-class series and fixed two-class F1 convention described in the first
+experiment apply to both models.
+
+Historical inference clipped 926 of 10,298,400 input values and produced 4,386
+argmax ties; ties chose class zero. The preserved historical model is 39,632 bytes.
+Verification, inference, and report generation took 35.5 seconds locally, not a
+hardware inference benchmark. Full local evidence is retained in
+`sleepkit-evaluation-evidence/experiments/sd2-comparison-20260920/` alongside the
+repository. The pinned release files are retained under `historical/sd2-v1/` in
+the same evidence root.
+
+The new pipeline had higher agreement with this derived target in the observed
+comparison. Differences in annotation target, historical exposure, preprocessing,
+normalization, training, and quantization prevent an isolated model-quality claim.
+No model was selected or retrained from these results, and no Hub upload occurred.
+
 ## Compose the comparison in Python
 
 ```python

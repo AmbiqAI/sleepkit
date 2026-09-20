@@ -154,8 +154,10 @@ annotation semantics and historical training exposure remain separate open quest
 
 ## Current implementation status
 
-The audit, raw alignment, independent-clock path, and candidate policy are merged.
-The [frozen assignment and target contract](detection-frozen-split.md) record the
-recovered primary annotation evidence and seed-zero evaluation cohort. The next
-implementation checkpoint is a target-aware dataset adapter and common scoring
-index. Historical model exposure and artifact licensing remain unresolved.
+The audit, raw alignment, independent-clock path, candidate policy, and target-aware
+adapter are merged. The [frozen assignment and target contract](detection-frozen-split.md)
+record the recovered primary annotation evidence and seed-zero evaluation cohort.
+The [first experiment](detection-first-experiment.md) and
+[diagnostics/common-index comparison](detection-comparison.md) now have local
+results. Historical model exposure and artifact licensing remain unresolved;
+the comparison is descriptive rather than a verified historical held-out benchmark.
