@@ -113,6 +113,13 @@ comparison. Differences in annotation target, historical exposure, preprocessing
 normalization, training, and quantization prevent an isolated model-quality claim.
 No model was selected or retrained from these results, and no Hub upload occurred.
 
+Independent review reproduced every pooled and per-series confusion matrix,
+checked all common coordinates and targets, and recomputed normalization and input
+clipping for all 43 series. A separate literal feature calculation and direct
+LiteRT replay of the first eligible context per series covered 10,320 frames;
+all replayed int8 outputs matched exactly. Declaration, implementation, model,
+source, and output hashes also matched. No material finding remained.
+
 ## Compose the comparison in Python
 
 ```python
