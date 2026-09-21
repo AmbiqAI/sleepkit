@@ -164,3 +164,6 @@ their frame grid. Saved historical outputs are int8; common start offsets addres
 both flattened prediction arrays. These files contain identifiers and remain
 outside public bundles. Existing output directories are refused. Failed runs
 retain partial evidence without a completed comparison report.
+
+The next [fixed int8 conversion](detection-int8.md) preserves the new model's
+preprocessing and measures quantization separately from this historical comparison.
