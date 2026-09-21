@@ -14,7 +14,7 @@ from sleepkit.artifacts import Artifact, Check, TensorSpec, stage_bundle
 from sleepkit.artifacts.package import sha256, write_json
 from sleepkit.artifacts.runtime import create_reference
 from .calibration import collect_calibration
-from .evaluation import _metrics, summarize
+from .evaluation import _metrics, read_bound_json, summarize
 from .preprocessing import Normalizer, fingerprint, prepare
 from .runtime import DetectionRuntime
 
@@ -204,12 +204,12 @@ def quantize_run(run_path, source, output_path, *, cache=None):
     source.verify_unchanged()
     output.mkdir(parents=True, exist_ok=False)
     verified = summarize(run, output / "parent-evaluation.json")
-    recipe = json.loads((run / "bundle/recipe.json").read_text())
+    recipe = read_bound_json(run, "bundle/recipe.json", verified["evidence_sha256"])
     if (source.provenance != recipe.get("dataset") or source.context != recipe.get("context")
             or fingerprint(source.split) != recipe.get("split_sha256")
             or fingerprint(source.source_hashes) != recipe.get("source_sha256")):
         raise ValueError("Calibration source differs from the frozen evaluated run")
-    normalizer = Normalizer.from_dict(json.loads((run / "bundle/preprocessing.json").read_text()))
+    normalizer = Normalizer.from_dict(read_bound_json(run, "bundle/preprocessing.json", verified["evidence_sha256"]))
     code = {name: sha256(path) for name, path in implementation_files(Path(__file__).parent).items()}
     declaration = {"declared_utc": datetime.now(timezone.utc).isoformat(), "policy": POLICY,
                    "parent_evidence_sha256": verified["evidence_sha256"], "source": source.provenance,

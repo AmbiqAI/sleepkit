@@ -1,12 +1,12 @@
 """Unlabeled sensor-to-prediction path using only NumPy and the optional LiteRT adapter."""
 
-import json
 from pathlib import Path
 
 import numpy as np
 
 from sleepkit.artifacts.package import validate_bundle
 from sleepkit.artifacts.schema import Artifact, TensorSpec
+from .evaluation import read_bound_json
 from .output_contract import validate_output
 from .preprocessing import Normalizer, contexts, prepare
 from .runtime import DetectionRuntime
@@ -16,11 +16,12 @@ def predict(bundle, data, *, sample_time=None, model_name="model.tflite"):
 
     bundle = Path(bundle)
     report = validate_bundle(bundle, profile="runnable")
-    recipe = json.loads((bundle / "recipe.json").read_text())
+    hashes = {entry["path"]: entry["sha256"] for entry in report["manifest"]["artifacts"]}
+    recipe = read_bound_json(bundle, "recipe.json", hashes)
     if report["manifest"].get("metadata", {}).get("sleepkit", {}).get("recipe") != recipe.get("recipe"):
         raise ValueError("Not a supported detection recipe bundle")
     class_names = validate_output(recipe)
-    normalizer = Normalizer.from_dict(json.loads((bundle / "preprocessing.json").read_text()))
+    normalizer = Normalizer.from_dict(read_bound_json(bundle, "preprocessing.json", hashes))
     entries = [entry for entry in report["manifest"]["artifacts"] if entry["path"] == model_name]
     if len(entries) != 1 or entries[0]["role"] != "model" or entries[0]["format"] != "tflite":
         raise ValueError("Selected model must be a declared TFLite model artifact")

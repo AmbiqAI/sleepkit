@@ -17,7 +17,7 @@ from sleepkit.recipes._components import summarize_confusion
 from sleepkit.artifacts.package import sha256, validate_bundle
 from .output_contract import validate_output
 from .preprocessing import SPEC, Normalizer, fingerprint
-from .split import PARTITIONS, TARGET, _read_json
+from .split import PARTITIONS, TARGET
 
 
 def _unique(pairs):
@@ -27,6 +27,17 @@ def _unique(pairs):
             raise ValueError("Duplicate scoring JSON key")
         result[key] = value
     return result
+
+
+def read_bound_json(run, name, hashes):
+    """Parse the same bytes whose digest was verified, including transient changes."""
+    content = (Path(run) / name).read_bytes()
+    if hashlib.sha256(content).hexdigest() != hashes.get(name):
+        raise ValueError(f"Run evidence changed before metadata read: {name}")
+    value = json.loads(content, object_pairs_hook=_unique)
+    if not isinstance(value, dict):
+        raise ValueError(f"Expected an object in run metadata: {name}")
+    return value
 
 
 def _metrics(confusion, loss):
@@ -55,20 +66,24 @@ def summarize(run_path, output_path):
     bundle = run / "bundle"
     if output.resolve().is_relative_to(bundle.resolve()):
         raise ValueError("Evaluation output must stay outside the artifact bundle")
-    validate_bundle(bundle)
+    validated = validate_bundle(bundle)
+    if not any(entry["path"] == "model.keras" and entry["format"] == "keras"
+               and entry["role"] in {"model", "training_checkpoint"}
+               for entry in validated["manifest"]["artifacts"]):
+        raise ValueError("Evaluated bundle must contain the declared model.keras checkpoint")
     names = ["split.json", "sources.json", "test-index.jsonl", "test-index-summary.json", "test-predictions.npz"]
     paths = [run / name for name in names] + sorted(bundle.iterdir())
     if any(p.is_symlink() or not p.is_file() for p in paths):
         raise ValueError("Run evidence must be regular files")
     bound = {str(p.relative_to(run)): sha256(p) for p in paths}
-    recipe, recorded = (_read_json(bundle / name) for name in ("recipe.json", "metrics.json"))
+    recipe, recorded = (read_bound_json(run, f"bundle/{name}", bound) for name in ("recipe.json", "metrics.json"))
     classes = validate_output(recipe)
     if recipe.get("target") != TARGET or recorded.get("target") != TARGET:
         raise ValueError("An annotated-period target run is required")
-    normalizer = Normalizer.from_dict(_read_json(bundle / "preprocessing.json"))
+    normalizer = Normalizer.from_dict(read_bound_json(run, "bundle/preprocessing.json", bound))
     if normalizer.spec != SPEC:
         raise ValueError("Scoring preprocessing differs from the bundle")
-    split, sources, summary = (_read_json(run / name) for name in names[:2] + [names[3]])
+    split, sources, summary = (read_bound_json(run, name, bound) for name in names[:2] + [names[3]])
     if not isinstance(split, dict) or set(split) != set(PARTITIONS):
         raise ValueError("Invalid split")
     if any(not isinstance(group, list) or any(not isinstance(s, str) or not s for s in group)

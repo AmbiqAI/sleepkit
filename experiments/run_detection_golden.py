@@ -23,6 +23,11 @@ from sleepkit.recipes.detection.target_dataset import AnnotatedDataset  # noqa: 
 
 
 DEFINITION = Path(__file__).with_name("detection-golden.json")
+PROVENANCE_KEYS = {
+    "events": "events_sha256", "alignment": "alignment_sha256", "coverage": "coverage_sha256",
+    "protocol": "protocol_sha256", "split_file": "split_sha256", "groups": "groups_sha256",
+    "sources": "sources_sha256", "parquet": "parquet_sha256",
+}
 
 
 def _read_definition():
@@ -68,17 +73,7 @@ def validate_source(source, definition):
     _require(source.provenance["context_policy"], dataset["context_policy"], "context policy")
     _require(source.provenance["sample_clock"], dataset["sample_clock"], "sample clock")
     pinned_hashes = dataset["provenance_sha256"]
-    provenance_keys = {
-        "events": "events_sha256",
-        "alignment": "alignment_sha256",
-        "coverage": "coverage_sha256",
-        "protocol": "protocol_sha256",
-        "split_file": "split_sha256",
-        "groups": "groups_sha256",
-        "sources": "sources_sha256",
-        "parquet": "parquet_sha256",
-    }
-    for public_name, source_name in provenance_keys.items():
+    for public_name, source_name in PROVENANCE_KEYS.items():
         _require(source.provenance[source_name], pinned_hashes[public_name], f"{public_name} provenance hash")
     _require(sha256(source.split_path), pinned_hashes["split_file"], "split file hash")
     _require(fingerprint(source.split), dataset["split_fingerprint"], "split fingerprint")
@@ -98,8 +93,49 @@ def validate_definition(definition):
         raise ValueError("Historical reference metrics must not become a prospective gate")
     implementation = definition["implementation"]
     _require(fingerprint(SPEC), implementation["preprocessing_spec_fingerprint"], "preprocessing SPEC")
+    public = definition["preprocessing"]
+    for key in SPEC.keys() - {"target_alignment", "normalization", "prediction_available_at"}:
+        _require(public.get(key), SPEC[key], f"public preprocessing {key}")
+    _require(public.get("target_alignment"), "last source sample in each feature window", "public target alignment")
+    normalization = public.get("normalization", {})
+    _require({key: value for key, value in normalization.items() if key != "historical_preprocessing_json_sha256"}, {
+        "fit_scope": "all valid feature frames from training subjects, including unknown-target periods and incomplete context tails",
+        "mean": "global training-subject mean per feature",
+        "scale": "sqrt(global population variance + 1e-6) per feature",
+    }, "public normalization")
+    _require(set(implementation["module_sha256"]), {
+        "sleepkit/recipes/detection/preprocessing.py", "sleepkit/recipes/detection/model.py",
+    }, "implementation inventory")
     for relative, expected in implementation["module_sha256"].items():
         _require(sha256(REPOSITORY / relative), expected, f"implementation {relative} hash")
+    evidence = implementation["equivalence_evidence"]
+    evidence_path = REPOSITORY / evidence["path"]
+    if not evidence_path.is_file():
+        raise ValueError("Pinned feature equivalence evidence is missing")
+    _require(sha256(evidence_path), evidence["sha256"], "feature equivalence evidence")
+    report = json.loads(evidence_path.read_text())
+    declaration_path = evidence_path.with_name("declaration.json")
+    _require(sha256(declaration_path), report["declaration_sha256"], "equivalence declaration hash")
+    declaration = json.loads(declaration_path.read_text())
+    dataset = definition["dataset"]
+    expected_dataset = {key: dataset[key] for key in (
+        "kind", "source_subjects", "grouping", "seed", "target", "context_policy", "sample_clock",
+    )}
+    expected_dataset.update(policy=dataset["candidate_policy"])
+    expected_dataset.update({source: dataset["provenance_sha256"][public] for public, source in PROVENANCE_KEYS.items()})
+    _require(declaration["dataset"], expected_dataset, "equivalence dataset provenance")
+    for key, expected in {
+        "source_sha256": dataset["source_inventory_fingerprint"],
+        "split_sha256": dataset["split_fingerprint"],
+        "spec_sha256": implementation["preprocessing_spec_fingerprint"],
+        "partition": "train",
+    }.items():
+        _require(declaration[key], expected, f"equivalence {key}")
+    module = "sleepkit/recipes/detection/preprocessing.py"
+    _require(declaration["candidate_code_sha256"]["preprocessing.py"], implementation["module_sha256"][module], "equivalence candidate implementation")
+    _require(declaration["baseline_preprocessing_sha256"], definition["historical_run"]["implementation_module_sha256"][module], "equivalence baseline implementation")
+    _require(report["status"], "passed", "equivalence status")
+    _require(report["training_subjects"], dataset["partition_counts"]["train"]["subjects"], "equivalence training count")
 
 
 def validate_run(staging, definition):

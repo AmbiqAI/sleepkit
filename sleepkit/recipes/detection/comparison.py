@@ -67,7 +67,8 @@ def compare(run_path, source, feature_root, baseline_source, output_path):
 
     ``source`` is an AnnotatedDataset. Prediction arrays stay in memory; scoring
     indices stream context-by-context. Existing output directories are refused.
-    Partial failed runs remain with their declaration and no completed report.
+    Failed runs have no completed report. Early validation failures may leave
+    only the output directory or preliminary evaluation, before declaration.
     """
     run, feature_root, baseline_source, output = map(Path, (run_path, feature_root, baseline_source, output_path))
     if output.resolve().is_relative_to(run.resolve()):

@@ -8,7 +8,6 @@ import hashlib
 import os
 from pathlib import Path
 import platform
-import resource
 import time
 
 import numpy as np
@@ -23,6 +22,10 @@ from .recipe import Config, dataset, training_model
 
 def _rss():
     # ru_maxrss is a lifetime high-water mark, not the current or per-stage RSS.
+    try:
+        import resource
+    except ImportError:
+        return None
     value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return int(value if platform.system() == "Darwin" else value * 1024)
 
@@ -258,7 +261,7 @@ def profile_membership(source, output, cfg=Config(), *, resident_steps=20, warmu
             "Warm loader waits include next() and host materialization; prefetch overlaps work. They are not raw disk latency.",
             "Resident steps repeat one host batch with transfers included; not device-only compute or an epoch schedule.",
             "Fit is a fresh-model single training epoch after resident process/device warmup; includes tracing/compilation, excludes validation, export and model build.",
-            "RSS is process lifetime high-water memory, not stage allocation or device memory; no GPU memory measurement.",
+            "RSS is process lifetime high-water memory, not stage allocation or device memory; null when resource is unavailable. No GPU memory measurement.",
             "Single observations, not a speedup claim. Use fresh processes and repeated runs for comparisons.",
         ],
     }

@@ -33,6 +33,8 @@ def stage_bundle(destination, *, title, artifacts, card, checks=(), metadata=Non
         raise ValueError("Duplicate or reserved artifact filenames")
     if bool(license_file) != bool(license_id):
         raise ValueError("Provide both a license file and its identifier, or neither")
+    if metadata is not None and not isinstance(metadata, dict):
+        raise ValueError("Artifact metadata must be an object")
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=destination.parent, prefix=".stage-") as directory:
         stage = Path(directory)
@@ -98,6 +100,8 @@ def validate_bundle(path, profile="archive"):
     report = json.loads((path / "validation.json").read_text())
     if manifest.get("schema") != SCHEMA or report.get("schema") != SCHEMA:
         raise ValueError("Unsupported artifact schema")
+    if not isinstance(manifest.get("metadata"), dict):
+        raise ValueError("Artifact metadata must be an object")
     if not isinstance(checksums, dict) or not {"manifest.json", "validation.json", "README.md"} <= checksums.keys():
         raise ValueError("Checksums omit required metadata")
     actual = {p.name for p in path.iterdir()}
