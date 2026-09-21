@@ -141,6 +141,10 @@ recordings, identifiers, actual calibration arrays or per-series predictions.
 The local experiment directory additionally retains the declaration, private
 calibration evidence, per-series evaluation, and exact int8/float test arrays.
 Staging refuses existing output directories and preserves the original run.
+Once release rights and terms are established, use the generic
+[`stage-release` operation](huggingface-artifacts.md#stage-a-licensed-release-from-an-experiment)
+to add the selected license, public decision record and release card without
+reconverting the models or replacing their validation evidence.
 
 ```sh
 python -m sleepkit.artifacts validate /path/to/int8-run/bundle \

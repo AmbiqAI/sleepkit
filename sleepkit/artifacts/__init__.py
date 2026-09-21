@@ -2,3 +2,4 @@
 
 from .schema import Artifact, Check, TensorSpec
 from .package import stage_bundle, validate_bundle
+from .release import stage_release
