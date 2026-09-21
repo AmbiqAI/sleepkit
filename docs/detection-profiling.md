@@ -63,7 +63,8 @@ latency and do not isolate loading stalls during `fit`. Resident steps are a
 compute-oriented reference with host transfer overhead, not device-only timings.
 Their repeated-batch schedule must never be substituted for a training epoch.
 
-Each stage records process CPU time and process lifetime peak RSS. Peak RSS is
+Each stage records process CPU time and process lifetime peak RSS (or `null` when
+the platform has no `resource` module). Peak RSS is
 not current memory or an allocation attributed to that stage, and it excludes
 device memory. No claim of worker scaling or TensorFlow/PyTorch speed difference
 follows from a single report.
