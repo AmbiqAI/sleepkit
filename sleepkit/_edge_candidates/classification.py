@@ -68,6 +68,8 @@ class ClassificationAccumulator:
             raise ValueError("Logits must match target shape with one trailing class axis")
         if ((labels < 0) | (labels >= classes)).any():
             raise ValueError("Targets outside the declared class range")
+        if scores.dtype.kind in "iu" and ((scores < -(2**53)).any() or (scores > 2**53).any()):
+            raise ValueError("Integer logits must lie within the exact float64 integer range [-2**53, 2**53]")
         scores = scores.astype(np.float64).reshape(-1, classes)
         labels = labels.reshape(-1)
         if not np.isfinite(scores).all():

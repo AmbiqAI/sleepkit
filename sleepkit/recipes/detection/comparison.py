@@ -12,7 +12,7 @@ import platform
 
 import numpy as np
 
-from sleepkit.recipes._components import summarize_confusion
+from sleepkit.recipes._components import FileSnapshot, implementation_files, summarize_confusion
 
 from sleepkit.artifacts.baselines import HASHES
 from sleepkit.artifacts.package import sha256, write_json
@@ -82,17 +82,15 @@ def compare(run_path, source, feature_root, baseline_source, output_path):
             or fingerprint(source.source_hashes) != recipe.get("source_sha256")):
         raise ValueError("Source protocol differs from the evaluated run")
     output.mkdir(parents=True, exist_ok=False)
+    code_snapshot = FileSnapshot.capture(implementation_files(Path(__file__).parent))
     verified = summarize(run, output / "new-evaluation.json")
     subjects = source.split["test"]
     feature_hashes = {s: sha256(feature_root / f"{s}.h5") for s in subjects}
-    from . import historical
-
     declaration = {
         "declared_utc": datetime.now(timezone.utc).isoformat(), "policy": POLICY,
         "new_evidence_sha256": verified["evidence_sha256"], "historical_release_sha256": HASHES,
         "historical_feature_sha256": feature_hashes, "source": source.provenance,
-        "implementation_sha256": {"comparison.py": sha256(Path(__file__)),
-                                  "historical.py": sha256(Path(historical.__file__))},
+        "implementation_sha256": code_snapshot.hashes(),
         "versions": {"python": platform.python_version(), "numpy": np.__version__,
                      "ai-edge-litert": version("ai-edge-litert"), "h5py": version("h5py")},
     }
@@ -189,11 +187,11 @@ def compare(run_path, source, feature_root, baseline_source, output_path):
                         common_new_starts=np.asarray(common_new_offsets, dtype=np.int64))
     source.verify_unchanged()
     runner.verify_unchanged()
+    code_snapshot.verify()
     if (any(sha256(run / name) != digest for name, digest in verified["evidence_sha256"].items())
             or any(sha256(feature_root / f"{s}.h5") != digest for s, digest in feature_hashes.items())
             or any(sha256(baseline_source / name) != digest for name, digest in HASHES.items())
-            or sha256(Path(__file__)) != declaration["implementation_sha256"]["comparison.py"]
-            or sha256(Path(historical.__file__)) != declaration["implementation_sha256"]["historical.py"]):
+            or set(implementation_files(Path(__file__).parent)) != set(code_snapshot.hashes())):
         raise ValueError("Comparison evidence changed during execution")
     means = {}
     for kind in ("historical_native", "historical_common", "new_common"):

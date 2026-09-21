@@ -101,9 +101,32 @@ def _numpy(value):
     """Materialize a backend tensor without requiring a backend-specific import."""
     if hasattr(value, "detach"):
         value = value.detach()
-    if hasattr(value, "cpu"):
-        value = value.cpu()
+        if hasattr(value, "cpu"):
+            value = value.cpu()
     return np.asarray(value)
+
+
+def _validate_model(model):
+    """The archive supports a single variable-batch float32 input and linear logits."""
+    import keras
+
+    inputs, outputs = getattr(model, "inputs", []), getattr(model, "outputs", [])
+    layers = getattr(model, "layers", [])
+    if (
+        len(inputs) != 1 or len(outputs) != 1 or not layers
+        or tuple(inputs[0].shape) != (None, LENGTH, 1)
+        or tuple(outputs[0].shape) != (None, CLASSES)
+        or inputs[0].dtype != "float32" or outputs[0].dtype != "float32"
+        or getattr(layers[-1], "activation", None) is not keras.activations.linear
+    ):
+        raise ValueError("Model must map float32 [batch, 128, 1] to float32 [batch, 3] linear logits")
+
+
+def _reference_logits(model, inputs):
+    logits = _numpy(model(inputs, training=False))
+    if logits.shape != (len(inputs), CLASSES) or logits.dtype != np.float32 or not np.isfinite(logits).all():
+        raise ValueError("Reference output must be finite float32 [batch, 3] logits")
+    return logits
 
 
 def build_model():
@@ -128,13 +151,7 @@ def train(data, config=Config(), model=None):
     validation_raw, validation_targets = _split(data, "validation")
     keras.utils.set_random_seed(config.seed)
     model = build_model() if model is None else model
-    activation = getattr(model.layers[-1], "activation", None)
-    if (
-        tuple(model.input_shape[1:]) != (LENGTH, 1)
-        or tuple(model.output_shape[1:]) != (CLASSES,)
-        or getattr(activation, "__name__", None) != "linear"
-    ):
-        raise ValueError("Model must map [batch, 128, 1] to [batch, 3] logits")
+    _validate_model(model)
     model.compile(
         optimizer=keras.optimizers.Adam(),
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -214,14 +231,13 @@ def package(model, data, output, config=Config(), history=None, *, _code_snapsho
     output = Path(output)
     if output.exists() or output.is_symlink():
         raise FileExistsError(f"Output already exists: {output}")
+    _validate_model(model)
     output.parent.mkdir(parents=True, exist_ok=True)
     code_snapshot = _code_snapshot or FileSnapshot.capture(implementation_files(Path(__file__).parent))
     metrics = evaluate(model, data)
     test_raw, test_targets = _split(data, "test")
     reference_inputs = prepare(test_raw[: min(6, len(test_raw))])
-    reference_logits = _numpy(model(reference_inputs, training=False)).astype(np.float32)
-    if not np.isfinite(reference_logits).all():
-        raise ValueError("Reference logits must be finite")
+    reference_logits = _reference_logits(model, reference_inputs)
     environment = _edge_metadata()
     data_hash = _data_fingerprint(data)
     with tempfile.TemporaryDirectory(dir=output.parent, prefix=".signals-") as directory:
@@ -242,7 +258,8 @@ def package(model, data, output, config=Config(), history=None, *, _code_snapsho
         write_json(stage / "preprocessing.json", PREPROCESSING)
         write_json(stage / "history.json", history or {})
         restored = _load_model(model_path)
-        restored_logits = _numpy(restored(reference_inputs, training=False)).astype(np.float32)
+        _validate_model(restored)
+        restored_logits = _reference_logits(restored, reference_inputs)
         if not np.allclose(restored_logits, reference_logits, atol=1e-5, rtol=1e-4):
             raise ValueError("heliaEDGE/Keras model reload changed reference logits")
         code_snapshot.verify()

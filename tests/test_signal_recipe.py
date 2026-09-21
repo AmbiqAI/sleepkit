@@ -53,9 +53,20 @@ def test_backend_subprocess_packages_and_reloads_custom_layer(tmp_path):
 import json
 from pathlib import Path
 import numpy as np
-from sleepkit.recipes.signals import Config, run
+import keras
+import pytest
+from sleepkit.recipes.signals import Config, make_data, run
+from sleepkit.recipes.signals.recipe import package
 from sleepkit.artifacts import validate_bundle
 root = Path(__import__("sys").argv[1])
+for activation, dtype in (("softmax", "float32"), ("linear", "float64")):
+    inputs = keras.Input((128, 1), dtype=dtype)
+    logits = keras.layers.Dense(3, activation=activation, dtype=dtype)(keras.layers.Flatten(dtype=dtype)(inputs))
+    bad_model = keras.Model(inputs, logits)
+    bad_output = root / (activation + dtype)
+    with pytest.raises(ValueError, match="float32.*logits"):
+        package(bad_model, make_data(4), bad_output)
+    assert not bad_output.exists()
 output = run(root / "run", Config(batch_size=7, epochs=1, seed=4))
 report = validate_bundle(output, profile="archive")
 assert report["integrity"] == "passed"
@@ -91,10 +102,13 @@ import sys
 from pathlib import Path
 import numpy as np
 from helia_edge.models import load_model
+import keras
 root = Path(sys.argv[1])
+model = load_model(root / "run/model.keras")
+assert int(keras.ops.convert_to_numpy(model.optimizer.iterations)) == 11  # 75 examples / 7, retained tail.
 with np.load(root / "run/reference.npz", allow_pickle=False) as arrays:
     expected = arrays["logits"]
-    actual = load_model(root / "run/model.keras")(arrays["inputs"], training=False)
+    actual = model(arrays["inputs"], training=False)
 if hasattr(actual, "detach"):
     actual = actual.detach().cpu().numpy()
 else:

@@ -1,6 +1,7 @@
 """Exact common samples, distinct predictions, and read-only evidence bindings."""
 
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -182,6 +183,27 @@ def test_full_comparison_uses_common_denominator_and_preserves_offsets(tmp_path,
     assert [row["prediction_start"] for row in historical] == [None, 0, 240, 480]
     assert json.loads((output / "comparison.json").read_text()) == report
     assert all(sha256(output / name) == digest for name, digest in report["evidence_sha256"].items())
+    declaration = json.loads((output / "declaration.json").read_text())
+    assert {"shared/classification.py", "components.py"} <= declaration["implementation_sha256"].keys()
+
+
+def test_shared_implementation_mutation_prevents_completed_comparison(tmp_path, monkeypatch):
+    from sleepkit.recipes._components import implementation_files
+
+    shared = tmp_path / "classifier.py"
+    shared.write_text("original")
+    inventory = implementation_files(Path(comparison.__file__).parent)
+    inventory["shared/classification.py"] = shared
+    monkeypatch.setattr(comparison, "implementation_files", lambda directory: inventory, raising=False)
+
+    def mutate(*args):
+        shared.write_text("changed")
+
+    case = make_case(tmp_path, monkeypatch, mutate_runtime=mutate)
+    output = tmp_path / "comparison"
+    with pytest.raises(ValueError, match="changed"):
+        execute(case, output)
+    assert not (output / "comparison.json").exists()
 
 
 def test_unknown_target_excludes_whole_historical_context(tmp_path, monkeypatch):

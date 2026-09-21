@@ -65,6 +65,9 @@ def test_dense_targets_fixed_class_macro_f1_and_stable_large_logits():
         ([0], [[np.inf, 1]]),
         ([0], [[1 + 1j, 1]]),
         ([0], [[-1e308, 1e308]]),
+        ([1], np.array([[2**53, 2**53 + 1]], dtype=np.int64)),
+        ([1], np.array([[2**53, 2**53 + 1]], dtype=np.uint64)),
+        ([0], np.array([[-2**53, -2**53 - 1]], dtype=np.int64)),
     ],
 )
 def test_invalid_update_is_rejected_without_changing_state(labels, logits):

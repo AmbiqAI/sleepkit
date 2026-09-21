@@ -48,8 +48,9 @@ loss sum and sample count; ties select the first class. Macro-F1 includes every
 declared class with zero-division zero, and recall for absent support is `None`.
 Unknown labels, mismatched shapes, nonfinite logits and unrepresentable loss/count
 sums are rejected before changing state. An empty update is allowed; an empty
-result is rejected. Consumers explicitly convert framework tensors to NumPy and
-own masking. Confusion-only summaries never infer a probability loss from historical
+result is rejected. Integer logits must be within `[-2**53, 2**53]` to preserve
+exact float64 conversion. Consumers explicitly convert framework tensors to NumPy
+and own masking. Confusion-only summaries never infer a probability loss from historical
 class predictions. Detection wrappers preserve their existing field names and
 empty-result policies.
 
@@ -96,6 +97,11 @@ Use Python 3.12.3 or newer within the supported profile range; the TF example is
 qualified on Python 3.12.5. Set the backend before importing Keras. The Torch profile
 must remain usable without TensorFlow installed. A Torch `.keras` checkpoint and
 successful reload do not imply LiteRT conversion or MCU support.
+Training and packaging require one variable-batch float32 input of shape
+`[batch, 128, 1]` and one float32 linear-logit output of shape `[batch, 3]`.
+Packaging validates the supplied and restored models, including actual reference
+output shape and dtype, before publishing the bundle. Offline `evaluate` can also
+consume an ordinary callable; it does not certify a model's artifact contract.
 
 ## Upstream adoption and removal
 
