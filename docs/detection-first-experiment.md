@@ -123,11 +123,11 @@ committed with this report.
 
 ## Next evidence gates
 
-Inspect errors by series, coverage, and proximity to annotated boundaries before
-choosing the next experiment. Any changes informed by this test report must be
-declared; the current test set is no longer untouched for further model selection.
-Build a common scoring intersection for descriptive historical-model comparison,
-while documenting unresolved historical training exposure. Hugging Face packaging
+The [error diagnostics and historical comparison](detection-comparison.md) now
+report series, context-position, and observed-transition errors and compare both
+pipelines on an exact common scoring intersection. Any changes informed by these
+test reports must be declared; the current test set is no longer untouched for
+further model selection. Historical training exposure remains unresolved. Hugging Face packaging
 is available, but no upload was performed: artifact licensing and publication
 metadata still need resolution. Quantization and target-hardware validation remain
 separate deployment steps.
