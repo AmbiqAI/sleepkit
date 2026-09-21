@@ -12,6 +12,8 @@ import platform
 
 import numpy as np
 
+from sleepkit.recipes._components import summarize_confusion
+
 from sleepkit.artifacts.baselines import HASHES
 from sleepkit.artifacts.package import sha256, write_json
 from .evaluation import summarize
@@ -39,12 +41,8 @@ def class_metrics(confusion):
     count = int(confusion.sum())
     if not count:
         return None
-    support = confusion.sum(axis=1)
-    denominator = support + confusion.sum(axis=0)
-    f1 = np.divide(2 * confusion.diagonal(), denominator, out=np.zeros(2), where=denominator != 0)
-    return {"frames": count, "confusion_matrix": confusion.tolist(), "class_support": support.tolist(),
-            "class_recall": [float(confusion[i, i] / n) if n else None for i, n in enumerate(support)],
-            "accuracy": float(confusion.trace() / count), "macro_f1": float(f1.mean()), "f1_zero_division": 0}
+    result = summarize_confusion(confusion)
+    return {"frames": result.pop("count"), **result}
 
 
 def match_context(rows, *, subject, source_hash, ends, targets):

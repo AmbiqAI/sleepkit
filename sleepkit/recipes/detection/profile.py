@@ -13,6 +13,8 @@ import time
 
 import numpy as np
 
+from sleepkit.recipes._components import implementation_files
+
 from sleepkit.artifacts.package import sha256, write_json
 from .data import examples, subject_features
 from .preprocessing import Normalizer, SPEC, fingerprint
@@ -64,7 +66,7 @@ def profile_membership(source, output, cfg=Config(), *, resident_steps=20, warmu
         "split_sha256": fingerprint(source.split),
         "source_sha256": fingerprint(source.source_hashes),
         "preprocessing": SPEC,
-        "code_sha256": {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))},
+        "code_sha256": {name: sha256(path) for name, path in implementation_files(Path(__file__).parent).items()},
         "schedule": {
             "partition": "train",
             "replacement": False,
@@ -222,7 +224,7 @@ def profile_membership(source, output, cfg=Config(), *, resident_steps=20, warmu
     if (
         sha256(output / "declaration.json") != declaration_hash
         or sha256(output / "environment.json") != environment_hash
-        or {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))} != declaration["code_sha256"]
+        or {name: sha256(path) for name, path in implementation_files(Path(__file__).parent).items()} != declaration["code_sha256"]
     ):
         raise ValueError("Profile declaration, environment, or source code changed during measurement")
     report = {

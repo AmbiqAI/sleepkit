@@ -1,20 +1,15 @@
 """Stage and verify existing artifact files; no model import or conversion."""
 
 from dataclasses import asdict
-import hashlib
 import json
 from pathlib import Path
 import shutil
 import tempfile
 
 from .schema import Artifact, Check, SCHEMA, TensorSpec, filename
+from sleepkit._edge_candidates.evidence import sha256  # Re-exported for existing artifact callers.
 
 RESERVED = {"manifest.json", "checksums.json", "validation.json", "README.md", "LICENSE"}
-
-
-def sha256(path):
-    with Path(path).open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
 def write_json(path, value):

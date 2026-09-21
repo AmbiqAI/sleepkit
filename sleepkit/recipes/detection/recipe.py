@@ -7,6 +7,7 @@ import tempfile
 import numpy as np
 
 from sleepkit.artifacts.package import sha256, write_json
+from sleepkit.recipes._components import ClassificationAccumulator, FileSnapshot, implementation_files
 from .data import READER_SPEC, examples, load_split, subject_features
 from .model import build_model
 from .output_contract import output_contract
@@ -70,33 +71,20 @@ def training_model(cfg, model_builder=build_model):
 
 
 def evaluate(model, batches, *, class_names=None, prediction_batches=None):
-    confusion = np.zeros((2, 2), dtype=np.int64)
-    loss, count = 0.0, 0
+    accumulator = ClassificationAccumulator(2)
     for x, y in batches:
-        logits = np.asarray(model(x, training=False), dtype=np.float64).reshape(-1, 2)
-        labels = np.asarray(y).reshape(-1)
-        if not np.isfinite(logits).all():
-            raise ValueError("Nonfinite evaluation logits")
+        logits = np.asarray(model(x, training=False), dtype=np.float64)
+        labels = np.asarray(y)
+        accumulator.update(labels, logits)
         if prediction_batches is not None:
-            prediction_batches.append((logits.copy(), labels.astype(np.int32)))
-        predictions = np.argmax(logits, axis=-1)
-        np.add.at(confusion, (labels, predictions), 1)
-        shifted = logits - logits.max(axis=1, keepdims=True)
-        loss += float((np.log(np.exp(shifted).sum(axis=1)) - shifted[np.arange(len(labels)), labels]).sum())
-        count += len(labels)
-    if not count:
+            prediction_batches.append((logits.reshape(-1, 2).copy(), labels.reshape(-1).astype(np.int32)))
+    if not accumulator.confusion.sum():
         raise ValueError("No valid held-out contexts")
-    denominator = confusion.sum(axis=0) + confusion.sum(axis=1)
-    f1 = np.divide(2 * confusion.diagonal(), denominator, out=np.zeros(2), where=denominator != 0)
+    result = accumulator.result()
     return {
-        "model": "model.keras",
-        "split": "test",
-        "feature_frames_evaluated": count,
-        "confusion_matrix": confusion.tolist(),
-        "accuracy": float(np.trace(confusion) / count),
-        "macro_f1": float(f1.mean()),
-        "cross_entropy": loss / count,
-        "f1_zero_division": 0,
+        "model": "model.keras", "split": "test",
+        "feature_frames_evaluated": result["count"],
+        **{key: result[key] for key in ("confusion_matrix", "accuracy", "macro_f1", "cross_entropy", "f1_zero_division")},
         "class_order": ["WAKE", "SLEEP"] if class_names is None else list(class_names),
     }
 
@@ -137,7 +125,11 @@ def _run(
     split = load_split(split_file, root)
     if prepared is not None and split != prepared.split:
         raise ValueError("Split differs from the frozen protocol")
-    source_hashes = {subject: sha256(Path(root) / f"{subject}.h5") for group in split.values() for subject in group}
+    source_snapshot = FileSnapshot.capture({
+        subject: Path(root) / f"{subject}.h5" for group in split.values() for subject in group
+    })
+    source_hashes = source_snapshot.hashes()
+    code_snapshot = FileSnapshot.capture(implementation_files(Path(__file__).parent))
     normalizer = Normalizer.fit(subject_features(root, split["train"], cache, reader=reader))
     counts = {
         name: sum(1 for _ in examples(root, subjects, normalizer, cfg.context, cache, reader=reader))
@@ -168,15 +160,15 @@ def _run(
         "subjects_per_split": {name: len(group) for name, group in split.items()},
         "contexts_per_split": counts,
         "source_sha256": fingerprint(source_hashes),
-        "code_sha256": {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))},
+        "code_sha256": code_snapshot.hashes(),
     }
     if prepared is not None:
         metadata.update(target=target, dataset=prepared.provenance)
         metrics["target"] = target
         prepared.verify_unchanged()
     # Do not attach provenance to a run if source files changed during fitting/evaluation.
-    if any(sha256(Path(root) / f"{subject}.h5") != digest for subject, digest in source_hashes.items()):
-        raise ValueError("Source data changed during the run")
+    source_snapshot.verify()
+    code_snapshot.verify()
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".detection-", dir=output.parent) as directory:
         directory = Path(directory)
@@ -211,6 +203,10 @@ def _run(
         export_bundle(model, normalizer, directory / "bundle", metadata, metrics)
         if prepared is not None:
             prepared.verify_unchanged()
+        source_snapshot.verify()
+        code_snapshot.verify()
+        if set(implementation_files(Path(__file__).parent)) != set(code_snapshot.hashes()):
+            raise ValueError("Recipe implementation inventory changed during the run")
         directory.rename(output)
     return output
 

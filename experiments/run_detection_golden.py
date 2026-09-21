@@ -16,6 +16,7 @@ REPOSITORY = Path(__file__).resolve().parents[1]
 sys.path[:] = [str(REPOSITORY), *(entry for entry in sys.path if entry != str(REPOSITORY))]
 
 from sleepkit.artifacts.package import sha256  # noqa: E402
+from sleepkit.recipes._components import implementation_files  # noqa: E402
 from sleepkit.recipes.detection.preprocessing import SPEC, fingerprint  # noqa: E402
 from sleepkit.recipes.detection.recipe import Config, run_membership  # noqa: E402
 from sleepkit.recipes.detection.target_dataset import AnnotatedDataset  # noqa: E402
@@ -53,7 +54,7 @@ def _runtime_environment():
 
 def _detection_hashes():
     directory = REPOSITORY / "sleepkit/recipes/detection"
-    return {str(path.relative_to(REPOSITORY)): sha256(path) for path in sorted(directory.glob("*.py"))}
+    return {name: sha256(path) for name, path in implementation_files(directory).items()}
 
 
 def validate_source(source, definition):

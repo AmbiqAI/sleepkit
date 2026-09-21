@@ -12,6 +12,8 @@ from pathlib import Path
 
 import numpy as np
 
+from sleepkit.recipes._components import summarize_confusion
+
 from sleepkit.artifacts.package import sha256, validate_bundle
 from .output_contract import validate_output
 from .preprocessing import SPEC, Normalizer, fingerprint
@@ -31,19 +33,8 @@ def _metrics(confusion, loss):
     count = int(confusion.sum())
     if not count:
         return None
-    support = confusion.sum(axis=1)
-    denominator = support + confusion.sum(axis=0)
-    f1 = np.divide(2 * confusion.diagonal(), denominator, out=np.zeros(2), where=denominator != 0)
-    return {
-        "feature_frames_evaluated": count,
-        "confusion_matrix": confusion.tolist(),
-        "class_support": support.tolist(),
-        "class_recall": [float(confusion[i, i] / n) if n else None for i, n in enumerate(support)],
-        "accuracy": float(np.trace(confusion) / count),
-        "macro_f1": float(f1.mean()),
-        "cross_entropy": float(loss / count),
-        "f1_zero_division": 0,
-    }
+    result = summarize_confusion(confusion)
+    return {"feature_frames_evaluated": result.pop("count"), **result, "cross_entropy": float(loss / count)}
 
 
 def _new_subject():
