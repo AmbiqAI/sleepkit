@@ -1,6 +1,6 @@
 # Shared KIT foundation and heliaEDGE direction
 
-Status: architecture proposal, 2026-09-20. This extends the SleepKit refactor to
+Status: architecture proposal, 2026-09-20. This extends the sleepKIT refactor to
 heartKIT, sleepKIT and compressionKIT. It does not claim the shared APIs, backend
 support or performance improvements below are implemented. heliaEDGE is the intended
 home for proven domain-neutral capabilities; KITs remain owners of domain recipes.
@@ -24,7 +24,7 @@ The data contract describes identity, shape/dtype, units/time alignment where re
 validity and provenance. It does not require a universal in-memory tensor wrapper or
 one dataset file format. Native arrays, tensor structures and loaders remain usable.
 Adapters translate contracts at boundaries instead of making every component depend
-on SleepKit records or compressionKIT codec specifications.
+on sleepKIT records or compressionKIT codec specifications.
 
 An initial reusable block should have two real consumers before its public API is
 promoted as shared. Migrate incrementally through compatibility adapters; preserve
@@ -178,17 +178,22 @@ bundles retain appropriate hashes and aggregate evidence, with private data-acce
 records and subject-level evidence kept separately. A golden release is promoted by
 passing these contracts, not by inheriting a runner class.
 
+The first concrete sleepKIT consumer now has a [golden reconstruction definition](detection-golden.md)
+and a [stage profiler](detection-profiling.md). These preserve the existing TensorFlow
+recipe and finite sampling contract. They do not yet establish cross-backend quality
+reproduction, loader scaling or a shared heliaEDGE API.
+
 ## Delivery sequence and acceptance
 
 1. **Baseline and correct the data path.** Capture stage timings for representative
-   SleepKit, HeartKit and compressionKIT workloads. Fix demonstrated partition/coverage
+   sleepKIT, heartKIT and compressionKIT workloads. Fix demonstrated partition/coverage
    errors separately. Publish reproducible benchmark scripts and evidence; no unsupported
    speedup claim.
 2. **heliaEDGE backend isolation.** Introduce optional dependencies/lazy imports and
    TF-only/Torch-only CI environments. Port one existing TF-only trainer through shared
    objective computation and explicit gradient adapters. Test both Keras and native use.
 3. **Two-consumer data proof.** Build indexed preparation and loader capabilities used
-   by SleepKit plus a different task in HeartKit or compressionKIT. Verify sample/label/
+   by sleepKIT plus a different task in heartKIT or compressionKIT. Verify sample/label/
    timing equivalence, sampling-distribution preservation, train-only state and
    worker-count behavior, then measure throughput.
 4. **Shared evidence and release proof.** Extract mature generic artifact/provenance
@@ -199,5 +204,5 @@ passing these contracts, not by inheriting a runner class.
 
 The next foundation milestone requires two real consumers, both training backends,
 native-loop examples, independently usable blocks, documented reproduction tolerances,
-and measured input-pipeline improvements. SleepKit's existing verified detection path
+and measured input-pipeline improvements. sleepKIT's existing verified detection path
 is a reference consumer and regression baseline throughout this work.

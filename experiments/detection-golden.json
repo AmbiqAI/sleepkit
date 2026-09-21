@@ -1,0 +1,164 @@
+{
+  "schema": "sleepkit.detection_golden_experiment/v1",
+  "name": "annotated-membership-tcn-seed0",
+  "kind": "reconstruction_of_observed_baseline",
+  "recipe": {
+    "kind": "sleepkit.detection/v2",
+    "runner": "sleepkit.recipes.detection.recipe.run_membership",
+    "data_kind": "cmidss",
+    "config": {
+      "context": 240,
+      "epochs": 5,
+      "batch_size": 32,
+      "learning_rate": 0.001,
+      "seed": 0
+    },
+    "model_selection": "fixed final epoch; no early stopping or test-driven selection",
+    "model": "merged default build_model"
+  },
+  "historical_run": {
+    "run_label": "membership-tcn-seed0-20260920",
+    "git_commit": "5c0e5ea8f4693d29972dcbcd1400c025a7b492a0",
+    "declared_utc": "2026-09-20T15:02:12.355243+00:00",
+    "hardware": "CPU; TensorFlow GPU devices unavailable in this environment",
+    "python": "3.12.5",
+    "versions": {
+      "tensorflow": "2.21.0",
+      "keras": "3.15.1",
+      "numpy": "2.1.3",
+      "h5py": "3.13.0",
+      "ai-edge-litert": "2.2.0"
+    },
+    "thread_environment": {
+      "TF_NUM_INTRAOP_THREADS": "8",
+      "TF_NUM_INTEROP_THREADS": "1",
+      "OMP_NUM_THREADS": "8",
+      "OPENBLAS_NUM_THREADS": "1",
+      "TF_DETERMINISTIC_OPS": "1",
+      "CUDA_VISIBLE_DEVICES": "-1"
+    },
+    "reproduction": "The historical commit and environment are pinned as provenance. A run from the current checkout is a reconstruction and is not expected to be bitwise identical."
+  },
+  "implementation": {
+    "preprocessing_spec_fingerprint": "42dc5f22f9cce5932672f1c3de8e5f8c51f6c8560f2444aa2a3ce6a35947698c",
+    "module_sha256": {
+      "sleepkit/recipes/detection/preprocessing.py": "f9b32c300f31818269b157f06904297520d995d92a744b16167d32268146eb27",
+      "sleepkit/recipes/detection/model.py": "dcdc5ae2c800a8919596b873719de1bf716779a716804f2e9668b256cce193b3"
+    }
+  },
+  "dataset": {
+    "kind": "sleepkit.annotated_dataset/v1",
+    "source_subjects": 277,
+    "grouping": "series_id_only",
+    "seed": 0,
+    "target": {
+      "kind": "sleepkit.annotated_period_membership/v1",
+      "classes": [
+        "OUTSIDE_SUPPORTED_ANNOTATED_PERIOD",
+        "INSIDE_ANNOTATED_PERIOD"
+      ],
+      "unknown": -1,
+      "interpretation": "Derived annotated nightly-period membership, not clinical per-sample sleep/wake or official event AP",
+      "source": "https://www.kaggle.com/competitions/child-mind-institute-detect-sleep-states/data",
+      "source_content_sha256": "8a2f93fc7f5a9264b14773ef98d0e6a227e6ab5b595edd3a70d0758442813dbf"
+    },
+    "candidate_policy": {
+      "kind": "sleepkit.event_candidates/v1",
+      "labels": {"sleep_candidate": 1, "unknown": -1, "wake_candidate": 0},
+      "sleep": "Complete clock-aligned onset/wakeup pair, [onset, wakeup)",
+      "wake": "Between eligible consecutive integer nights, [wakeup_n, onset_n+1)",
+      "conflicts": "Exclude all participants in overlaps or night-order inversions, including located incomplete evidence",
+      "unlocatable": "Noncanonical IDs, malformed nonmissing coordinates, timestamp-only or contradictory clock evidence invalidate the series",
+      "status": "Candidate interpretation only; annotation semantics require separate review"
+    },
+    "sample_clock": {"units": "unix_seconds", "dtype": "int64", "period_seconds": 5},
+    "context_policy": {
+      "features_per_context": 240,
+      "window_samples": 12,
+      "stride_samples": 6,
+      "target": "last source sample in each window",
+      "grouping": "nonoverlapping native contexts; drop incomplete tail; never stitch",
+      "exclusion": "any nonfinite sensor sample or unknown target; reasons counted independently and jointly"
+    },
+    "partition_counts": {
+      "train": {"subjects": 193, "eligible_contexts": 34474},
+      "validation": {"subjects": 41, "eligible_contexts": 8173},
+      "test": {"subjects": 43, "eligible_contexts": 8582}
+    },
+    "provenance_sha256": {
+      "events": "e785115b0772b2953057fa333cc6990c4d9879a6a5321dc6e6cf8b13ef68bf58",
+      "alignment": "41a760f266f9b7ea6a533a0ee4569c3677045e704591a0c0b4cb767c8bd9db94",
+      "coverage": "f128f8ba92c8960e6a94a4b18ab09d7feb8252288c3dab678b02385ad029cef4",
+      "protocol": "b2c82ac1d47bf0ef721bec40f01c6b5000ac14f0b34fc90c1a7425364e4bc219",
+      "split_file": "08c2ac221b3212b5589d29f623015994da8c6fd104708879b40bcb4db60306e7",
+      "groups": "ee639bf73b3d6e9bb011f38ede0192c5dff741d739af0740564339bfb4fa5a83",
+      "sources": "8ca9791375f5f9d720b391a919dc4d6c58c6580fa72eca400c1b439b88347ca2",
+      "parquet": "fd11f8c3af0507757cade38419f5ec34af28dd6e3057ab17ef05b0af717106af"
+    },
+    "split_fingerprint": "542b97f205664961126a59d275ca574c0621c475766b47041f299120d5b56c84",
+    "source_inventory_fingerprint": "559509f8e0ec7bc1718f668812883d5cc7cd65afb9efc91f6c04354944168d05"
+  },
+  "preprocessing": {
+    "kind": "sleepkit.cmidss_wrist/v3",
+    "implementation_version": 3,
+    "source_channels": ["TS", "ENMO", "ZANGLE"],
+    "source_rate_hz": 0.2,
+    "features": ["tod", "mov_mu", "mov_std", "angle_mu", "angle_std"],
+    "tod_formula": "mean(cos(2*pi*TS/86400))",
+    "window_samples": 12,
+    "stride_samples": 6,
+    "cadence_seconds": 30,
+    "timestamp": "record-relative seconds of the last source sample in each feature window",
+    "feature_available_at": "timestamp + 5 seconds",
+    "target_alignment": "last source sample in each feature window",
+    "invalid": "drop contexts containing any nonfinite sensor sample",
+    "tail": "drop incomplete windows and model contexts",
+    "normalization": {
+      "fit_scope": "all valid feature frames from training subjects, including unknown-target periods and incomplete context tails",
+      "mean": "global training-subject mean per feature",
+      "scale": "sqrt(global population variance + 1e-6) per feature",
+      "historical_preprocessing_json_sha256": "e02c8fb802853ecaf56df71fc1f3c7b851bff10ef86fa98ddff7f33e693cf515"
+    },
+    "sample_clock": "Optional signed int64 Unix seconds; strictly increasing at five seconds. Without it, validate local TS cadence."
+  },
+  "sampling": {
+    "training_contexts": 34474,
+    "validation_contexts": 8173,
+    "test_contexts": 8582,
+    "training_stream": "each eligible native training context appears exactly once per epoch, with no class balancing or replacement; shuffle uses a bounded buffer of 256, seed 0, and reshuffles each epoch",
+    "batch_size": 32,
+    "batch_tail": "retain the final partial batch; drop_remainder is false",
+    "validation_order": "declared validation subject order, then native context order; no shuffle",
+    "test_order": "declared test subject order, then native context order; no shuffle",
+    "context_overlap": "none",
+    "unknown_target_handling": "exclude the complete context; never stitch neighboring contexts",
+    "test_selection": "all eligible test contexts; fixed final epoch"
+  },
+  "reference": {
+    "status": "observed_historical_result",
+    "prospective_gate": false,
+    "note": "These values describe the recorded run and are not acceptance thresholds for future reconstructions.",
+    "split": "test",
+    "model": "model.keras",
+    "feature_frames_evaluated": 2059680,
+    "accuracy": 0.9576570146818923,
+    "macro_f1": 0.9556110258449976,
+    "cross_entropy": 0.12708385769630656,
+    "f1_zero_division": 0,
+    "class_order": [
+      "OUTSIDE_SUPPORTED_ANNOTATED_PERIOD",
+      "INSIDE_ANNOTATED_PERIOD"
+    ],
+    "confusion_matrix": [
+      [1207331, 43875],
+      [43338, 765136]
+    ]
+  },
+  "limitations": [
+    "Seeded execution is not a bitwise reproducibility guarantee across environments.",
+    "The 240-feature context spans 7,230 seconds and uses future features relative to each target; this is offline, noncausal inference.",
+    "The target is candidate annotated-period membership, not clinical sleep/wake or official event average precision.",
+    "Exposure of a separate historical SD-2 comparator to this cohort is unresolved; this does not qualify the newly trained frozen-split baseline.",
+    "Subject identifiers, recordings, prediction arrays, and model binaries remain local experiment evidence."
+  ]
+}
