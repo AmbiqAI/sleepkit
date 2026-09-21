@@ -37,14 +37,23 @@
       "TF_DETERMINISTIC_OPS": "1",
       "CUDA_VISIBLE_DEVICES": "-1"
     },
-    "reproduction": "The historical commit and environment are pinned as provenance. A run from the current checkout is a reconstruction and is not expected to be bitwise identical."
+    "reproduction": "The historical commit and environment are pinned as provenance. A run from the current checkout is a reconstruction and is not expected to be bitwise identical.",
+    "implementation_module_sha256": {
+      "sleepkit/recipes/detection/preprocessing.py": "f9b32c300f31818269b157f06904297520d995d92a744b16167d32268146eb27",
+      "sleepkit/recipes/detection/model.py": "dcdc5ae2c800a8919596b873719de1bf716779a716804f2e9668b256cce193b3"
+    }
   },
   "implementation": {
     "preprocessing_spec_fingerprint": "42dc5f22f9cce5932672f1c3de8e5f8c51f6c8560f2444aa2a3ce6a35947698c",
     "module_sha256": {
-      "sleepkit/recipes/detection/preprocessing.py": "f9b32c300f31818269b157f06904297520d995d92a744b16167d32268146eb27",
+      "sleepkit/recipes/detection/preprocessing.py": "6fac7e5e6636102df370806fecebc15852844a1f02b8c47ee090117d6205b414",
       "sleepkit/recipes/detection/model.py": "dcdc5ae2c800a8919596b873719de1bf716779a716804f2e9668b256cce193b3"
-    }
+    },
+    "equivalence_evidence": {
+      "path": "docs/evidence/membership-vectorized-equivalence-20260920/report.json",
+      "sha256": "3176da1571a73bda2f53cbbdc71a7d6f44eb27c6276860d870b6600f2282f27a"
+    },
+    "revision_note": "Bounded vectorized extraction; historical config, specification and observed metrics retained. See exact feature equivalence evidence; no training-quality rerun implied."
   },
   "dataset": {
     "kind": "sleepkit.annotated_dataset/v1",
@@ -64,14 +73,22 @@
     },
     "candidate_policy": {
       "kind": "sleepkit.event_candidates/v1",
-      "labels": {"sleep_candidate": 1, "unknown": -1, "wake_candidate": 0},
+      "labels": {
+        "sleep_candidate": 1,
+        "unknown": -1,
+        "wake_candidate": 0
+      },
       "sleep": "Complete clock-aligned onset/wakeup pair, [onset, wakeup)",
       "wake": "Between eligible consecutive integer nights, [wakeup_n, onset_n+1)",
       "conflicts": "Exclude all participants in overlaps or night-order inversions, including located incomplete evidence",
       "unlocatable": "Noncanonical IDs, malformed nonmissing coordinates, timestamp-only or contradictory clock evidence invalidate the series",
       "status": "Candidate interpretation only; annotation semantics require separate review"
     },
-    "sample_clock": {"units": "unix_seconds", "dtype": "int64", "period_seconds": 5},
+    "sample_clock": {
+      "units": "unix_seconds",
+      "dtype": "int64",
+      "period_seconds": 5
+    },
     "context_policy": {
       "features_per_context": 240,
       "window_samples": 12,
@@ -81,9 +98,18 @@
       "exclusion": "any nonfinite sensor sample or unknown target; reasons counted independently and jointly"
     },
     "partition_counts": {
-      "train": {"subjects": 193, "eligible_contexts": 34474},
-      "validation": {"subjects": 41, "eligible_contexts": 8173},
-      "test": {"subjects": 43, "eligible_contexts": 8582}
+      "train": {
+        "subjects": 193,
+        "eligible_contexts": 34474
+      },
+      "validation": {
+        "subjects": 41,
+        "eligible_contexts": 8173
+      },
+      "test": {
+        "subjects": 43,
+        "eligible_contexts": 8582
+      }
     },
     "provenance_sha256": {
       "events": "e785115b0772b2953057fa333cc6990c4d9879a6a5321dc6e6cf8b13ef68bf58",
@@ -101,9 +127,19 @@
   "preprocessing": {
     "kind": "sleepkit.cmidss_wrist/v3",
     "implementation_version": 3,
-    "source_channels": ["TS", "ENMO", "ZANGLE"],
+    "source_channels": [
+      "TS",
+      "ENMO",
+      "ZANGLE"
+    ],
     "source_rate_hz": 0.2,
-    "features": ["tod", "mov_mu", "mov_std", "angle_mu", "angle_std"],
+    "features": [
+      "tod",
+      "mov_mu",
+      "mov_std",
+      "angle_mu",
+      "angle_std"
+    ],
     "tod_formula": "mean(cos(2*pi*TS/86400))",
     "window_samples": 12,
     "stride_samples": 6,
@@ -150,8 +186,14 @@
       "INSIDE_ANNOTATED_PERIOD"
     ],
     "confusion_matrix": [
-      [1207331, 43875],
-      [43338, 765136]
+      [
+        1207331,
+        43875
+      ],
+      [
+        43338,
+        765136
+      ]
     ]
   },
   "limitations": [

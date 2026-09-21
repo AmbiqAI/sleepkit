@@ -32,7 +32,7 @@ The source adapter validates the event, clock, candidate-label, split, and HDF5
 evidence before training. The script additionally checks the public definition's
 target, context policy, partition sizes, source inventory fingerprint, and all
 aggregate evidence hashes. Before training it also checks the exact v3 preprocessing
-SPEC fingerprint and the historical preprocessing and model module hashes. The
+SPEC fingerprint and the reviewed preprocessing and model module hashes. The
 output must be a new directory. Local run output contains the subject-level and
 prediction evidence needed for review and should remain outside the repository;
 the script adds `golden-definition.json` and `golden-runner.json` so the public
@@ -89,3 +89,11 @@ The [first experiment report](detection-first-experiment.md) and
 evidence and interpretation. Exposure of a separate historical SD-2 comparator to
 this cohort remains unresolved; that question does not qualify this newly trained
 frozen-split baseline.
+
+The vectorized preparation revision advances only the current preprocessing
+implementation pin. The original module hashes remain under `historical_run`, and
+the original definition remains available at commit
+`042c1eef5608db3bb842f29c6f12b768663f9026`. The
+[preparation equivalence report](detection-preparation-performance.md) binds the
+revised implementation to exact scalar-reference comparisons. Historical quality
+metrics remain observations from the original five-epoch run.

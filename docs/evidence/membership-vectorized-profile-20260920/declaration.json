@@ -1,0 +1,136 @@
+{
+  "code_sha256": {
+    "__init__.py": "d6bca9705c78706de2082d766d51d788b7038539239aab625018964f5993c784",
+    "__main__.py": "055e37629b326892f32f6cc05d4ecb9806f23d42e40baa89795a68bc66682363",
+    "alignment.py": "df43d6b52cf851722eef387b0faed944467ab452d493765e6c89771d32ed5d89",
+    "audit.py": "fa1cce753e5aec68b570187e3b43c08d536937c839e5decb0f72d58f6e51e3db",
+    "calibration.py": "7ed5f0f5278fa99de1d4eb2be0ede10fc64998d2ef29b546dc398efbdb8e79c7",
+    "candidate_audit.py": "91aae48e48a6506b35f567cd106f6c01dd926b4b804c997e5e4fe1bcb05e7bec",
+    "candidate_labels.py": "25c8ff665ad118b738f06a9925b5d23c23c48da62f7d1f35ae23317cfaabf22d",
+    "clock_source.py": "39e102d949c7eacc7cbf267d556330cc09f0901d5ebea8335b946dabdf435acc",
+    "comparison.py": "75abdc2de311611cd9e5a5e46463f3ea4101eeea119e455899cfb6a7e68128c9",
+    "data.py": "f4e28d96000f22f092eec13f1d9dd220d11eec7d819f3161eaf58bac64b646d3",
+    "error_analysis.py": "7002f8dcd3c4ba86e17daeb4164b286d67d4389ce7dc2b18c349a0b548723957",
+    "evaluation.py": "1ee563bd72530e9cb55e92bcee5c4f3374745a2b0f4d628d156cc40740016f65",
+    "export.py": "7dd09061c0cd5175a2699b393bb1fc38b261d38f5132261e19e2d3e116ca6ca0",
+    "hdf5.py": "06d2d3c8443d588d2f16b15abb529d11ee18aca1f3c2846db2d9e357aac3aba1",
+    "historical.py": "154060746c8aac31e114f023d01d6432b515a1843a7b673bbf73b6d4ffd40b6f",
+    "inference.py": "01f93fc7a35d6a421af5111f5152cc9681db276d1da2202527ea844dd9d47f2e",
+    "model.py": "dcdc5ae2c800a8919596b873719de1bf716779a716804f2e9668b256cce193b3",
+    "output_contract.py": "ed79b095e8d7f07c76238437b2aa14d469631d73b0a44c55f97d0e640ddc27ac",
+    "preprocessing.py": "6fac7e5e6636102df370806fecebc15852844a1f02b8c47ee090117d6205b414",
+    "profile.py": "85af7b2163cda9e607389e3f2c2541f5b71646b1d700e0efbdeb27d0d7533cca",
+    "quantization.py": "e1b406323df072e6e1f3b371c77dc150a1559ea77c4767c9a6444fad9789de07",
+    "recipe.py": "821f1c03778463a61968a3063863fc47627160faa9712b7ad4d16c805636cf8e",
+    "runtime.py": "caa9ac310980ae142ee14d71142d1fa2d970a426beef8a411da6facdcee63d39",
+    "scoring.py": "74663666c6491bd7530bd5043e8f74d98bed4d99a069f9fc3b9e2c5ea30858d1",
+    "smoke.py": "4317822c951487cd43279960a0b5782bde106c36e2f00cf237e6ceb1d2d015f2",
+    "split.py": "bf4ab3b52d16b3b9d12887eb5d41f80d43ca7b86353882fd62e3f19eba67266c",
+    "target_dataset.py": "c060a07742059890955777fde3a878e74af0f315946c48d078d950e9d99f13c6"
+  },
+  "config": {
+    "batch_size": 32,
+    "context": 240,
+    "epochs": 5,
+    "learning_rate": 0.001,
+    "seed": 0
+  },
+  "data_kind": "cmidss",
+  "dataset": {
+    "alignment_sha256": "41a760f266f9b7ea6a533a0ee4569c3677045e704591a0c0b4cb767c8bd9db94",
+    "context_policy": {
+      "exclusion": "any nonfinite sensor sample or unknown target; reasons counted independently and jointly",
+      "features_per_context": 240,
+      "grouping": "nonoverlapping native contexts; drop incomplete tail; never stitch",
+      "stride_samples": 6,
+      "target": "last source sample in each window",
+      "window_samples": 12
+    },
+    "coverage_sha256": "f128f8ba92c8960e6a94a4b18ab09d7feb8252288c3dab678b02385ad029cef4",
+    "events_sha256": "e785115b0772b2953057fa333cc6990c4d9879a6a5321dc6e6cf8b13ef68bf58",
+    "grouping": "series_id_only",
+    "groups_sha256": "ee639bf73b3d6e9bb011f38ede0192c5dff741d739af0740564339bfb4fa5a83",
+    "kind": "sleepkit.annotated_dataset/v1",
+    "parquet_sha256": "fd11f8c3af0507757cade38419f5ec34af28dd6e3057ab17ef05b0af717106af",
+    "policy": {
+      "conflicts": "Exclude all participants in overlaps or night-order inversions, including located incomplete evidence",
+      "kind": "sleepkit.event_candidates/v1",
+      "labels": {
+        "sleep_candidate": 1,
+        "unknown": -1,
+        "wake_candidate": 0
+      },
+      "sleep": "Complete clock-aligned onset/wakeup pair, [onset, wakeup)",
+      "status": "Candidate interpretation only; annotation semantics require separate review",
+      "unlocatable": "Noncanonical IDs, malformed nonmissing coordinates, timestamp-only or contradictory clock evidence invalidate the series",
+      "wake": "Between eligible consecutive integer nights, [wakeup_n, onset_n+1)"
+    },
+    "protocol_sha256": "b2c82ac1d47bf0ef721bec40f01c6b5000ac14f0b34fc90c1a7425364e4bc219",
+    "sample_clock": {
+      "dtype": "int64",
+      "period_seconds": 5,
+      "units": "unix_seconds"
+    },
+    "seed": 0,
+    "source_subjects": 277,
+    "sources_sha256": "8ca9791375f5f9d720b391a919dc4d6c58c6580fa72eca400c1b439b88347ca2",
+    "split_sha256": "08c2ac221b3212b5589d29f623015994da8c6fd104708879b40bcb4db60306e7",
+    "target": {
+      "classes": [
+        "OUTSIDE_SUPPORTED_ANNOTATED_PERIOD",
+        "INSIDE_ANNOTATED_PERIOD"
+      ],
+      "interpretation": "Derived annotated nightly-period membership, not clinical per-sample sleep/wake or official event AP",
+      "kind": "sleepkit.annotated_period_membership/v1",
+      "source": "https://www.kaggle.com/competitions/child-mind-institute-detect-sleep-states/data",
+      "source_content_sha256": "8a2f93fc7f5a9264b14773ef98d0e6a227e6ab5b595edd3a70d0758442813dbf",
+      "unknown": -1
+    }
+  },
+  "declared_utc": "2026-09-20T20:25:33.175696+00:00",
+  "preprocessing": {
+    "cadence_seconds": 30,
+    "feature_available_at": "timestamp + 5 seconds",
+    "features": [
+      "tod",
+      "mov_mu",
+      "mov_std",
+      "angle_mu",
+      "angle_std"
+    ],
+    "implementation_version": 3,
+    "invalid": "drop contexts containing any nonfinite sensor sample",
+    "kind": "sleepkit.cmidss_wrist/v3",
+    "normalization": "training-subject global mean and population variance; epsilon=1e-6",
+    "prediction_available_at": "last feature timestamp of the complete model context + 5 seconds",
+    "sample_clock": "Optional signed int64 Unix seconds; strictly increasing at five seconds. Without it, validate local TS cadence.",
+    "source_channels": [
+      "TS",
+      "ENMO",
+      "ZANGLE"
+    ],
+    "source_rate_hz": 0.2,
+    "stride_samples": 6,
+    "tail": "drop incomplete windows and model contexts",
+    "target_alignment": "last sample in window",
+    "timestamp": "record-relative seconds of the last source sample in each feature window",
+    "tod_formula": "mean(cos(2*pi*TS/86400))",
+    "window_samples": 12
+  },
+  "profile_epochs": 1,
+  "resident_steps": 20,
+  "schedule": {
+    "balancing": false,
+    "complete_passes_per_fit": 1,
+    "drop_partial_batch": false,
+    "partition": "train",
+    "replacement": false,
+    "reshuffle_each_iteration": true,
+    "shuffle_buffer": 256
+  },
+  "schema": "sleepkit.detection_profile/v1",
+  "scope": "Performance only; disposable models; no validation/test evaluation or export",
+  "source_sha256": "559509f8e0ec7bc1718f668812883d5cc7cd65afb9efc91f6c04354944168d05",
+  "split_sha256": "542b97f205664961126a59d275ca574c0621c475766b47041f299120d5b56c84",
+  "warmup_steps": 2
+}

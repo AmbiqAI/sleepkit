@@ -1,0 +1,31 @@
+{
+  "declaration_sha256": "d39d9d657fc09705dbc4883636b2c473932e5820cd480920ea179797eaac8212",
+  "feature_arrays_sha256": "da80f054c7f6c5d274b7a002fc0516902a4818ba64c570ef5f823fe3ad4ac218",
+  "feature_frames_compared": 14857307,
+  "full_partition_extract_seconds": {
+    "scalar": 387.40662577946205,
+    "vectorized": 4.027367310132831
+  },
+  "limitations": [
+    "One development machine; no controlled system-load isolation or cross-backend claim.",
+    "Subset repeats measure extraction only, not complete preparation or training.",
+    "Exact equality is verified for this corpus and environment, not all possible floating-point inputs."
+  ],
+  "normalization_frames": 14857307,
+  "normalizer_sha256": "ed46fca6adbf562c6f649c5b68562808e9c722f731f498f39153004b1578034b",
+  "repeated_subset_extract_seconds": {
+    "scalar": [
+      6.653414124040864,
+      6.509009655099362,
+      6.507841377868317
+    ],
+    "vectorized": [
+      0.07035247096791863,
+      0.0687291738577187,
+      0.06759737804532051
+    ]
+  },
+  "schema": "sleepkit.preparation_equivalence/v1",
+  "status": "passed",
+  "training_subjects": 193
+}

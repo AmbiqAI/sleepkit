@@ -165,3 +165,23 @@ def test_runner_attaches_snapshot_or_leaves_no_completed_output(tmp_path, monkey
         assert record["detection_code_sha256"] == runner._detection_hashes()
         with pytest.raises(FileExistsError):
             runner.main(argv)
+
+
+def test_preparation_revision_is_bound_to_reviewed_equivalence_evidence():
+    from pathlib import Path
+    from sleepkit.artifacts.package import sha256
+
+    root = Path(__file__).resolve().parents[1]
+    definition = _read_definition()
+    evidence = definition["implementation"]["equivalence_evidence"]
+    report_path = root / evidence["path"]
+    assert sha256(report_path) == evidence["sha256"]
+    report = json.loads(report_path.read_text())
+    declaration_path = report_path.with_name("declaration.json")
+    assert sha256(declaration_path) == report["declaration_sha256"]
+    declaration = json.loads(declaration_path.read_text())
+    key = "sleepkit/recipes/detection/preprocessing.py"
+    assert declaration["candidate_code_sha256"]["preprocessing.py"] == definition["implementation"]["module_sha256"][key]
+    assert declaration["baseline_preprocessing_sha256"] == definition["historical_run"]["implementation_module_sha256"][key]
+    assert report["status"] == "passed"
+    assert report["training_subjects"] == definition["dataset"]["partition_counts"]["train"]["subjects"]
