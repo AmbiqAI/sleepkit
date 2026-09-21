@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from sleepkit.artifacts.package import sha256, write_json  # noqa: E402
+from sleepkit.recipes._components import implementation_files  # noqa: E402
 from sleepkit.recipes.detection import preprocessing  # noqa: E402
 from sleepkit.recipes.detection.target_dataset import AnnotatedDataset  # noqa: E402
 
@@ -44,7 +45,7 @@ def compare(source, output, *, repeats=3):
     legacy = legacy_module()
     if legacy.SPEC != preprocessing.SPEC:
         raise ValueError("The feature specification changed")
-    code_hashes = {p.name: sha256(p) for p in sorted((ROOT / "sleepkit/recipes/detection").glob("*.py"))}
+    code_hashes = {name: sha256(path) for name, path in implementation_files(ROOT / "sleepkit/recipes/detection").items()}
     runner_hash = sha256(Path(__file__))
     declaration = {
         "schema": "sleepkit.preparation_equivalence/v1",
@@ -126,7 +127,7 @@ def compare(source, output, *, repeats=3):
     if (
         sha256(output / "declaration.json") != declaration_hash
         or sha256(Path(__file__)) != runner_hash
-        or {p.name: sha256(p) for p in sorted((ROOT / "sleepkit/recipes/detection").glob("*.py"))} != code_hashes
+        or {name: sha256(path) for name, path in implementation_files(ROOT / "sleepkit/recipes/detection").items()} != code_hashes
     ):
         raise ValueError("Code or declaration changed during comparison")
     report = {

@@ -206,3 +206,7 @@ The next foundation milestone requires two real consumers, both training backend
 native-loop examples, independently usable blocks, documented reproduction tolerances,
 and measured input-pipeline improvements. sleepKIT's existing verified detection path
 is a reference consumer and regression baseline throughout this work.
+
+The [local reusable-block candidates](reusable-blocks.md) define the first explicit
+extraction and replacement contracts. They remain local until shared conformance
+and consumer evidence support upstream adoption.

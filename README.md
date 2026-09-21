@@ -142,3 +142,5 @@ research restrictions and proposed optional Ambiq device terms.
 The [cross-KIT architecture proposal](docs/shared-foundation.md) describes the path
 toward reusable heliaEDGE blocks, first-class TensorFlow/PyTorch workflows, measured
 input-pipeline improvements, and traceable golden releases across the KITs.
+The [reusable-block candidates](docs/reusable-blocks.md) and synthetic signal recipe
+exercise the first local interfaces with Git-pinned heliaEDGE backend profiles.

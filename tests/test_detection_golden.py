@@ -55,6 +55,26 @@ def _source_and_definition(tmp_path):
 
     dataset["provenance_sha256"]["split_file"] = sha256(split_path)
     source.provenance["split_sha256"] = dataset["provenance_sha256"]["split_file"]
+    # Bind synthetic equivalence evidence to this synthetic dataset fixture.
+    from experiments.run_detection_golden import REPOSITORY, PROVENANCE_KEYS
+
+    report_path = REPOSITORY / definition["implementation"]["equivalence_evidence"]["path"]
+    report = json.loads(report_path.read_text())
+    declaration = json.loads(report_path.with_name("declaration.json").read_text())
+    declaration["dataset"] = {key: dataset[key] for key in (
+        "kind", "source_subjects", "grouping", "seed", "target", "context_policy", "sample_clock",
+    )}
+    declaration["dataset"].update(policy=dataset["candidate_policy"])
+    declaration["dataset"].update({value: dataset["provenance_sha256"][key] for key, value in PROVENANCE_KEYS.items()})
+    declaration.update(source_sha256=dataset["source_inventory_fingerprint"], split_sha256=dataset["split_fingerprint"])
+    evidence_dir = tmp_path / "equivalence"
+    evidence_dir.mkdir()
+    (evidence_dir / "declaration.json").write_text(json.dumps(declaration))
+    report.update(declaration_sha256=sha256(evidence_dir / "declaration.json"), training_subjects=1)
+    (evidence_dir / "report.json").write_text(json.dumps(report))
+    definition["implementation"]["equivalence_evidence"] = {
+        "path": str(evidence_dir / "report.json"), "sha256": sha256(evidence_dir / "report.json"),
+    }
     return source, definition
 
 

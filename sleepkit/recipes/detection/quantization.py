@@ -8,11 +8,13 @@ import shutil
 
 import numpy as np
 
+from sleepkit.recipes._components import implementation_files
+
 from sleepkit.artifacts import Artifact, Check, TensorSpec, stage_bundle
 from sleepkit.artifacts.package import sha256, write_json
 from sleepkit.artifacts.runtime import create_reference
 from .calibration import collect_calibration
-from .evaluation import _metrics, summarize
+from .evaluation import _metrics, read_bound_json, summarize
 from .preprocessing import Normalizer, fingerprint, prepare
 from .runtime import DetectionRuntime
 
@@ -202,13 +204,13 @@ def quantize_run(run_path, source, output_path, *, cache=None):
     source.verify_unchanged()
     output.mkdir(parents=True, exist_ok=False)
     verified = summarize(run, output / "parent-evaluation.json")
-    recipe = json.loads((run / "bundle/recipe.json").read_text())
+    recipe = read_bound_json(run, "bundle/recipe.json", verified["evidence_sha256"])
     if (source.provenance != recipe.get("dataset") or source.context != recipe.get("context")
             or fingerprint(source.split) != recipe.get("split_sha256")
             or fingerprint(source.source_hashes) != recipe.get("source_sha256")):
         raise ValueError("Calibration source differs from the frozen evaluated run")
-    normalizer = Normalizer.from_dict(json.loads((run / "bundle/preprocessing.json").read_text()))
-    code = {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))}
+    normalizer = Normalizer.from_dict(read_bound_json(run, "bundle/preprocessing.json", verified["evidence_sha256"]))
+    code = {name: sha256(path) for name, path in implementation_files(Path(__file__).parent).items()}
     declaration = {"declared_utc": datetime.now(timezone.utc).isoformat(), "policy": POLICY,
                    "parent_evidence_sha256": verified["evidence_sha256"], "source": source.provenance,
                    "implementation_sha256": code,
@@ -244,7 +246,7 @@ def quantize_run(run_path, source, output_path, *, cache=None):
     int8_runner.verify_unchanged()
     float_runner.verify_unchanged()
     if (any(sha256(run / name) != digest for name, digest in verified["evidence_sha256"].items())
-            or any(sha256(Path(__file__).parent / name) != digest for name, digest in code.items())
+            or {name: sha256(path) for name, path in implementation_files(Path(__file__).parent).items()} != code
             or any(sha256(path) != digest for path, digest in calibration_hashes.items())):
         raise ValueError("Quantization source evidence or implementation changed")
     results.update(policy=POLICY, model_sha256=model_hashes, graph=graph, context=source.context,

@@ -30,3 +30,30 @@ jobs:
           uv sync --locked --extra detection --extra source-audit
           uv run --locked --extra detection --extra source-audit ruff check
           SLEEPKIT_REQUIRE_DETECTION=1 SLEEPKIT_REQUIRE_SOURCE_AUDIT=1 uv run --locked --extra detection --extra source-audit pytest -vv tests/
+
+  edge-contracts:
+    name: EDGE consumer (${{ matrix.backend }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [tensorflow, torch]
+    env:
+      KERAS_BACKEND: ${{ matrix.backend }}
+      SLEEPKIT_REQUIRE_EDGE: '1'
+      TF_NUM_INTRAOP_THREADS: '1'
+      TF_NUM_INTEROP_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv venv --python 3.12
+      - if: matrix.backend == 'torch'
+        run: uv pip install 'torch==2.14.0' --index-url https://download.pytorch.org/whl/cpu
+      - run: uv pip install -r requirements/edge-${{ matrix.backend }}.txt
+      - run: .venv/bin/python -m pytest tests/test_edge_candidates.py tests/test_signal_recipe.py

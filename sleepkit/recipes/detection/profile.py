@@ -8,10 +8,11 @@ import hashlib
 import os
 from pathlib import Path
 import platform
-import resource
 import time
 
 import numpy as np
+
+from sleepkit.recipes._components import implementation_files
 
 from sleepkit.artifacts.package import sha256, write_json
 from .data import examples, subject_features
@@ -21,6 +22,10 @@ from .recipe import Config, dataset, training_model
 
 def _rss():
     # ru_maxrss is a lifetime high-water mark, not the current or per-stage RSS.
+    try:
+        import resource
+    except ImportError:
+        return None
     value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return int(value if platform.system() == "Darwin" else value * 1024)
 
@@ -64,7 +69,7 @@ def profile_membership(source, output, cfg=Config(), *, resident_steps=20, warmu
         "split_sha256": fingerprint(source.split),
         "source_sha256": fingerprint(source.source_hashes),
         "preprocessing": SPEC,
-        "code_sha256": {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))},
+        "code_sha256": {name: sha256(path) for name, path in implementation_files(Path(__file__).parent).items()},
         "schedule": {
             "partition": "train",
             "replacement": False,
@@ -222,7 +227,7 @@ def profile_membership(source, output, cfg=Config(), *, resident_steps=20, warmu
     if (
         sha256(output / "declaration.json") != declaration_hash
         or sha256(output / "environment.json") != environment_hash
-        or {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))} != declaration["code_sha256"]
+        or {name: sha256(path) for name, path in implementation_files(Path(__file__).parent).items()} != declaration["code_sha256"]
     ):
         raise ValueError("Profile declaration, environment, or source code changed during measurement")
     report = {
@@ -256,7 +261,7 @@ def profile_membership(source, output, cfg=Config(), *, resident_steps=20, warmu
             "Warm loader waits include next() and host materialization; prefetch overlaps work. They are not raw disk latency.",
             "Resident steps repeat one host batch with transfers included; not device-only compute or an epoch schedule.",
             "Fit is a fresh-model single training epoch after resident process/device warmup; includes tracing/compilation, excludes validation, export and model build.",
-            "RSS is process lifetime high-water memory, not stage allocation or device memory; no GPU memory measurement.",
+            "RSS is process lifetime high-water memory, not stage allocation or device memory; null when resource is unavailable. No GPU memory measurement.",
             "Single observations, not a speedup claim. Use fresh processes and repeated runs for comparisons.",
         ],
     }
