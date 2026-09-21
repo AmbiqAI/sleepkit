@@ -270,3 +270,38 @@ def test_existing_output_nested_run_and_wrong_context_rejected(tmp_path, monkeyp
     case.source.context = 120
     with pytest.raises(ValueError, match="240"):
         execute(case, tmp_path / "different")
+
+
+def test_recipe_swapped_before_summarize_cannot_complete_comparison(tmp_path, monkeypatch):
+    case = make_case(tmp_path, monkeypatch)
+    original = comparison.summarize
+
+    def swap_then_summarize(run, output):
+        # Simulate a consistent replacement run with a different protocol after
+        # compare's early source check but before summarize captures its inputs.
+        bundle = run / "bundle"
+        recipe = json.loads((bundle / "recipe.json").read_text())
+        recipe["dataset"] = {"kind": "replacement protocol"}
+        summary = json.loads((run / "test-index-summary.json").read_text())
+        summary["provenance_sha256"] = fingerprint(recipe["dataset"])
+        recipe["scoring"] = summary
+        write_json(run / "test-index-summary.json", summary)
+        write_json(bundle / "recipe.json", recipe)
+        manifest = json.loads((bundle / "manifest.json").read_text())
+        for artifact in manifest["artifacts"]:
+            if artifact["path"] == "recipe.json":
+                artifact["sha256"] = sha256(bundle / "recipe.json")
+                artifact["bytes"] = (bundle / "recipe.json").stat().st_size
+        write_json(bundle / "manifest.json", manifest)
+        checksums = json.loads((bundle / "checksums.json").read_text())
+        for name in ("recipe.json", "manifest.json"):
+            checksums[name] = sha256(bundle / name)
+        write_json(bundle / "checksums.json", checksums)
+        return original(run, output)
+
+    monkeypatch.setattr(comparison, "summarize", swap_then_summarize)
+    output = tmp_path / "comparison"
+    with pytest.raises(ValueError, match="Recipe changed"):
+        execute(case, output)
+    assert not (output / "declaration.json").exists()
+    assert not (output / "comparison.json").exists()
