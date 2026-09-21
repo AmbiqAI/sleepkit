@@ -49,7 +49,8 @@ declared class with zero-division zero, and recall for absent support is `None`.
 Unknown labels, mismatched shapes, nonfinite logits and unrepresentable loss/count
 sums are rejected before changing state. An empty update is allowed; an empty
 result is rejected. Integer logits must be within `[-2**53, 2**53]` to preserve
-exact float64 conversion. Consumers explicitly convert framework tensors to NumPy
+exact float64 conversion; extended-precision floating dtypes are rejected.
+Consumers explicitly convert framework tensors to NumPy
 and own masking. Confusion-only summaries never infer a probability loss from historical
 class predictions. Detection wrappers preserve their existing field names and
 empty-result policies.

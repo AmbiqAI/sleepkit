@@ -68,6 +68,11 @@ def test_dense_targets_fixed_class_macro_f1_and_stable_large_logits():
         ([1], np.array([[2**53, 2**53 + 1]], dtype=np.int64)),
         ([1], np.array([[2**53, 2**53 + 1]], dtype=np.uint64)),
         ([0], np.array([[-2**53, -2**53 - 1]], dtype=np.int64)),
+        pytest.param(
+            [1], np.array([[2**53, 2**53 + 1]], dtype=np.longdouble),
+            marks=pytest.mark.skipif(np.finfo(np.longdouble).nmant <= np.finfo(np.float64).nmant,
+                                     reason="Platform has no extended-precision floating dtype"),
+        ),
     ],
 )
 def test_invalid_update_is_rejected_without_changing_state(labels, logits):

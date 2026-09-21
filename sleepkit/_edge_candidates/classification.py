@@ -64,6 +64,8 @@ class ClassificationAccumulator:
         classes = len(self._confusion)
         if labels.dtype.kind not in "iu" or scores.dtype.kind not in "fiu":
             raise ValueError("Integer targets and real logits are required")
+        if scores.dtype.kind == "f" and np.finfo(scores.dtype).nmant > np.finfo(np.float64).nmant:
+            raise ValueError("Floating logits must have precision no greater than float64")
         if scores.shape != (*labels.shape, classes):
             raise ValueError("Logits must match target shape with one trailing class axis")
         if ((labels < 0) | (labels >= classes)).any():
