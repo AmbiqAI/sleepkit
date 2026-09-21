@@ -12,6 +12,7 @@ nav:
     - Quickstart: quickstart.md
     - Shared foundation: shared-foundation.md
     - Reusable blocks: reusable-blocks.md
+    - Staging baseline: staging-baseline.md
     - Golden experiment: detection-golden.md
     - Detection profiling: detection-profiling.md
     - Preparation performance: detection-preparation-performance.md

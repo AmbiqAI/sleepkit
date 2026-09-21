@@ -129,6 +129,13 @@ The [first golden experiment](docs/detection-golden.md) pins the membership
 baseline's config and dataset evidence. The [profiling harness](docs/detection-profiling.md)
 measures preparation, loading and training while preserving its finite sampling contract.
 
+### Saved-feature sleep staging
+
+The [staging baseline guide](docs/staging-baseline.md) provides an explicit
+read → preprocess → window → evaluate path for the historical SS-3 Keras model.
+It records cohort/input hashes and coverage while keeping historical provenance
+limitations visible.
+
 ### Licensing
 
 The code and Ambiq-authored documentation/site content use [BSD-3-Clause](LICENSE),

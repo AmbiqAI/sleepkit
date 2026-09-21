@@ -2,8 +2,8 @@
 
 `sleepkit.recipes.staging` prepares ordered, per-subject FS-W-PA-14 feature records
 for the historical SS-3-TCN-SM input contract. It provides ordinary Python
-functions for reading, preprocessing, and windowing. It does not train a model,
-run inference, or establish model accuracy.
+functions for reading, preprocessing, windowing, and checkpoint evaluation. It
+does not train a model or regenerate raw features.
 
 ```python
 from sleepkit.recipes.staging import read_subject, prepare_subject, window_subject
@@ -112,3 +112,43 @@ baseline needs explicit, disjoint subject membership before windowing. Availabil
 of a historical checkpoint and evaluation subject list does not establish fresh
 held-out performance. This preprocessing module deliberately makes no split or
 model-quality claim.
+
+## Evaluate an explicit cohort
+
+Create a private `cohort.json` containing a nonempty JSON list of unique HDF5
+filename stems, for example `["example-001", "example-002"]`. Selection is explicit;
+there is no implicit filesystem split. Keep the cohort and source records with
+private evaluation evidence. Use the frozen project dependencies with the
+`detection` extra (Keras/TensorFlow and HDF5) for the first supported replay.
+
+```sh
+KERAS_BACKEND=tensorflow python -m sleepkit.recipes.staging.evaluation \
+  --features-dir /path/to/fs-w-pa-14-60/mesa \
+  --checkpoint /path/to/ss-3-tcn-sm/model.keras \
+  --cohort /private/cohort.json \
+  --output /private/replay-report.json
+```
+
+The command loads the Keras archive without its historical custom compile
+configuration, requires float32 `[batch,240,14]` input and linear
+`[batch,240,3]` output, and evaluates one subject at a time in bounded batches.
+A final reshape after the linear logit layer is supported. Model outputs must
+be finite, including excluded positions. An empty scoring population fails.
+
+The aggregate report includes sample-weighted confusion counts, accuracy,
+macro F1, cross entropy, class order, coverage, the protocol, package/backend
+versions, checkpoint/cohort hashes, a source-inventory digest, and implementation
+file hashes. The source digest is SHA-256 of a UTF-8 JSON object mapping subject
+stem to HDF5 SHA-256, with sorted keys and compact `(',', ':')` separators.
+The canonical subject-set digest uses sorted stems joined with a newline and
+no trailing newline. Preserve the private input files to reconstruct that
+inventory; the report does not disclose identifiers, paths, individual metrics,
+feature arrays, or model bytes. Hashes are provenance, not anonymization.
+
+Inputs and code are snapshotted before use and rechecked before writing the
+report. This detects changes between checks; it does not lock files or prevent
+concurrent writes. Existing reports are never overwritten. Model loading,
+validation, scoring, or snapshot failures do not produce a completed report.
+The report is evaluation evidence, not a deployable model bundle or an HF release.
+It always records unverified historical training membership and raw provenance;
+ordinary cross entropy and macro F1 are not the archived focal loss and weighted F1.
