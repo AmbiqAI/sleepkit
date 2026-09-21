@@ -152,7 +152,11 @@ python -m sleepkit.artifacts publish /path/to/int8-run/bundle \
 The second command is a local dry run. The repository name is a proposed dedicated
 destination, not an existing deployment. Upload requires an explicitly chosen model
 artifact license and the `--upload` option; source-code licensing is not assumed to
-cover model weights. No upload is part of quantization. Hosting these files on the
+cover model weights. The [licensing policy](model-licensing-policy.md) records
+CC BY-NC-SA 4.0 without an Ambiq hardware restriction as the conservative candidate
+for this CMIDSS model. Data-access, training-purpose and model-redistribution facts
+still need to be recorded before release; choosing an NC label alone does not
+resolve them. No upload is part of quantization. Hosting these files on the
 Hub would provide downloadable artifacts, not a hosted inference endpoint.
 
 MCU operator compatibility, arena/RAM requirements, device latency and power remain

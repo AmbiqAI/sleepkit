@@ -14,7 +14,7 @@ sleepKIT is an AI Development Kit (ADK) that enables developers to easily build 
 * **Real-time**: Inference is performed in real-time on battery-powered, edge devices.
 * **Efficient**: Leverage modern AI techniques coupled with Ambiq's ultra-low power SoCs
 * **Generalizable**: Multi-modal, multi-task, multi-dataset
-* **Open Source**: sleepKIT is open source and available on GitHub.
+* **Open Source Code**: Code and Ambiq-authored documentation/site content use BSD-3-Clause, except separately licensed material. Model weights and datasets have [their own terms](model-licensing-policy.md).
 
 Please explore the sleepKIT Docs, a comprehensive resource designed to help you understand and utilize all the built-in features and capabilities.
 

@@ -86,7 +86,7 @@ __sleepKIT__ provides a number of **modes** that can be invoked for a given task
 
 ## Datasets
 
-__sleepKIT__ includes several open-source datasets for training each of the sleepKIT tasks via a __dataset factory__. For certain tasks, we also provide synthetic data provided by [physioKIT](https://ambiqai.github.io/physiokit) to help improve model generalization. Each dataset has a corresponding Python class to aid in downloading and generating data for the given task. Additional datasets can be easily added to the sleepKIT framework by creating a new dataset class and registering it to the dataset factory.
+__sleepKIT__ provides interfaces to research datasets for training each of the sleepKIT tasks via a __dataset factory__. Each dataset has its own access and use terms. For certain tasks, we also provide synthetic data provided by [physioKIT](https://ambiqai.github.io/physiokit) to help improve model generalization. Each dataset has a corresponding Python class to aid in downloading and generating data for the given task. Additional datasets can be easily added to the sleepKIT framework by creating a new dataset class and registering it to the dataset factory.
 
 - **MESA**: A large-scale polysomnography dataset with 6,814 subjects collected from 6 field centers.
 - **CMIDSS**: A dataset of 300 subjects with over 500 multi-day recordings of wrist-worn accelerometer data annotated with two event types: onset, the beginning of sleep, and wakeup, the end of sleep.
@@ -124,3 +124,11 @@ TFLite baseline. Staging and publication dry runs require no training runtime.
 See [the detection recipe guide](docs/detection-recipe.md) for a sensor-to-artifact
 pipeline with built-in feature generation, fitted preprocessing, held-out evaluation,
 and unlabeled inference. It is additive to the legacy task CLI.
+
+### Licensing
+
+The code and Ambiq-authored documentation/site content use [BSD-3-Clause](LICENSE),
+except material with a separate notice. Model weights and datasets have their own
+terms; public availability does not imply commercial-use permission. See the
+[model licensing policy](docs/model-licensing-policy.md) for per-model choices,
+research restrictions and proposed optional Ambiq device terms.
