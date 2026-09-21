@@ -16,7 +16,7 @@ from sleepkit.recipes._components import FileSnapshot, implementation_files, sum
 
 from sleepkit.artifacts.baselines import HASHES
 from sleepkit.artifacts.package import sha256, write_json
-from .evaluation import summarize
+from .evaluation import read_bound_json, summarize
 from .historical import SD2Runtime, read_verified_features
 from .preprocessing import fingerprint
 
@@ -78,13 +78,16 @@ def compare(run_path, source, feature_root, baseline_source, output_path):
     source.verify_unchanged()
     if any(sha256(baseline_source / name) != digest for name, digest in HASHES.items()):
         raise ValueError("Historical source files differ from the pinned release")
-    recipe = json.loads((run / "bundle/recipe.json").read_text())
+    recipe_hash = sha256(run / "bundle/recipe.json")
+    recipe = read_bound_json(run, "bundle/recipe.json", {"bundle/recipe.json": recipe_hash})
     if (source.provenance != recipe.get("dataset") or fingerprint(source.split) != recipe.get("split_sha256")
             or fingerprint(source.source_hashes) != recipe.get("source_sha256")):
         raise ValueError("Source protocol differs from the evaluated run")
     output.mkdir(parents=True, exist_ok=False)
     code_snapshot = FileSnapshot.capture(implementation_files(Path(__file__).parent))
     verified = summarize(run, output / "new-evaluation.json")
+    if verified["evidence_sha256"]["bundle/recipe.json"] != recipe_hash:
+        raise ValueError("Recipe changed between source-protocol validation and evaluation")
     subjects = source.split["test"]
     feature_hashes = {s: sha256(feature_root / f"{s}.h5") for s in subjects}
     declaration = {
