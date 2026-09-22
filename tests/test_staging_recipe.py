@@ -102,6 +102,14 @@ def test_training_retains_partial_batches_and_heldout_values_do_not_change_weigh
         np.testing.assert_array_equal(before, after)
 
 
+def test_integer_learning_rate_is_accepted_by_training(inputs, runtime):
+    keras, _ = runtime
+    parts = prepared(inputs)
+    model, history = recipe.train(parts["train"], parts["validation"], recipe.Config(epochs=1, learning_rate=1))
+    assert float(keras.ops.convert_to_numpy(model.optimizer.learning_rate)) == 1.0
+    assert len(history["loss"]) == 1
+
+
 def test_golden_run_archive_and_fresh_consumer(inputs, tmp_path):
     source, split, _ = inputs
     golden = tmp_path / "golden.json"

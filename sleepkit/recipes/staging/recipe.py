@@ -116,7 +116,7 @@ def train(training, validation, config=Config(), *, model_builder=build_model):
     model = model_builder()
     validate_model(model)
     model.compile(
-        optimizer=keras.optimizers.Adam(config.learning_rate),
+        optimizer=keras.optimizers.Adam(float(config.learning_rate)),
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True, reduction="mean_with_sample_weight"),
         jit_compile=False,
     )
