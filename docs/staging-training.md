@@ -110,6 +110,11 @@ changing code/data/runtime is a new qualification decision, not a silent golden
 update. This is procedural reproducibility, not a promise of bitwise training
 results across machines/backends. Golden names are labels, not orchestration.
 
+The repository's [prospective MESA declaration](https://github.com/AmbiqAI/sleepkit/blob/main/experiments/staging-golden.json)
+pins the first five-epoch, seed-0 configuration. It contains hashes, not private
+subject IDs or learned performance thresholds. Recreate or retain the private
+manifest above and match the declared runtime to replay it.
+
 The default run uses the final declared epoch, without early stopping, test-driven
 selection or tuned thresholds. The test partition is scored after training and
 is never passed to fit. The complete manifest is validated before preparation;

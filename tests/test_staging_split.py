@@ -57,3 +57,18 @@ def test_invalid_split_generation_rejected(kwargs):
     options = {"dataset": "synthetic", "validation_count": 1, "test_count": 1, **kwargs}
     with pytest.raises(ValueError):
         create_split(["a", "b", "c", "d"], **options)
+
+
+def test_checked_in_golden_pins_current_implementation():
+    from pathlib import Path
+    from sleepkit.artifacts.package import sha256
+    from sleepkit.recipes._components import implementation_files
+    from sleepkit.recipes.staging import recipe
+
+    root = Path(__file__).resolve().parents[1]
+    definition = json.loads((root / "experiments/staging-golden.json").read_text())
+    assert definition["schema"] == recipe.GOLDEN_SCHEMA
+    assert definition["expected"]["config"] == {"epochs": 5, "batch_size": 32, "learning_rate": 0.001, "seed": 0}
+    assert definition["expected"]["implementation_sha256"] == {
+        name: sha256(path) for name, path in implementation_files(Path(recipe.__file__).parent).items()
+    }
