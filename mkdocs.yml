@@ -13,6 +13,7 @@ nav:
     - Shared foundation: shared-foundation.md
     - Reusable blocks: reusable-blocks.md
     - Staging baseline: staging-baseline.md
+    - Staging training: staging-training.md
     - Golden experiment: detection-golden.md
     - Detection profiling: detection-profiling.md
     - Preparation performance: detection-preparation-performance.md
