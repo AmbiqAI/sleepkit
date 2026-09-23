@@ -56,4 +56,4 @@ jobs:
       - if: matrix.backend == 'torch'
         run: uv pip install 'torch==2.14.0' --index-url https://download.pytorch.org/whl/cpu
       - run: uv pip install -r requirements/edge-${{ matrix.backend }}.txt
-      - run: .venv/bin/python -m pytest tests/test_edge_candidates.py tests/test_signal_recipe.py
+      - run: .venv/bin/python -m pytest tests/test_edge_candidates.py tests/test_signal_recipe.py tests/test_staging_recipe.py

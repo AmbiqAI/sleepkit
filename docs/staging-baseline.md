@@ -2,8 +2,9 @@
 
 `sleepkit.recipes.staging` prepares ordered, per-subject FS-W-PA-14 feature records
 for the historical SS-3-TCN-SM input contract. It provides ordinary Python
-functions for reading, preprocessing, windowing, and checkpoint evaluation. It
-does not train a model or regenerate raw features.
+functions for reading, preprocessing, windowing, and checkpoint evaluation. This guide covers replay;
+[new-model training](staging-training.md) is a separate explicit flow. Neither
+path regenerates raw features.
 
 ```python
 from sleepkit.recipes.staging import read_subject, prepare_subject, window_subject

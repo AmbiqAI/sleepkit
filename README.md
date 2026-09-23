@@ -134,7 +134,8 @@ measures preparation, loading and training while preserving its finite sampling 
 The [staging baseline guide](docs/staging-baseline.md) provides an explicit
 read → preprocess → window → evaluate path for the historical SS-3 Keras model.
 It records cohort/input hashes and coverage while keeping historical provenance
-limitations visible.
+limitations visible. The [staging training recipe](docs/staging-training.md) adds
+explicit subject splits, Keras training, and prospective golden declarations.
 
 ### Licensing
 
