@@ -140,6 +140,7 @@ def train(training, validation, config=Config(), *, model_builder=build_model):
 
 def evaluate(model, partition, batch_size=32):
     """Pooled scored-epoch metrics; unlike Keras history, not averaged batch means."""
+    validate_model(model)
     partition.fit_arrays()  # Validate caller-constructed partitions too.
     accumulator = ClassificationAccumulator(len(CLASS_ORDER))
     evaluate_windows(model, partition, accumulator, batch_size)
