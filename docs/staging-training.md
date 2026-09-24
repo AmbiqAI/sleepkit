@@ -55,7 +55,9 @@ metrics = evaluate(model, validation)
 The default model is a small Conv1D network with float32 `[batch,240,14]` inputs
 and linear `[batch,240,3]` outputs ordered WAKE, NREM, REM. The lower-level `train`
 function accepts another builder with this interface; `train` and `evaluate` reject
-models without it, including softmax outputs. The promoted `run` and
+models outside it, for example one whose final layer uses a softmax activation. The
+activation check reads the final layer only, so a nonlinearity applied afterwards as
+a Keras op is not detected. The promoted `run` and
 golden flow fix the default builder so they can record its implementation.
 Custom experimental builders do not automatically inherit golden provenance.
 
@@ -117,7 +119,8 @@ subject IDs or learned performance thresholds. Recreate or retain the private
 manifest above and match the declared runtime to replay it.
 
 The seed-0 results reported in [#41](https://github.com/AmbiqAI/sleepkit/pull/41)
-were produced at commit `46605b4`, before `evaluate` validated the model interface.
+were produced at commit `46605b4` (merged as `c6b67ea`), before `evaluate` validated
+the model interface.
 That change re-pinned the declaration's implementation hashes, so those results are
 evidence for that commit, not a run of the current declaration.
 
