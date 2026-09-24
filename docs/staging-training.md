@@ -54,7 +54,8 @@ metrics = evaluate(model, validation)
 
 The default model is a small Conv1D network with float32 `[batch,240,14]` inputs
 and linear `[batch,240,3]` outputs ordered WAKE, NREM, REM. The lower-level `train`
-function accepts another builder with this interface. The promoted `run` and
+function accepts another builder with this interface; `train` and `evaluate` reject
+models without it, including softmax outputs. The promoted `run` and
 golden flow fix the default builder so they can record its implementation.
 Custom experimental builders do not automatically inherit golden provenance.
 
@@ -114,6 +115,11 @@ The repository's [prospective MESA declaration](https://github.com/AmbiqAI/sleep
 pins the first five-epoch, seed-0 configuration. It contains hashes, not private
 subject IDs or learned performance thresholds. Recreate or retain the private
 manifest above and match the declared runtime to replay it.
+
+The seed-0 results reported in [#41](https://github.com/AmbiqAI/sleepkit/pull/41)
+were produced at commit `46605b4`, before `evaluate` validated the model interface.
+That change re-pinned the declaration's implementation hashes, so those results are
+evidence for that commit, not a run of the current declaration.
 
 The default run uses the final declared epoch, without early stopping, test-driven
 selection or tuned thresholds. The test partition is scored after training and

@@ -110,6 +110,21 @@ def test_integer_learning_rate_is_accepted_by_training(inputs, runtime):
     assert len(history["loss"]) == 1
 
 
+@pytest.mark.parametrize("activation", ["linear", "softmax", "sigmoid"])
+def test_evaluate_requires_linear_logits(inputs, runtime, activation):
+    keras, _ = runtime
+    features = keras.Input((240, 14), dtype="float32")
+    model = keras.Model(features, keras.layers.Dense(3, activation, kernel_initializer="zeros")(features))
+    validation = prepared(inputs)["validation"]
+    if activation != "linear":
+        with pytest.raises(ValueError, match="final linear activation"):
+            recipe.evaluate(model, validation)
+        return
+    metrics = recipe.evaluate(model, validation)
+    assert metrics["count"] == validation.scoring_mask.sum()
+    assert metrics["cross_entropy"] == pytest.approx(np.log(3))
+
+
 def test_golden_run_archive_and_fresh_consumer(inputs, tmp_path):
     source, split, _ = inputs
     golden = tmp_path / "golden.json"
