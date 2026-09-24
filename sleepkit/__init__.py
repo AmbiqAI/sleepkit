@@ -6,7 +6,7 @@ from importlib.metadata import PackageNotFoundError, version
 try:
     __version__ = version("sleepkit")
 except PackageNotFoundError:
-    __version__ = "0.11.1"
+    __version__ = "0.12.0"
 
 _MODULES = {"cli", "datasets", "models", "backends", "tasks", "features"}
 _EXPORTS = {
