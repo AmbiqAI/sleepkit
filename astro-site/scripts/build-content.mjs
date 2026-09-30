@@ -1,3 +1,4 @@
+import { internalPages } from "./public-docs.mjs";
 import {
   existsSync,
   readFileSync,
@@ -43,7 +44,7 @@ function readSnippet(file) {
 }
 for (const file of walk(source)) {
   const rel = relative(source, file);
-  if (/^(css|js|overrides)\//.test(rel)) continue;
+  if (/^(css|js|overrides)\//.test(rel) || internalPages.has(rel)) continue;
   if (!rel.endsWith(".md")) {
     if (!rel.endsWith(".ipynb")) {
       mkdirSync(dirname("public/" + rel), { recursive: true });
@@ -56,6 +57,11 @@ for (const file of walk(source)) {
     readFileSync(file, "utf8").replace(/<!--[\s\S]*?-->/g, ""),
     readSnippet,
   );
+  raw = raw.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (all, label, href) => {
+    if (/^(https?:|mailto:|#|\/)/.test(href)) return all;
+    const target = relative(source, resolve(dirname(file), href.split("#")[0]));
+    return internalPages.has(target) ? label : all;
+  });
   raw = raw.replace(/\]\(([^)]+)\)/g, (all, href) => {
     if (/^(https?:|mailto:|#|\/)/.test(href)) return all;
     const [path, hash] = href.split("#");

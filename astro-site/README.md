@@ -24,3 +24,5 @@ npm test
 The notebook page uses `notebooks/train-detect-model.ipynb`, preserving its saved outputs, three figures and downloadable original. The earlier `docs/guides/` copy is retained as an archive download. Neither source is overwritten. Historical notebook outputs do not establish validation against the latest package.
 
 The documentation workflow checks pull requests and publishes main to GitHub Pages. It can also be dispatched manually on main. It does not publish Python packages. Package publishing remains in the release workflows; documentation no longer depends on a package release.
+
+Public reference generation excludes underscore-prefixed implementation modules before rendering, so they do not appear in pages, catalog, search or machine-readable exports. `scripts/public-docs.mjs` lists repository-only maintainer/proposal pages omitted from publication. Their sources remain in the repository.

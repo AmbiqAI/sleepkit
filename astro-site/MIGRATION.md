@@ -41,3 +41,7 @@ PRs build and test the site; main and manual main dispatch publish Pages. The pa
 Five major sections: Home, Getting started, User guide, Tasks and Reference. Every content page has section membership while preserving existing URLs. The local section matcher is resolved only for HELIA's section-matching imports so its header and sidebar use the same route assignment. A build guard checks section coverage; browser checks confirm both the selected navbar link and scoped sidebar on historical routes. Mobile retains access to all five sections with the current section expanded.
 
 Landing installation examples are copyable Bash commands with no Termynal progress artifacts . Ten browser tests pass.
+
+## Public documentation boundary
+
+Private implementation API modules and their redirects are excluded. Shared architecture proposals, reusable-component experiments, feature-preparation implementation notes and unadopted draft license terms stay in the repository and are not published. Public task workflows and model licensing guidance remain. The public site now contains 55 authored Markdown pages, one notebook and 110 API modules (216 catalog symbols). Output checks reject internal routes and private modules in the catalog/reference model.

@@ -1,3 +1,4 @@
+import { internalPages, isPrivateModule } from "./public-docs.mjs";
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { resolve, relative, join } from "node:path";
 import { parseHTML } from "linkedom";
@@ -45,6 +46,17 @@ for (const file of files(root).filter((f) => f.endsWith(".html"))) {
 }
 const index = JSON.parse(readFileSync("src/data/api-index.json", "utf8"));
 assert(index.rows.length >= 200, "API coverage unexpectedly reduced");
+assert(index.rows.every((row) => !isPrivateModule(row.module)), "Private API in catalog");
+const apiModel = JSON.parse(readFileSync("dist/reference/api/reference.json", "utf8"));
+function checkPublic(module) {
+  assert(!isPrivateModule(module.path), `Private module published: ${module.path}`);
+  (module.submodules ?? []).forEach(checkPublic);
+}
+apiModel.modules.forEach(checkPublic);
+for (const file of files(root)) {
+  const route = relative(root, file).replaceAll("\\", "/");
+  assert(!route.split("/").some((part) => part.startsWith("_") && !part.startsWith("_astro")), `Private route published: ${route}`);
+}
 assert(existsSync("dist/llms-full.txt"), "Missing LLM export");
 assert(existsSync("dist/pagefind/pagefind.js"), "Missing search index");
 assert(
@@ -63,6 +75,10 @@ for (const path of files(resolve("../docs")).filter(
   (p) => p.endsWith(".md") && !p.includes("/assets/"),
 )) {
   const rel = relative(resolve("../docs"), path).replace(/(?:index)?\.md$/, "");
+  if (internalPages.has(relative(resolve("../docs"), path))) {
+    assert(!existsSync(join(root, rel, "index.html")), `Internal page published: ${rel}`);
+    continue;
+  }
   assert(
     existsSync(join(root, rel, "index.html")),
     `Missing authored route: ${rel}`,

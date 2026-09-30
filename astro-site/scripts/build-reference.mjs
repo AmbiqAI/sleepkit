@@ -1,5 +1,6 @@
+import { isPrivateModule } from "./public-docs.mjs";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 const repo = resolve("..");
 const run = (cmd, args) =>
@@ -8,6 +9,7 @@ const run = (cmd, args) =>
     encoding: "utf8",
     maxBuffer: 128 * 1024 * 1024,
   });
+rmSync("public/reference", { recursive: true, force: true });
 const commit = run("git", ["rev-parse", "HEAD"]).trim();
 mkdirSync(".cache", { recursive: true });
 const dump = JSON.parse(
@@ -34,7 +36,10 @@ function clean(node) {
       if (s.kind === "text")
         s.value = s.value.replace(/:(?:material|simple|fontawesome|octicons)-[\w-]+:/g, "");
   }
-  for (const child of Object.values(node.members ?? {})) clean(child);
+  for (const [name, child] of Object.entries(node.members ?? {})) {
+    if (child.kind === "module" && isPrivateModule(name)) delete node.members[name];
+    else clean(child);
+  }
 }
 clean(dump.sleepkit);
 writeFileSync(".cache/griffe.json", JSON.stringify(dump));

@@ -29,5 +29,3 @@ Train a sleep-detection model from wrist IMU data in the saved notebook, or expl
 
 [Detection training notebook](train-detect-model.ipynb){ .md-button }
 [Staging ablation study](stage-ablation.md){ .md-button }
-
-Implementation comparisons and architecture proposals are grouped under **Maintainer notes** in the sidebar.

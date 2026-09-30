@@ -44,18 +44,6 @@ export const sections = [
         page("Train a detection model", "guides/train-detect-model"),
         page("Staging ablation", "guides/stage-ablation"),
       ]),
-      {
-        label: "Maintainer notes",
-        collapsed: true,
-        items: [
-          page(
-            "Feature extraction performance",
-            "detection-preparation-performance",
-          ),
-          page("Shared architecture notes", "shared-foundation"),
-          page("Reusable component experiments", "reusable-blocks"),
-        ],
-      },
     ],
   },
   {
@@ -88,7 +76,6 @@ export const sections = [
       ]),
       group("Licensing", [
         page("Model licensing", "model-licensing-policy"),
-        page("Draft model terms", "licenses/ambiq-device-model-license-draft"),
       ]),
       ...apiGroups,
     ],
