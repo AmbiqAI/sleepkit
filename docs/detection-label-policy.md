@@ -1,5 +1,8 @@
 # Candidate event-supported label policy
 
+This page preserves a historical evaluation checkpoint. For the implemented workflow, see the [annotated dataset adapter](detection-annotated-dataset.md) and [comparison report](detection-comparison.md). The checkpoint discussion below records the decisions leading to that workflow.
+
+
 Status: implemented candidate policy `sleepkit.event_candidates/v1`, separate from
 the active training label policy. No existing HDF5 labels or historical model inputs are rewritten here.
 The policy requires verified raw-step/HDF5 alignment before materialization.

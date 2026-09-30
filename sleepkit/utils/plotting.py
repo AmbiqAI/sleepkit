@@ -83,7 +83,8 @@ def setup_plotting(theme: PlotPallette = dark_theme) -> PlotPallette:
     ```python
     import sleepkit as sk
 
-    plot_theme = sk.util.setup_plotting(sk.utils.light_theme)
+    plot_theme = sk.utils.setup_plotting(sk.utils.light_theme)
+    ```
     """
     SMALL_SIZE = 12
     MEDIUM_SIZE = 14

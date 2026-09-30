@@ -13,16 +13,15 @@ Please check [helia-edge](https://ambiqai.github.io/helia-edge/) for list of ava
 
 ## Available Models
 
-- **[TCN](https://ambiqai.github.io/helia-edge/models/tcn)**: A CNN leveraging dilated convolutions (key=`tcn`)
-- **[U-Net](https://ambiqai.github.io/helia-edge/models/unet)**: A CNN with encoder-decoder architecture for segmentation tasks (key=`unet`)
-- **[U-NeXt](https://ambiqai.github.io/helia-edge/models/unext)**: A U-Net variant leveraging MBConv blocks (key=`unext`)
-- **[EfficientNetV2](https://ambiqai.github.io/helia-edge/models/efficientnet)**: A CNN leveraging MBConv blocks (key=`efficientnet`)
-- **[MobileOne](https://ambiqai.github.io/helia-edge/models/mobileone)**: A CNN aimed at sub-1ms inference (key=`mobileone`)
-- **[ResNet](https://ambiqai.github.io/helia-edge/models/resnet)**: A popular CNN often used for vision tasks (key=`resnet`)
-- **[Conformer](https://ambiqai.github.io/helia-edge/models/conformer)**: A transformer composed of both convolutional and self-attention blocks (key=`conformer`)
-- **[MetaFormer](https://ambiqai.github.io/helia-edge/models/metaformer)**: A transformer composed of both spatial mixing and channel mixing blocks (key=`metaformer`)
-- **[TSMixer](https://ambiqai.github.io/helia-edge/models/tsmixer)**: An All-MLP Architecture for Time Series Classification (key=`tsmixer`)
+The model factory registers these names:
 
+- `tcn`: temporal convolutional network
+- `unet`: U-Net encoder-decoder
+- `unext`: an alias for the U-Net builder
+- `efficientnetv2`: EfficientNetV2
+- `mobileone`: MobileOne
+- `resnet`: residual network
+- `composer`: configurable model composition
 
 ## Model Factory
 
@@ -37,39 +36,36 @@ for model in sk.ModelFactory.list():
 
 ## Usage
 
-A model architecture can easily be instantied by providng a custom set of parameters to the model factory. Each model exposes a set of parameters defined using `Pydantic` to ensure type safety and consistency.
+A model architecture can easily be instantiated by providing a custom set of parameters to the model factory. Each model exposes a set of parameters defined using `Pydantic` to ensure type safety and consistency.
 
+The following example demonstrates how to create a TCN model using the `TcnModel` class. The model is defined using a set of parameters defined in the `TcnParams` and `TcnBlockParams` classes.
 
-!!! Example
+```py linenums="1"
+import keras
+from helia_edge.models import TcnModel, TcnParams, TcnBlockParams
 
-    The following example demonstrates how to create a TCN model using the `Tcn` class. The model is defined using a set of parameters defined in the `TcnParams` and `TcnBlockParams` classes.
+inputs = keras.Input(shape=(800, 1))
+num_classes = 5
 
-    ```py linenums="1"
-    import keras
-    from helia_edge.models import TcnModel, TcnParams, TcnBlockParams
-
-    inputs = keras.Input(shape=(800, 1))
-    num_classes = 5
-
-    model = TcnModel.model_from_params(
-        x=inputs,
-        params=TcnParams(
-            input_kernel=(1, 3),
-            input_norm="batch",
-            blocks=[
-                TcnBlockParams(filters=8, kernel=(1, 3), dilation=(1, 1), dropout=0.1, ex_ratio=1, se_ratio=0, norm="batch"),
-                TcnBlockParams(filters=16, kernel=(1, 3), dilation=(1, 2), dropout=0.1, ex_ratio=1, se_ratio=0, norm="batch"),
-                TcnBlockParams(filters=24, kernel=(1, 3), dilation=(1, 4), dropout=0.1, ex_ratio=1, se_ratio=4, norm="batch"),
-                TcnBlockParams(filters=32, kernel=(1, 3), dilation=(1, 8), dropout=0.1, ex_ratio=1, se_ratio=4, norm="batch"),
-            ],
-            output_kernel=(1, 3),
-            include_top=True,
-            use_logits=True,
-            model_name="tcn",
-        ),
-        num_classes=num_classes,
-    )
-    ```
+model = TcnModel.model_from_params(
+    inputs=inputs,
+    params=TcnParams(
+        input_kernel=(1, 3),
+        input_norm="batch",
+        blocks=[
+            TcnBlockParams(filters=8, kernel=(1, 3), dilation=(1, 1), dropout=0.1, ex_ratio=1, se_ratio=0, norm="batch"),
+            TcnBlockParams(filters=16, kernel=(1, 3), dilation=(1, 2), dropout=0.1, ex_ratio=1, se_ratio=0, norm="batch"),
+            TcnBlockParams(filters=24, kernel=(1, 3), dilation=(1, 4), dropout=0.1, ex_ratio=1, se_ratio=4, norm="batch"),
+            TcnBlockParams(filters=32, kernel=(1, 3), dilation=(1, 8), dropout=0.1, ex_ratio=1, se_ratio=4, norm="batch"),
+        ],
+        output_kernel=(1, 3),
+        include_top=True,
+        use_logits=True,
+        model_name="tcn",
+    ),
+    num_classes=num_classes,
+)
+```
 
 """
 

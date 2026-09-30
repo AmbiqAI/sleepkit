@@ -53,9 +53,9 @@ local TS, validates continuity against it, and uses local TS only for the time-o
 feature. This contract carries through caching, training, and unlabeled inference.
 Inputs without independent clock evidence retain the strict local-TS check.
 
-The [candidate event-supported label policy](detection-label-policy.md) is still a
-proposal. It must be reviewed against the source annotation protocol before being
-materialized as a new training/evaluation dataset.
+The [event-supported label policy](detection-label-policy.md) records the adopted
+derived annotated-period membership target. The [dataset adapter](detection-annotated-dataset.md)
+implements that target without overwriting source labels.
 
 ## Parquet dependency compatibility
 

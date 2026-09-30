@@ -96,10 +96,12 @@ A feature window contains 12 source samples (60 seconds), advancing 6 samples
 with population standard deviations. The time-of-day feature averages the cosine
 of each source timestamp: `mean(cos(2*pi*TS/86400))`. Encoding before averaging
 keeps windows spanning midnight close to +1 rather than interpreting them as noon.
-This corrects the legacy formula and changes the preprocessing contract to v2.
+The v2 contract corrected the original time-of-day formula. The default v3
+contract additionally validates continuity with an independent UTC sample clock;
+see [sample-clock alignment](detection-sample-clock.md).
 Old v1 caches are bypassed, and v1 fitted states are rejected by this implementation.
 Retrain and export a new bundle; do not pair v1 model weights or normalization with
-v2 features. Historical baseline packaging and its original feature requirements
+v2 or v3 features. Historical baseline packaging and its original feature requirements
 remain unchanged.
 A window is invalid if any source sample is nonfinite; invalid windows are not
 imputed. Fitted normalization uses valid feature windows from training subjects
@@ -156,7 +158,7 @@ There is no base trainer or plugin registry. Optional integrations are explicit
 Python imports; a second recipe will determine which blocks merit extraction.
 Bump `SPEC.implementation_version` whenever feature extraction behavior changes,
 so caches and saved states cannot silently reuse an older implementation.
-The `sleepkit.cmidss_wrist/v2` preprocessing identifier and `sleepkit.detection/v1`
+The default `sleepkit.cmidss_wrist/v3` preprocessing identifier (with v2 compatibility) and `sleepkit.detection/v1`
 recipe identifier are versioned compatibility contracts. Inference refuses unknown
 contracts; manifests never specify arbitrary code to import.
 
@@ -194,13 +196,8 @@ exactly once. The last command is a dry run. These experimental bundles intentio
 have no chosen model license, so publication requires staging a licensed release
 using the artifact API. License choice and publication are separate release work.
 
-Current limits: float32 CPU TFLite only, no quantization or MCU validation, no full
-historical-baseline parity, no full-cohort benchmark. The next useful experiment is
-an agreed subject split and annotation policy, followed by baseline comparison and
-int8 conversion with representative training inputs.
+## Validation scope
 
-The export path follows the native [Keras export API](https://keras.io/api/models/model_saving_apis/export/)
-and [TensorFlow-to-LiteRT conversion](https://developers.google.com/edge/litert/conversion/tensorflow/convert_tf).
+The [first experiment](detection-first-experiment.md), [historical comparison](detection-comparison.md), and [INT8 conversion](detection-int8.md) document separate completed checkpoints and their evidence. Read their declared populations, target semantics and limitations before comparing results. These reports do not establish MCU validation or equivalence to a clinical sleep/wake task.
 
-Before interpreting model scores, follow the [evaluation checkpoint](detection-evaluation-protocol.md).
-It includes a read-only annotation audit and the provenance requirements for a fair comparison.
+The export path uses the native [Keras export API](https://keras.io/api/models/model_saving_apis/export/) and [TensorFlow-to-LiteRT conversion](https://developers.google.com/edge/litert/conversion/tensorflow/convert_tf). The [evaluation checkpoint](detection-evaluation-protocol.md) records the annotation audit and comparison requirements.

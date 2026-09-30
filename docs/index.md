@@ -1,79 +1,114 @@
-#
+# From sleep signals to Edge AI
 
-[![](./assets/sleepkit-logo-light.png#only-light)](https://ambiqai.github.io/sleepkit/)
-[![](./assets/sleepkit-logo-dark.png#only-dark)](https://ambiqai.github.io/sleepkit/)
+<div class="sleepkit-intro">
 
-*An AI Development Kit for real-time sleep-monitoring on ultra-low power Ambiq SoCs*
+sleepKIT is a Python development kit for building sleep-monitoring AI for Ambiq devices. Turn sensor recordings into features, train and evaluate models, and prepare them for deployment at the edge.
 
-## Overview
+</div>
 
-sleepKIT is an AI Development Kit (ADK) that enables developers to easily build and deploy real-time __sleep-monitoring__ models on Ambiq's family of ultra-low power SoCs. sleepKIT explores a number of sleep related tasks including sleep detection, staging, and sleep apnea detection. The kit includes a variety of datasets, feature sets, efficient model architectures, and a number of pre-trained models. The objective of the models is to outperform conventional, hand-crafted algorithms with efficient AI models that still fit within the stringent resource constraints of embedded devices. Furthermore, the included models are trainined using a large variety datasets- using a subset of biological signals that can be captured from a single body location such as head, chest, or wrist/hand. The goal is to enable models that can be deployed in real-world commercial and consumer applications that are viable for long-term use.
+## A starting point for your sleep-monitoring application
 
-**Key Features:**
+Building a sleep model takes more than choosing a network. You need recordings and labels, consistent signal processing, a training setup and a way to evaluate the results. sleepKIT brings these pieces together in a configurable development workflow for engineers and researchers working on wearable and edge applications.
 
-* **Real-time**: Inference is performed in real-time on battery-powered, edge devices.
-* **Efficient**: Leverage modern AI techniques coupled with Ambiq's ultra-low power SoCs
-* **Generalizable**: Multi-modal, multi-task, multi-dataset
-* **Open Source Code**: Code and Ambiq-authored documentation/site content use BSD-3-Clause, except separately licensed material. Model weights and datasets have [their own terms](model-licensing-policy.md).
+Start with the included dataset integrations, feature sets, model configurations and examples. Run experiments from the command line or compose a custom workflow with the Python API. You can replace individual components as your application develops, then use the export tools to prepare models for integration on Ambiq devices.
 
-Please explore the sleepKIT Docs, a comprehensive resource designed to help you understand and utilize all the built-in features and capabilities.
+## Included tasks
 
-## Getting Started
+Start with a built-in task, or extend the same workflow with your own training, evaluation and export routines.
 
-- **Install** `sleepKIT` with pip/uv and getting up and running in minutes. &nbsp; [:material-clock-fast: Install sleepKIT](./quickstart.md/#install-sleepkit){ .md-button }
-- **Train** a model with a custom network &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
-- **Tasks** `sleepKIT` provides tasks like staging, and apnea &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
-- **Datasets** Several built-in datasets can be leveraged &nbsp; [:material-database-outline: Explore Datasets](./datasets/index.md){ .md-button }
-- **Model Zoo** Pre-trained models are available for each task &nbsp; [:material-download: Explore Models](./zoo/index.md){ .md-button }
+<div class="sleepkit-task-grid">
+<a class="sleepkit-task-card" href="/sleepkit/tasks/detect/">
+<strong>Sleep detection</strong>
+<span>Identify sleep and wake periods from wrist-worn motion signals.</span>
+<span class="sleepkit-card-link">Explore detection →</span>
+</a>
+<a class="sleepkit-task-card" href="/sleepkit/tasks/stage/">
+<strong>Sleep staging</strong>
+<span>Explore feature sets and models for classifying sleep stages.</span>
+<span class="sleepkit-card-link">Explore staging →</span>
+</a>
+<a class="sleepkit-task-card" href="/sleepkit/tasks/apnea/">
+<strong>Sleep apnea</strong>
+<span>Explore the task and available resources for apnea event detection.</span>
+<span class="sleepkit-card-link">Explore apnea →</span>
+</a>
+<a class="sleepkit-task-card" href="/sleepkit/tasks/byot/">
+<strong>Bring your own task</strong>
+<span>Register a custom task and reuse sleepKIT’s configuration, datasets and development workflow.</span>
+<span class="sleepkit-card-link">Create a task →</span>
+</a>
+</div>
+
+Code and Ambiq-authored documentation use BSD-3-Clause, except separately licensed material. Model weights and datasets have [their own terms](model-licensing-policy.md).
 
 ## Installation
 
-To get started, first install the python package `sleepkit` along with its dependencies via `Git` or `PyPi`:
+Use **uv** for a Python project, **uvx** to run the CLI in an isolated environment, or **pipx** to keep the CLI installed. Choose **Git clone** when developing sleepKIT itself.
 
-=== "PyPI install"
-    <br/>
-    <div class="termy">
+<div class="sleepkit-install">
 
-    ```console
-    $ pip install sleepkit
+=== "uv project"
 
-    ---> 100%
+    Create a project with Python 3.12, then add sleepKIT. In an existing uv project, start with `uv add sleepkit`.
+
+    ```bash
+    uv init --python 3.12 my-sleep-project
+    cd my-sleep-project
+    uv add sleepkit
+    uv run sleepkit --help
     ```
 
-    </div>
+=== "uvx"
+
+    Run the CLI without adding sleepKIT to a project. The first invocation downloads sleepKIT and its dependencies into an isolated environment.
+
+    ```bash
+    uvx --python 3.12 sleepkit --help
+    ```
+
+    Use a project installation for Python imports and notebooks.
+
+=== "pipx"
+
+    Install the CLI in its own environment. This command uses an installed Python 3.12 interpreter.
+
+    ```bash
+    pipx install --python python3.12 sleepkit
+    sleepkit --help
+    ```
+
+    If the command is not on your PATH, run `pipx ensurepath` and reopen your terminal. Use a project installation for Python imports and notebooks.
+
+=== "pip"
+
+    Install into an activated virtual environment.
+
+    ```bash
+    python -m pip install sleepkit
+    sleepkit --help
+    ```
 
 === "Git clone"
-    <br/>
-    <div class="termy">
 
-    ```console
-    $ git clone https://github.com/AmbiqAI/sleepkit.git
-    Cloning into 'sleepkit'...
-    Resolving deltas: 100% (3491/3491), done.
-    $ cd sleepkit
-    $ uv sync
+    Work with the repository source and its development dependencies.
 
-    ---> 100%
+    ```bash
+    git clone https://github.com/AmbiqAI/sleepkit.git
+    cd sleepkit
+    uv sync --python 3.12
+    uv run sleepkit --help
     ```
 
-    </div>
+</div>
+
+Need the package manager first? See the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) or [pipx installation guide](https://pipx.pypa.io/stable/installation/). The [Quickstart](./quickstart.md) covers configuration and your first workflow.
+
 
 ---
 
 ## Usage
 
 __sleepKIT__ can be used as either a CLI-based tool or as a Python package to perform advanced development. In both forms, sleepKIT exposes a number of modes and tasks outlined below. In addition, by leveraging highly-customizable configurations, sleepKIT can be used to create custom workflows for a given application with minimal coding. Refer to the [Quickstart](./quickstart.md) to quickly get up and running in minutes.
-
----
-
-## Tasks
-
-__sleepKIT__ includes a number of built-in [tasks](./tasks/index.md). Each task provides reference routines for training, evaluating, and exporting the model. The routines can be customized by providing a configuration file or by setting the parameters directly in the code. Additional tasks can be easily added to the __sleepKIT__ framework by creating a new task class and registering it to the __task factory__.
-
-- **[Detect](./tasks/detect.md)**: Detect sustained sleep/inactivity bouts
-- **[Stage](./tasks/stage.md)**: Perform advanced sleep stage assessment
-- **[Apnea](./tasks/apnea.md)**: Detect hypopnea/apnea events
-- **[BYOT](./tasks/byot.md)**: Bring-Your-Own-Task (BYOT) to create custom tasks
 
 ---
 

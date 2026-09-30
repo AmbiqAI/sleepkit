@@ -94,6 +94,7 @@ def create_augmentation_pipeline(augmentations: list[NamedParams]) -> helia.laye
     ])
 
     y = augmenter(x)
+    ```
     """
     if not augmentations:
         return keras.layers.Lambda(lambda x: x)

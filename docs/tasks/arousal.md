@@ -1,11 +1,5 @@
-# Sleep Arousal Task
+# Sleep arousal
 
-## Overview
+Sleep arousal is not a registered sleepKIT task. This URL is retained for existing links; no arousal model or workflow is provided here.
 
-Sleep arousal detection is the process of identifying sleep arousal events. This task is useful for identifying sleep disorders and for monitoring sleep quality.
-
-## Characteristics
-
-## Model Zoo
-
-## Target Classes
+[View supported tasks](index.md){ .md-button }

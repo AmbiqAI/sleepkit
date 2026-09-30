@@ -18,19 +18,18 @@ The target location for this feature set is the __chest__. From this location, t
 
 ## Features
 
-This feature set includes the following 14 features:
+This feature set includes the following 9 features:
 
 | Feature Name | Description | Sensor |
 | --- | --- | --- |
-| hr_bpm | Mean heart rate in beats per minute | PPG |
-| hrv_td_mean_nn | Mean of the NN intervals | PPG |
-| hrv_td_sd_nn | Standard deviation of the NN intervals | PPG |
-| hrv_td_median_nn | Median of the NN intervals | PPG |
-| hrv_fd_lfhf_ratio | Ratio of low frequency to high frequency power in the frequency domain | PPG |
+| hrv_td_mean_nn | Mean of the NN intervals | ECG |
+| hrv_td_sd_nn | Standard deviation of the NN intervals | ECG |
+| hrv_td_median_nn | Median of the NN intervals | ECG |
+| hrv_fd_lfhf_ratio | Ratio of low frequency to high frequency power in the frequency domain | ECG |
 | mov_mu | Mean movement | IMU |
 | mov_std | Standard deviation of movement | IMU |
 | mov_med | Median movement | IMU |
-| rsp_bpm | Mean respiration rate derived from the PPG signal | RSP |
+| rsp_bpm | Mean respiration rate derived from the respiratory signal | RSP |
 | hrv_qos | Quality of signal derived from HRV | ECG |
 
 
@@ -40,4 +39,4 @@ The feature set is stored as HDF5 files (`.h5`) with one file per subject with p
 
 * `/features`: Time x Feature tensor (fp32). Features are computed over windows of sensor data.
 * `/mask`: Time x Mask tensor (bool). Mask indicates valid feature values.
-* `/labels`: Time x Label (int). Labels are sleep stages.
+* `/stage_labels`: Time x Label (int). Labels are sleep stages.

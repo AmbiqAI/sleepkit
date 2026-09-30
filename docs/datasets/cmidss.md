@@ -4,7 +4,7 @@
 
 This dataset comes from the Child Mind Institute - Detect Sleep States (CMIDSS) Kaggle competition. The dataset comprises 300 subjects with over 500 multi-day recordings of wrist-worn accelerometer data annotated with two event types: onset, the beginning of sleep, and wakeup, the end of sleep. While the original data contains 3-axis accelerometer data, this dataset only contains the euclidean norm minus one (ENMO) and z-angle reported every 5 seconds.
 
-More info available on [PhysioNet website](https://physionet.org/content/challenge-2018/1.0.0)
+More info available on [Kaggle competition page](https://www.kaggle.com/competitions/child-mind-institute-detect-sleep-states)
 
 ## Funding
 
@@ -14,21 +14,19 @@ The data was provided by the Healthy Brain Network, a landmark mental health stu
 
 The CMIDSS dataset is available for non-commercial use under [Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-## Supported Tasks
+## Task integration
 
-* [Sleep Detect](../tasks/detect.md)
-* [Sleep Stage](../tasks/stage.md)
-* [Sleep Apnea](../tasks/apnea.md)
-* [Sleep Arousal](../tasks/arousal.md)
+Use CMIDSS for [sleep detection](../tasks/detect.md). Its onset/wakeup annotations do not provide sleep-stage or apnea labels. See the [detection label policy](../detection-label-policy.md) for the derived target used by the experimental recipe.
 
 ## Installation
 
-The CMIDSS dataset is available for download from Kaggle. Please note, a user account and permission to access the dataset is required. Once the requirements are met, the dataset can be downloaded using the `kaggle` package. Please note, the `KAGGLE_USERNAME` and `KAGGLE_KEY` environment variables need to be set to the user's username and key. The dataset can be downloaded using the following command:
+The dataset adapter has two download paths. `download_raw_dataset()` retrieves the competition data through the Kaggle client and converts subject recordings to HDF5. Configure the Kaggle client and obtain competition access before running:
 
-```bash
+```python
+import sleepkit as sk
 
-export NSSR_TOKEN="INSERT_TOKEN_HERE"
-
-sleepkit -m download \
-         -c '{ "ds_path": "./datasets", "datasets": ["stages"], "progress": true }'
+dataset = sk.DatasetFactory.get("cmidss")(path="./datasets/cmidss")
+dataset.download_raw_dataset()
 ```
+
+`dataset.download()` instead retrieves the prepared archive from the configured Ambiq S3 dataset bucket. It does not use the Kaggle client or an NSRR token. Access to that archive is separate from competition access.

@@ -67,8 +67,8 @@ Every membership run retains these local files outside the public bundle:
 
 Index creation checks every eligible target against the evaluated target sequence,
 not only the total length. The index also rejects a different frozen context length.
-Its coordinates provide a basis for later common-index comparisons; this PR does
-not implement intersection with historical model outputs. Test prediction collection
+Its coordinates support the [common-index comparison](detection-comparison.md)
+with historical model outputs. Test prediction collection
 currently retains batches in memory before writing NPZ; index writing streams by
 subject. This is an offline recipe, not a causal streaming detector.
 
@@ -91,7 +91,6 @@ The legacy training/inference tests remain supported.
 
 The [first declared experiment](detection-first-experiment.md) is complete, with
 pooled and per-series membership metrics and sampled real-input Keras/TFLite parity.
-Its read-only report can be reproduced from saved scoring evidence. Next: inspect
-errors and implement a common scoring intersection for descriptive historical
-comparison. Historical training exposure, task acceptance thresholds, artifact
-licensing, quantization, and hardware validation remain separate questions.
+Its read-only report can be reproduced from saved scoring evidence. The [common scoring intersection](detection-comparison.md) and
+[INT8 conversion](detection-int8.md) are documented separately. Historical training exposure, task acceptance thresholds, artifact
+licensing and hardware validation remain separate questions.

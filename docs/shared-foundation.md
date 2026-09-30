@@ -1,4 +1,6 @@
-# Shared KIT foundation and heliaEDGE direction
+# Shared architecture notes
+
+These maintainer notes describe shared architecture proposals and sleepKIT’s role as a consumer. For task workflows, start with the [task guides](tasks/index.md).
 
 Status: architecture proposal, 2026-09-20. This extends the sleepKIT refactor to
 heartKIT, sleepKIT and compressionKIT. It does not claim the shared APIs, backend

@@ -1,4 +1,6 @@
-# Reusable blocks being evaluated for heliaEDGE
+# Reusable component experiments
+
+These maintainer notes document local experiments that may inform heliaEDGE. They are not required to use sleepKIT or train a sleep model.
 
 sleepKIT should be able to compose a small experiment in Python, add reproducible
 data and evaluation contracts, and package a release without inheriting a trainer

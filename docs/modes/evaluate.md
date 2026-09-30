@@ -6,7 +6,7 @@ Evaluate mode is used to test the performance of the model on the reserved test 
 
 <div class="annotate" markdown>
 
-1. Load the configuration data (e.g. `configuration.json` (1))
+1. Load the configuration data (e.g. `configuration.json`)
 1. Load features (e.g. `FS-W-A-5`)
 1. Load the trained model (e.g. `model.keras`)
 1. Define the metrics (e.g. `accuracy`)
@@ -15,12 +15,12 @@ Evaluate mode is used to test the performance of the model on the reserved test 
 
 </div>
 
-1. Example configuration:
+**Example configuration**
 --8<-- "assets/usage/json-configuration.md"
 
 
 ```mermaid
-graph LR
+graph TD
 A("`Load
 configuration
 __TaskParams__
@@ -68,18 +68,21 @@ sleepkit --task detect --mode evaluate --config ./configuration.json
 The model can be evaluated using the following snippet:
 
 ```py linenums="1"
+from pathlib import Path
 import sleepkit as sk
 
 task = sk.TaskFactory.get("detect")
 
-params = sk.TaskParams(...)  # (1)
+params = sk.TaskParams.model_validate_json(
+    Path("configuration.json").read_text()
+)
 
 task.evaluate(params)
 
 ```
 
-1. Example configuration:
---8<-- "assets/usage/python-configuration.md"
+**Example configuration**
+--8<-- "assets/usage/json-configuration.md"
 
 ---
 

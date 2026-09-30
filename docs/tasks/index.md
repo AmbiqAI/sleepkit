@@ -32,35 +32,3 @@ Sleep arousal detection is the process of identifying sleep arousal events. This
 ### [Bring-Your-Own-Task (BYOT)](./byot.md)
 
 Bring-Your-Own-Task (BYOT) is a feature that allows users to create custom tasks by extending the `sk.Task` base class and registering it with the task factory. This feature is useful for addressing specific use cases that are not covered by the built-in tasks.
-
----
-
-!!! Example "Recap"
-
-    === "Detect"
-
-        ### Sleep Detection
-
-        Detect sustained sleep/inactivity bouts. <br>
-        Refer to [Sleep Detect](./detect.md) for more details.
-
-    === "Stage"
-
-        ### Sleep Stage Classification
-
-        Perform 2, 3, 4, or 5 stage sleep detection.
-        Refer to [Sleep Stages](./stage.md) for more details.
-
-    === "Apnea"
-
-        ### Sleep Apnea Detection
-        Detect hypopnea/apnea events. <br>
-        Refer to [Sleep Apnea](./apnea.md) for more details.
-
-    === "Arousal"
-
-        ### Sleep Arousal Detection
-        Detect sleep arousal events. <br>
-        Refer to [Sleep Arousal](./arousal.md) for more details.
-
----

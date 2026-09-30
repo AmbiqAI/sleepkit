@@ -12,12 +12,12 @@ The model factory can be extended to include custom models. This is useful when 
     import sleepkit as sk
 
     def custom_model_from_params(
-        x: keras.KerasTensor,
+        inputs: keras.KerasTensor,
         params: dict,
         num_classes: int | None = None,
     ) -> keras.Model:
 
-        y = x
+        y = inputs
         # Create fully connected network from params
         for layer in params["layers"]:
             y = keras.layers.Dense(layer["units"], activation=layer["activation"])(y)
@@ -25,7 +25,7 @@ The model factory can be extended to include custom models. This is useful when 
         if num_classes:
             y = keras.layers.Dense(num_classes, activation="softmax")(y)
 
-        return keras.Model(inputs=x, outputs=y)
+        return keras.Model(inputs=inputs, outputs=y)
     ```
 
 2. **Register the Model**: Register the new model function with the `sk.ModelFactory` by calling the `register` method. This method takes the model name and the callable as arguments.
@@ -68,7 +68,7 @@ class CustomModelParams(BaseModel):
     layers: list[CustomLayerParams]
 
 def custom_model_from_params(
-    x: keras.KerasTensor,
+    inputs: keras.KerasTensor,
     params: dict,
     num_classes: int | None = None,
 ) -> keras.Model:
@@ -76,7 +76,7 @@ def custom_model_from_params(
     # Convert and validate params
     params = CustomModelParams(**params)
 
-    y = x
+    y = inputs
     # Create fully connected network from params
     for layer in params.layers:
         y = keras.layers.Dense(layer.units, activation=layer.activation)(y)
@@ -84,5 +84,5 @@ def custom_model_from_params(
     if num_classes:
         y = keras.layers.Dense(num_classes, activation="softmax")(y)
 
-    return keras.Model(inputs=x, outputs=y)
+    return keras.Model(inputs=inputs, outputs=y)
 ```

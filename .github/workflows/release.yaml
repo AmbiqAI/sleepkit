@@ -83,15 +83,3 @@ jobs:
         run: uv build
       - name: Publish to PyPI 📦
         uses: pypa/gh-action-pypi-publish@release/v1
-
-  publish-docs:
-    needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true' || needs.release-please.outputs.release_created == 'true'
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    uses: ./.github/workflows/docs.yaml
-    with:
-      ref: ${{ needs.release-please.outputs.tag_name }}
-    secrets: inherit

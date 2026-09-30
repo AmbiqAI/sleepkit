@@ -19,7 +19,6 @@ The MESA dataset is available for non-commercial and commercial use.
 * [Sleep Detect](../tasks/detect.md)
 * [Sleep Stage](../tasks/stage.md)
 * [Sleep Apnea](../tasks/apnea.md)
-* [Sleep Arousal](../tasks/arousal.md)
 
 ## Installation
 

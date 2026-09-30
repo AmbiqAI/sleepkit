@@ -41,8 +41,8 @@ Below outlines the classes available for sleep detect classification. When train
         "num_classes": 2,
         "class_names": ["AWAKE", "SLEEP"],
         "class_map": {
-            "0": 0,  // Map AWAKE to AWAKE
-            "1": 1   // Map SLEEP to SLEEP
+            "0": 0,
+            "1": 1
         }
     }
     ```

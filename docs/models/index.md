@@ -1,6 +1,6 @@
 # :material-graph-outline: Models
 
-sleepKIT provides a number of model architectures that can be used for training __heart-monitoring tasks__. While a number of off-the-shelf models exist, they are often not efficient nor optimized for real-time, edge applications. To address this, sleepKIT provides a model factory that allows you to easily create and train customized models via [helia-edge](https://ambiqai.github.io/helia-edge/). `helia-edge` includes a growing number of state-of-the-art models that can be easily configured and trained using high-level parameters. The models are designed to be efficient and well-suited for real-time, edge applications. Most of the models are based on state-of-the-art architectures that have been modified to allow for more fine-grain customization. In addition, the models support 1D variants to allow for training on time-series data. Please check [helia-edge](https://ambiqai.github.io/helia-edge/) for list of available models and their configurations.
+sleepKIT provides a number of model architectures that can be used for training __sleep-monitoring tasks__. While a number of off-the-shelf models exist, they are often not efficient nor optimized for real-time, edge applications. To address this, sleepKIT provides a model factory that allows you to easily create and train customized models via [helia-edge](https://ambiqai.github.io/helia-edge/). `helia-edge` includes a growing number of state-of-the-art models that can be easily configured and trained using high-level parameters. The models are designed to be efficient and well-suited for real-time, edge applications. Most of the models are based on state-of-the-art architectures that have been modified to allow for more fine-grain customization. In addition, the models support 1D variants to allow for training on time-series data. Please check [helia-edge](https://ambiqai.github.io/helia-edge/) for list of available models and their configurations.
 
 ---
 
@@ -8,13 +8,11 @@ sleepKIT provides a number of model architectures that can be used for training 
 
 - **[TCN](https://ambiqai.github.io/helia-edge/models/tcn)**: A CNN leveraging dilated convolutions (key=`tcn`)
 - **[U-Net](https://ambiqai.github.io/helia-edge/models/unet)**: A CNN with encoder-decoder architecture for segmentation tasks (key=`unet`)
-- **[U-NeXt](https://ambiqai.github.io/helia-edge/models/unext)**: A U-Net variant leveraging MBConv blocks (key=`unext`)
-- **[EfficientNetV2](https://ambiqai.github.io/helia-edge/models/efficientnet)**: A CNN leveraging MBConv blocks (key=`efficientnet`)
+- **U-NeXt**: Registered as an alias for the U-Net builder (key=`unext`)
+- **[EfficientNetV2](https://ambiqai.github.io/helia-edge/models/efficientnet)**: A CNN leveraging MBConv blocks (key=`efficientnetv2`)
 - **[MobileOne](https://ambiqai.github.io/helia-edge/models/mobileone)**: A CNN aimed at sub-1ms inference (key=`mobileone`)
 - **[ResNet](https://ambiqai.github.io/helia-edge/models/resnet)**: A popular CNN often used for vision tasks (key=`resnet`)
-- **[Conformer](https://ambiqai.github.io/helia-edge/models/conformer)**: A transformer composed of both convolutional and self-attention blocks (key=`conformer`)
-- **[MetaFormer](https://ambiqai.github.io/helia-edge/models/metaformer)**: A transformer composed of both spatial mixing and channel mixing blocks (key=`metaformer`)
-- **[TSMixer](https://ambiqai.github.io/helia-edge/models/tsmixer)**: An All-MLP Architecture for Time Series Classification (key=`tsmixer`)
+- **Composer**: Compose an architecture through the registered `composer` builder.
 * **[Bring-Your-Own-Model](./byom.md)**: Add a custom model architecture to sleepKIT.
 
 ---
@@ -39,12 +37,11 @@ The model factory provides the following methods:
 
 A model can be created when invoking a command via the CLI by setting [architecture](../modes/configuration.md#taskparams) in the configuration file. The task will use the supplied name to get the registered model and instantiate with the provided parameters.
 
-Given the following configuration file `configuration.json`:
+Merge this architecture fragment into your task configuration. It does not include dataset, feature or training settings.
 
-```json
+```json fragment
 {
-    ...
-    "architecture:" {
+    "architecture": {
         "name": "tcn",
         "params": {
             "input_kernel": [1, 3],
@@ -65,7 +62,7 @@ Given the following configuration file `configuration.json`:
 }
 ```
 
-The model can be created using the following command:
+After completing the task configuration, train with:
 
 ```bash
 sleepkit --mode train --task stage --config configuration.json

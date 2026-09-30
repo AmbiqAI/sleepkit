@@ -6,7 +6,7 @@ Each task provides a mode to train a model on the specified features. The traini
 
 <div class="annotate" markdown>
 
-1. Load the configuration data (e.g. `configuration.json` (1))
+1. Load the configuration data (e.g. `configuration.json`)
 1. Load features (e.g. `FS-W-A-5`)
 1. Initialize custom model architecture (e.g. `tcn`)
 1. Define the metrics, loss, and optimizer (e.g. `accuracy`, `categorical_crossentropy`, `adam`)
@@ -15,13 +15,13 @@ Each task provides a mode to train a model on the specified features. The traini
 
 </div>
 
-1. Example configuration:
+**Example configuration**
 --8<-- "assets/usage/json-configuration.md"
 
 <br/>
 
 ```mermaid
-graph LR
+graph TD
 A("`Load
 configuration
 __TaskParams__
@@ -76,13 +76,15 @@ import sleepkit as sk
 
 task = sk.TaskFactory.get("detect")
 
-params = sk.TaskParams(...)  # (1)
+params = sk.TaskParams.model_validate_json(
+    Path("configuration.json").read_text()
+)
 
 task.train(params)
 ```
 
-1. Example configuration:
---8<-- "assets/usage/python-configuration.md"
+**Example configuration**
+--8<-- "assets/usage/json-configuration.md"
 
 ---
 

@@ -6,7 +6,7 @@ Export mode is used to convert the trained TensorFlow model into a format that c
 
 <div class="annotate" markdown>
 
-1. Load the configuration data (e.g. `configuration.json` (1))
+1. Load the configuration data (e.g. `configuration.json`)
 1. Load the test data (e.g. `test.tfds`)
 1. Load the trained model (e.g. `model.keras`)
 1. Quantize the model (e.g. `16x8`)
@@ -16,12 +16,12 @@ Export mode is used to convert the trained TensorFlow model into a format that c
 
 </div>
 
-1. Example configuration:
+**Example configuration**
 --8<-- "assets/usage/json-configuration.md"
 
 
 ```mermaid
-graph LR
+graph TD
 A("`Load
 configuration
 __TaskParams__
@@ -69,20 +69,24 @@ sleepkit --task detect --mode export --config ./configuration.json
 
 ### Python
 
-The model can be evaluated using the following snippet:
+The model can be exported using the following snippet:
 
 ```py linenums="1"
+from pathlib import Path
+import sleepkit as sk
 
 task = sk.TaskFactory.get("detect")
 
-params = sk.TaskParams(...)  # (1)
+params = sk.TaskParams.model_validate_json(
+    Path("configuration.json").read_text()
+)
 
 task.export(params)
 
 ```
 
-1. Example configuration:
---8<-- "assets/usage/python-configuration.md"
+**Example configuration**
+--8<-- "assets/usage/json-configuration.md"
 
 ---
 

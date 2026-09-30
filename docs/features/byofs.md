@@ -4,7 +4,7 @@ The Bring-Your-Own-Features (BYOFS) allows users to add custom feature sets to s
 
 ## How it Works
 
-1. **Create a Feature Set**: Define a new feature set class that subclasses `sk.FeatureSet` and implements all abstract methods.
+1. **Create a Feature Set**: Define a new feature set class that subclasses `sk.FeatureSet` and implements the feature contract. The following is a skeleton: implement the writer before calling it.
 
     ```py linenums="1"
     import sleepkit as sk
@@ -20,14 +20,14 @@ The Bring-Your-Own-Features (BYOFS) allows users to add custom feature sets to s
 
         @staticmethod
         def generate_subject_features(subject_id: str, ds_name: str, params: sk.TaskParams):
-            pass
+            raise NotImplementedError("Write feature, mask and label arrays for this subject")
     ```
 
 2. **Register the Feature Set**: Register the new feature set with the `sk.FeatureFactory` by calling the `register` method. This method takes the feature set name and the feature set class as arguments.
 
     ```py linenums="1"
     import sleepkit as sk
-    sk.FeatureFactory.register(CustomFeatureSet.name, CustomFeatureSet)
+    sk.FeatureFactory.register(CustomFeatureSet.name(), CustomFeatureSet)
     ```
 
 3. **Use the Feature Set**: The new feature set can now be used to generate feature sets.
@@ -35,14 +35,10 @@ The Bring-Your-Own-Features (BYOFS) allows users to add custom feature sets to s
     ```py linenums="1"
     import sleepkit as sk
 
-    # Create a task params object
-    params = sk.TaskParams(
-        ...
-        feature=sk.FeatureParams(
-            name="custom",
-            ...
-        )
-    )
+    from pathlib import Path
+
+    params = sk.TaskParams.model_validate_json(Path("configuration.json").read_text())
+    params.feature.name = "custom"
 
     # Load a task
     task = sk.TaskFactory.get("stage")

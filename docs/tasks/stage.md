@@ -1,5 +1,9 @@
 # :material-sleep: Sleep Stage Task
 
+## Work with saved features
+
+For a saved-feature workflow, start with the [staging baseline](../staging-baseline.md), which describes input records, preprocessing and checkpoint evaluation. Continue to [staging training](../staging-training.md) to train a model with an explicit split and configuration.
+
 ## Overview
 
 The objective of sleep stage assessment is to determine the different stages of sleep (N1, N2, N3, REM, and wake) over the course of a night. The de facto standard for sleep stage assessment is polysomnography (PSG) that requires collecting numerous multi-site physiological signals and a trained sleep technician to perform the assessment. The technician uses the physiological signals to determine the sleep stage based on the American Academy of Sleep Medicine (AASM) guidelines. The identification of stages is possible due to specific electrophysiological signatures present and recorded by EEG, EOG, and EMG signals.
@@ -23,7 +27,20 @@ The focus of this project is to develop a model that can perform sleep stage ass
 
 Sleep stages consists of wake (W), non-rapid eye movement (NREM) sleep, and rapid eye movement (REM) sleep. NREM sleep is further divided into three stages: N1, N2, and N3. N1 and N2 are considered light sleep, while N3 is considered deep sleep. REM sleep is considered the dreaming stage of sleep. During the course of a night, a subject will undergo multiple rounds of sleep cycles, each composed of the individual stages. The duration of each cycle and length of each stage various throughout the night. Each sleep cycle typically lasts around 90 to 120 minutes.
 
---8<-- "assets/tasks/stage/sleep-cycle-pie.html"
+<figure class="sleep-stage-chart">
+<div class="sleep-stage-donut" role="img" aria-label="Sleep stage proportions: N1 5 percent, N2 55 percent, N3 10 percent, REM 30 percent."></div>
+<div class="sleep-stage-legend">
+
+| Stage | Share |
+| --- | ---: |
+| N1 | 5% |
+| N2 | 55% |
+| N3 | 10% |
+| REM | 30% |
+
+</div>
+<figcaption>Example sleep-stage proportions. The distribution varies between nights and individuals.</figcaption>
+</figure>
 
 === "Wake (W)"
 
@@ -111,12 +128,12 @@ Below outlines the classes available for sleep stage classification. When traini
         "num_classes": 4,
         "class_names": ["AWAKE", "LIGHT", "DEEP", "REM"],
         "class_map": {
-            "0": 0,  // Map WAKE to WAKE
-            "1": 1,  // Map STAGE1 to LIGHT
-            "2": 1,  // Map STAGE2 to LIGHT
-            "3": 2,  // Map STAGE3 to DEEP
-            "4": 2,  // Map STAGE4 to DEEP
-            "5": 3,  // Map REM to REM
+            "0": 0,
+            "1": 1,
+            "2": 1,
+            "3": 2,
+            "4": 2,
+            "5": 3
         }
     }
     ```

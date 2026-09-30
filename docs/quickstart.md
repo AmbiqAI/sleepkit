@@ -55,8 +55,8 @@ We provide several installation methods including pip, uv, and Docker. Install _
 
 ## Requirements
 
-* [Python ^3.12+](https://www.python.org)
-* [uv ^1.6.1+](https://docs.astral.sh/uv/getting-started/installation/)
+* [Python 3.12–3.13](https://www.python.org)
+* [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 Check the project's [pyproject.toml](https://github.com/AmbiqAI/sleepkit/blob/main/pyproject.toml) file for a list of up-to-date Python dependencies. Note that the installation methods above install all required dependencies. The following are optional dependencies only needed when running `demo` command using Ambiq's evaluation board (`EVB`) backend:
 
@@ -69,7 +69,7 @@ Once installed, __sleepKIT__ can be used as either a CLI-based tool or as a Pyth
 
 ## Use sleepKIT with CLI
 
-The sleepKIT command line interface (CLI) allows for simple single-line commands without the need for a Python environment. The CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `sleepkit` command. Check out the [CLI Guide](./usage/cli.md) to learn more about available options.
+The sleepKIT command line interface (CLI) allows for simple single-line commands without writing Python code. The CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `sleepkit` command. Check out the [CLI Guide](./usage/cli.md) to learn more about available options.
 
 !!! example
 
@@ -89,7 +89,7 @@ The sleepKIT command line interface (CLI) allows for simple single-line commands
         Where:
 
         * `MODE` is one of `download`, `feature`, `train`, `evaluate`, `export`, or `demo`
-        * `TASK` is one of `detect`, `stage`, `apnea`, or `arousal`
+        * `TASK` is one of `detect`, `stage`, or `apnea`
         * `CONFIG` is configuration as JSON content or file path
 
     === "Download"
@@ -132,30 +132,24 @@ The __sleepKIT__ Python package allows for more fine-grained control and customi
 
 For example, you can create a custom model, train it, evaluate its performance on a validation set, and even export a quantized TensorFlow Lite model for deployment. Check out the [Python Guide](./usage/python.md) to learn more about using sleepKIT as a Python package.
 
-!!! Example
+Load a task configuration, then call the steps you need. Replace `configuration.json` with a configuration for your dataset and model.
 
-    ```py linenums="1"
+```python title="run_task.py"
+from pathlib import Path
+import sleepkit as sk
 
-    import sleepkit as sk
+params = sk.TaskParams.model_validate_json(
+    Path("configuration.json").read_text()
+)
+task = sk.TaskFactory.get("stage")
 
-    params = sk.HKTaskParams(...)  # Expand to see example (1)
+task.download(params)
+task.feature(params)
+task.train(params)
+task.evaluate(params)
+task.export(params)
+```
 
-    task = sk.TaskFactory.get("stage")
+The configuration controls dataset locations, features, class mapping and training settings. This example shows the configuration structure; adapt its paths and task-specific values before running it.
 
-    task.download(params)  # Download dataset(s)
-
-    task.feature(params)  # Generate features
-
-    task.train(params)  # Train the model
-
-    task.evaluate(params)  # Evaluate the model
-
-    task.export(params)  # Export to TFLite
-
-    ```
-
-    1. Configuration parameters:
-    --8<-- "assets/usage/python-configuration.md"
-
-
----
+--8<-- "assets/usage/json-configuration.md"

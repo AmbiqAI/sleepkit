@@ -20,7 +20,7 @@ There are three main types of sleep apnea: obstructive, central, and mixed. Obst
 
     Mixed sleep apnea is a combination of both obstructive and central sleep apnea. It occurs when there is a blockage of the airway and a failure of the brain to send the proper signals to the muscles that control breathing. Mixed sleep apnea is less common than OSA or CSA. Clinically, mixed sleep apnea is defined as a combination of obstructive and central apneas.
 
-=== "Hyopnea"
+=== "Hypopnea"
 
     Hypopnea is a partial blockage of the airway that results in shallow breathing. It is less severe than apnea but can still disrupt sleep and lead to daytime sleepiness. Clinically, hypopnea is defined as a reduction in airflow of at least 30% for at least 10 seconds, accompanied by a decrease in oxygen saturation of at least 3%.
 

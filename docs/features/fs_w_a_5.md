@@ -33,4 +33,4 @@ The feature set is stored as HDF5 files (`.h5`) with one file per subject with p
 
 * `/features`: Time x Feature tensor (fp32). Features are computed over windows of sensor data.
 * `/mask`: Time x Mask tensor (bool). Mask indicates valid feature values.
-* `/labels`: Time x Label (int). Labels are sleep stages.
+* `/detect_labels`: Time x Label (int). Labels are sleep-detection classes.
