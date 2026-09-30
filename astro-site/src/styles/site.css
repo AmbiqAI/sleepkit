@@ -1,0 +1,267 @@
+[data-helia-accent="kit-sleep"] {
+  --helia-product-accent-source: #d63b79;
+  --helia-product-accent: #f77aaa;
+}
+[data-theme="light"][data-helia-accent="kit-sleep"] {
+  --helia-product-accent: #b22260;
+}
+.sl-markdown-content img {
+  height: auto;
+  max-width: 100%;
+}
+.sl-markdown-content img[src*="sleepkit-logo"] {
+  max-width: 28rem;
+  width: 100%;
+}
+[data-theme="dark"] img[src$="#only-light"],
+[data-theme="light"] img[src$="#only-dark"] {
+  display: none;
+}
+.sl-markdown-content table {
+  font-size: 0.9rem;
+}
+.sl-markdown-content details {
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 0.65rem;
+  padding: 0.8rem 1rem;
+  margin-block: 1rem;
+}
+.sl-markdown-content summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.sl-markdown-content .md-button {
+  display: inline-flex;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  text-decoration: none;
+}
+
+.expressive-code {
+  --ec-codeFontSize: 0.875rem;
+  --ec-codeLineHeight: 1.65;
+}
+.sl-markdown-content figure {
+  margin-inline: 0;
+}
+.sl-markdown-content figure img {
+  display: block;
+  margin-inline: auto;
+}
+.sl-markdown-content figcaption {
+  text-align: center;
+  color: var(--sl-color-gray-2);
+  font-size: 0.85rem;
+}
+
+/* Retain the original site's pink with darker text on light surfaces. */
+[data-helia-accent="kit-sleep"] {
+  --sleepkit-button-border: #e92063;
+  --sleepkit-button-text: #bd174d;
+}
+[data-theme="dark"][data-helia-accent="kit-sleep"] {
+  --sleepkit-button-border: #ff80ab;
+  --sleepkit-button-text: #ff80ab;
+}
+.sl-markdown-content .md-button {
+  border-color: var(--sleepkit-button-border);
+  color: var(--sleepkit-button-text);
+  font-weight: 600;
+}
+.sl-markdown-content .md-button:hover {
+  background: color-mix(
+    in srgb,
+    var(--sleepkit-button-border) 10%,
+    transparent
+  );
+}
+.sleepkit-intro > p {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  max-width: 65ch;
+}
+.sl-markdown-content .sleepkit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1.5rem 2.5rem;
+}
+.sl-markdown-content .sleepkit-actions p {
+  display: contents;
+}
+.sleepkit-task-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.sl-markdown-content .sleepkit-task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-top: 3px solid var(--sleepkit-button-border);
+  border-radius: 0.75rem;
+  color: var(--sl-color-text);
+  text-decoration: none;
+}
+.sleepkit-task-card strong {
+  font-size: 1.1rem;
+  color: var(--sl-color-white);
+}
+.sleepkit-task-card > span {
+  font-size: 0.95rem;
+}
+.sleepkit-task-card .sleepkit-card-link {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  color: var(--sleepkit-button-text);
+  font-weight: 600;
+}
+.sleepkit-task-card:hover {
+  background: var(--sl-color-gray-6);
+}
+@media (max-width: 50rem) {
+  .sleepkit-task-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sleep-stage-chart {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(8rem, 12rem);
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+}
+.sleep-stage-donut {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    #220f58 0% 5%,
+    #5fc8f3 5% 60%,
+    #c930c6 60% 70%,
+    #ea3424 70% 100%
+  );
+  mask: radial-gradient(circle, transparent 0 29%, black 30%);
+}
+.sl-markdown-content .sleep-stage-legend {
+  margin: 0;
+}
+.sleep-stage-legend table {
+  width: 100%;
+  margin: 0;
+}
+.sleep-stage-legend tbody td:first-child::before {
+  content: "";
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  background: #220f58;
+}
+.sleep-stage-legend tr:nth-child(2) td:first-child::before {
+  background: #5fc8f3;
+}
+.sleep-stage-legend tr:nth-child(3) td:first-child::before {
+  background: #c930c6;
+}
+.sleep-stage-legend tr:nth-child(4) td:first-child::before {
+  background: #ea3424;
+}
+.sleep-stage-chart figcaption {
+  grid-column: 1 / -1;
+}
+@media (max-width: 30rem) {
+  .sleep-stage-chart {
+    grid-template-columns: minmax(0, 15rem);
+  }
+}
+
+.sl-markdown-content starlight-tabs {
+  display: block;
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.75rem;
+  margin-block: 1.5rem;
+}
+.sl-markdown-content starlight-tabs > .tablist-wrapper {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.75rem 0.75rem 0 0;
+  background: var(--sl-color-gray-6);
+}
+.sl-markdown-content starlight-tabs [role="tablist"] {
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  border: 0;
+  margin: 0;
+}
+.sl-markdown-content starlight-tabs [role="tab"] {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  box-shadow: none;
+  color: var(--sl-color-gray-2);
+  font-size: 0.9rem;
+}
+.sl-markdown-content starlight-tabs [role="tab"][aria-selected="true"] {
+  border-color: var(--sleepkit-button-border);
+  background: var(--sl-color-black);
+  color: var(--sleepkit-button-text);
+}
+.sl-markdown-content starlight-tabs > [role="tabpanel"] {
+  padding: 1.25rem;
+  margin: 0;
+}
+.sl-markdown-content starlight-tabs > [role="tabpanel"] > :first-child {
+  margin-top: 0;
+}
+.sl-markdown-content starlight-tabs > [role="tabpanel"] > :last-child {
+  margin-bottom: 0;
+}
+
+.sl-markdown-content
+  starlight-tabs
+  > [role="tabpanel"]
+  > .expressive-code:only-child
+  figure {
+  border: 0;
+  box-shadow: none;
+}
+.sl-markdown-content
+  starlight-tabs
+  > [role="tabpanel"]
+  > .expressive-code:only-child
+  figcaption {
+  display: none;
+}
+.sl-markdown-content
+  starlight-tabs
+  > [role="tabpanel"]
+  > .expressive-code:only-child
+  pre {
+  border: 0;
+  border-radius: 0;
+}
+
+.sl-markdown-content svg[id^="mermaid"] {
+  display: block;
+  margin-inline: auto;
+}
+
+@keyframes sleepkit-install-reveal {
+  from { opacity: 0.65; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sleepkit-install [role="tabpanel"]:not([hidden]) {
+    animation: sleepkit-install-reveal 180ms ease-out;
+  }
+}

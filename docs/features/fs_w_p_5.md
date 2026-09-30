@@ -16,7 +16,7 @@ The target location for this feature set is the __wrist__. From this location, t
 
 ## Features
 
-This feature set includes the following 4 features:
+This feature set includes the following 5 features:
 
 | Feature Name | Description | Sensor |
 | --- | --- | --- |
@@ -24,6 +24,7 @@ This feature set includes the following 4 features:
 | piav | Peak-to-trough amplitude delta of PPG | PPG |
 | piiv | Peak-to-peak amplitude delta of PPG | PPG |
 | pifv | Peak-to-peak interval delta | PPG |
+| qos | PPG signal quality | PPG |
 
 ## Output
 
@@ -31,4 +32,6 @@ The feature set is stored as HDF5 files (`.h5`) with one file per subject with p
 
 * `/features`: Time x Feature tensor (fp32). Features are computed over windows of sensor data.
 * `/mask`: Time x Mask tensor (bool). Mask indicates valid feature values.
-* `/labels`: Time x Label (int). Labels are sleep stages.
+* `/stage_labels`: Time x Label (int). Labels are sleep stages.
+
+* `/apnea_labels`: Time x Label (int). Labels are apnea events.

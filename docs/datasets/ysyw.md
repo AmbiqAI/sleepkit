@@ -20,4 +20,3 @@ The YSYW dataset is available commercial use under [Open Data Commons Attributio
 * [Sleep Detect](../tasks/detect.md)
 * [Sleep Stage](../tasks/stage.md)
 * [Sleep Apnea](../tasks/apnea.md)
-* [Sleep Arousal](../tasks/arousal.md)

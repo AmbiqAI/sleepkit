@@ -1,6 +1,6 @@
 # :simple-python: Python Usage
 
-__sleepKIT__ python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for both built-in taks and custom tasks. In addition, custom datasets and model architectures can be created and registered with corresponding factories.
+__sleepKIT__ python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for both built-in tasks and custom tasks. In addition, custom datasets and model architectures can be created and registered with corresponding factories.
 
 ## Overview
 
@@ -23,7 +23,7 @@ A dataset inherits from the [sk.Dataset](/sleepkit/api/sleepkit/datasets/dataset
 ```py linenums="1"
 import sleepkit as sk
 
-ds = sk.DatasetFactory.get('ecg-synthetic')(num_pts=100)
+ds = sk.DatasetFactory.get('cmidss')(path='./datasets/cmidss')
 ```
 
 ### [Features](../features/index.md)
@@ -36,13 +36,13 @@ Since each task will require specific transformations of the data, a feature sto
 
 Lastly, sleepKIT leverages [helia-edge's](https://ambiqai.github.io/helia-edge/) customizable model architectures. To enable creating custom network topologies from configuration files, sleepKIT provides a `sk.ModelFactory` that allows you to create models by specifying the model key and the model parameters. Each item in the factory is a callable that takes a `keras.Input`, model parameters, and number of classes as arguments and returns a `keras.Model`.
 
-```
+```python
 import keras
 import sleepkit as sk
 
 inputs = keras.Input((256, 1), dtype="float32")
 num_classes = 4
-model_params = dict(...)
+model_params = {"blocks": [{"filters": 16, "kernel": [1, 3]}]}
 
 model = sk.ModelFactory.get('tcn')(
     inputs=inputs,
@@ -65,9 +65,12 @@ model = sk.ModelFactory.get('tcn')(
 
 ```py linenums="1"
 
-import sleepkit as hk
+from pathlib import Path
+import sleepkit as sk
 
-params = sk.TaskParams(...)  # (1)
+params = sk.TaskParams.model_validate_json(
+    Path("configuration.json").read_text()
+)
 
 task = sk.TaskFactory.get("stage")
 
@@ -83,8 +86,8 @@ task.export(params)  # Export to TFLite
 
 ```
 
-1. Example configuration:
---8<-- "assets/usage/python-configuration.md"
+**Example configuration**
+--8<-- "assets/usage/json-configuration.md"
 
 ### Running a custom task w/ custom datasets
 

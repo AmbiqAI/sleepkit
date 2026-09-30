@@ -6,7 +6,7 @@ sk.TaskParams(
     verbose=2,
 
     datasets=[
-        hk.NamedParams(
+        sk.NamedParams(
             name="cmidss",
             params={
                 "path": "./datasets/cmidss"
@@ -14,7 +14,7 @@ sk.TaskParams(
         )
     ],
 
-    feature=hk.FeatureParams(
+    feature=sk.FeatureParams(
         name="FS-W-A-5",
         sampling_rate=0.2,
         frame_size=12,
@@ -67,7 +67,7 @@ sk.TaskParams(
     backend="pc",
     display_report=True,
 
-    quantization=hk.QuantizationParams(
+    quantization=sk.QuantizationParams(
         qat=False,
         mode="INT8",
         io_type="int8",
@@ -77,7 +77,7 @@ sk.TaskParams(
 
     model_file="model.keras",
     use_logits=False,
-    architecture=hk.NamedParams(
+    architecture=sk.NamedParams(
         name="tcn",
         params={
             "input_kernel": [1, 5],

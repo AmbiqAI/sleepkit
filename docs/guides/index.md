@@ -1,19 +1,33 @@
-# Guides
+# User guide
 
-These guides cover a wide range of sleepKIT topics, from core concepts to experiments to complete notebook training examples. The goal is to provide a comprehensive understanding of the sleepKIT ADK framework and its capabilities.
+Build a sleepKIT workflow from datasets, feature extraction and model architectures. Use the guides below to configure each step, then follow a tutorial for a complete experiment.
 
-## Core Concepts
+## Run an experiment
 
-This section contains guides to explain the core concepts of sleepKIT.
+Start with a task configuration and work through the modes you need.
 
-## Experiments
+[Configure a run](../modes/configuration.md){ .md-button }
+[Download data](../modes/download.md){ .md-button }
+[Train](../modes/train.md){ .md-button }
+[Evaluate](../modes/evaluate.md){ .md-button }
+[Export](../modes/export.md){ .md-button }
+[Run a demo](../modes/demo.md){ .md-button }
 
-This section contains experiments to investigate the impact of different design choices on the performance of the model.
+## Choose your components
 
-- **[Sleep Stage Ablation](./stage-ablation.md)**: Ablation studies to investigate the impact of different design choices on the performance of 4-stage sleep staging.
+- **Datasets** provide recordings and labels for your task. Review each dataset's access requirements and terms.
+- **Feature sets** transform recordings into inputs for training and evaluation.
+- **Model architectures** define the network and its configurable parameters.
 
-## Notebook Examples
+[Browse datasets](../datasets/index.md){ .md-button }
+[Explore feature sets](../features/index.md){ .md-button }
+[Choose an architecture](../models/index.md){ .md-button }
 
-This section contains Jupyter notebook examples to demonstrate the training process of sleepKIT.
+## Tutorials and experiments
 
-- **[Train Sleep Detect Model](train-detect-model.ipynb)**: Training simple sleep detection model using IMU data on wrist.
+Train a sleep-detection model from wrist IMU data in the saved notebook, or explore how feature and model choices affect sleep staging.
+
+[Detection training notebook](train-detect-model.ipynb){ .md-button }
+[Staging ablation study](stage-ablation.md){ .md-button }
+
+Implementation comparisons and architecture proposals are grouped under **Maintainer notes** in the sidebar.

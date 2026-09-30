@@ -6,7 +6,7 @@
 $ sleepkit --help
 
 sleepKIT CLI Options:
-    --task [detect, stage, apnea, arousal]
+    --task [detect, stage, apnea]
     --mode [download, feature, train, evaluate, export, demo]
     --config ["./path/to/config.json", or '{"raw: "json"}']
 ```
@@ -33,7 +33,7 @@ The sleepKIT command line interface (CLI) makes it easy to run a variety of sing
         Where:
 
         * `MODE` is one of `download`, `feature`, `train`, `evaluate`, `export`, or `demo`
-        * `TASK` is one of `detect`, `stage`, `apnea`, or `arousal`
+        * `TASK` is one of `detect`, `stage`, or `apnea`
         * `CONFIG` is configuration as JSON content or file path
 
     === "Download"

@@ -1,37 +1,55 @@
 # Bring-Your-Own-Dataset (BYOD)
 
-The Bring-Your-Own-Dataset (BYOD) feature allows users to add custom datasets for training and evaluating models. This feature is useful when working with proprietary or custom datasets that are not available in the sleepKIT library.
+A custom dataset subclasses `sk.Dataset`, exposes subject IDs, and supplies the signal and label readers consumed by its feature extractor. There is no universal signal schema: pair the adapter with a [custom feature set](../features/byofs.md).
 
-## How it Works
+## Define the adapter
 
-1. **Create a Dataset**: Define a new dataset by creating a new Python file. The file should contain a class that inherits from the `HKDataset` base class and implements the required methods.
+This example reads an existing directory of subject `.npz` files with a `signal` array. It makes an explicit subject split and does not download or invent data.
 
-    ```py linenums="1"
-    import sleepkit as sk
+```python
+from pathlib import Path
+import random
+import numpy as np
+import sleepkit as sk
 
-    class CustomDataset(sk.Dataset):
-        def __init__(self, config):
-            super().__init__(config)
+class CustomDataset(sk.Dataset):
+    @property
+    def subject_ids(self) -> list[str]:
+        return sorted(p.stem for p in self.path.glob("*.npz"))
 
-        def download(self):
-            pass
+    @property
+    def train_subject_ids(self) -> list[str]:
+        return self.subject_ids[:int(0.8 * len(self.subject_ids))]
 
-        def generate(self):
-            pass
-    ```
+    @property
+    def test_subject_ids(self) -> list[str]:
+        return self.subject_ids[int(0.8 * len(self.subject_ids)):]
 
-2. **Register the Dataset**: Register the new dataset with the `sk.DatasetFactory` by calling the `register` method. This method takes the dataset name and the dataset class as arguments.
+    def uniform_subject_generator(self, subject_ids=None, repeat=True, shuffle=True):
+        ids = list(self.subject_ids if subject_ids is None else subject_ids)
+        if not ids:
+            return
+        while True:
+            if shuffle:
+                random.shuffle(ids)
+            yield from ids
+            if not repeat:
+                break
 
-    ```py linenums="1"
-    import sleepkit as sk
+    def load_signal_for_subject(self, subject_id: str) -> np.ndarray:
+        with np.load(self.path / f"{subject_id}.npz") as record:
+            return record["signal"].copy()
 
-    sk.DatasetFactory.register("custom", CustomDataset)
-    ```
+    def download(self, num_workers=None, force=False):
+        if not self.subject_ids:
+            raise FileNotFoundError(f"Place subject .npz files in {self.path}")
 
-3. **Use the Dataset**: The new dataset can now be used with the `sk.DatasetFactory` to perform various operations such as downloading and generating data.
+sk.DatasetFactory.register("custom", CustomDataset)
+dataset = sk.DatasetFactory.get("custom")(path=Path("./datasets/custom"))
+```
 
-    ```py linenums="1"
-    import sleepkit as sk
+Keep every recording from one person in the same partition. Persist the split for reproducible experiments. Extend the reader with the labels, timestamps and signal names required by your feature extractor; existing built-in extractors expect their own dataset-specific methods.
 
-    dataset = sk.DatasetFactory.create("custom", config)
-    ```
+## Use it in a task
+
+Add `custom` and its path to the task's dataset configuration, then select the matching custom feature set. Register both extensions in the Python process before invoking a task. Registering the dataset alone does not make it compatible with every built-in feature set.

@@ -6,7 +6,7 @@ The main method, `generate_subject_features` receives the target dataset name, s
 
 <div class="annotate" markdown>
 
-1. Load the configuration data (e.g. `configuration.json` (1))
+1. Load the configuration data (e.g. `configuration.json`)
 1. Load datasets from DatasetFactory (e.g. `mesa`)
 1. Load feature generator from FeatureFactory (e.g. `FS-W-PA-14`)
 1. Generate features for each dataset/subject (e.g. `generate_subject_features`)
@@ -14,13 +14,13 @@ The main method, `generate_subject_features` receives the target dataset name, s
 
 </div>
 
-1. Example configuration:
+**Example configuration**
 --8<-- "assets/usage/json-configuration.md"
 
 <br/>
 
 ```mermaid
-graph LR
+graph TD
 A("`Load
 configuration
 __TaskParams__
@@ -48,7 +48,7 @@ D ==> E
 
 ---
 
-## Availabel Feature Sets
+## Available Feature Sets
 
 - **[FS-W-PA-14](./fs_w_pa_14.md)**:__14__ features derived from __PPG__ and __IMU__ on __wrist__ for __sleep stage__ classification.
 - **[FS-C-EAR-9](./fs_c_ear_9.md)**: __9__ features derived from __ECG__, __RSP__, and __IMU__ on __chest__ for __sleep stage__ classification.

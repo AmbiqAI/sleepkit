@@ -1,4 +1,10 @@
-# Bounded vectorized feature preparation
+# Feature extraction performance notes
+
+This maintainer note documents an optimization to sleep-detection feature extraction and the checks used to preserve its outputs. It is useful when changing the extractor or reproducing the performance comparison; no extra setup is needed to use it.
+
+For a training workflow, start with the [sleep detection task](tasks/detect.md) or the [golden experiment](detection-golden.md).
+
+## What changed
 
 sleepKIT's first stage profile spent most of its time preparing a cold feature
 cache. The original extractor made five separate mean/standard-deviation calls,

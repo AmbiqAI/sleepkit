@@ -1,96 +1,28 @@
-# sleepKIT Task Modes
+# Modes overview
 
-## Introduction
+Modes are the steps in a sleepKIT task: acquire data, generate features, train, evaluate, export, and run a demo. Select a mode with `--mode` and provide the task configuration with `--config`.
 
-Rather than offering a handful of static models, sleepKIT provides a complete framework designed to cover the entire design process of creating customized ML models well-suited for low-power, wearable applications. Each mode serves a specific purpose and is engineered to offer you the flexibility and efficiency required for different tasks and use-cases.
+## Choose a mode
 
----
+| Mode | Purpose | Guide |
+| --- | --- | --- |
+| `download` | Fetch the datasets selected in your configuration. | [Download datasets](./download.md) |
+| `feature` | Generate features from your datasets. | [Feature generation](../features/index.md) |
+| `train` | Train the task model with the configured features and settings. | [Train a model](./train.md) |
+| `evaluate` | Evaluate the model on the configured test data. | [Evaluate a model](./evaluate.md) |
+| `export` | Convert the trained model for deployment. | [Export a model](./export.md) |
+| `demo` | Run a task-level demonstration with the configured backend. | [Run a demo](./demo.md) |
 
-## Available Modes
+## Run a step
 
-<div class="grid cards" markdown>
+```bash title="Train a staging model"
+sleepkit --mode train --task stage --config configuration.json
+```
 
-- :material-download: [**Download** datasets](./download.md)
-- :simple-chartdotjs: [**Feature** generation](../features/index.md)
-- :material-chart-ppf: [**Train** model](./train.md)
-- :material-ab-testing: [**Evaluate** model](./evaluate.md)
-- :material-export: [**Export** model](./export.md)
-- :material-hexagon-multiple: [**Demo** model](./demo.md)
+Use the same configuration for related steps so that dataset, feature and model settings stay consistent. Complete data download and feature generation before training; evaluate the trained model before exporting it.
 
-</div>
+Demo support depends on the task and backend. See the demo guide for setup and limitations; running a demo does not establish model accuracy.
 
----
+## Python workflow
 
-## [Download](./download.md)
-
-[Download mode](./download.md) is used to download the specified datasets for the task. The routine can be customized via the configuration file or by setting the parameters directly in the code. The download process involves fetching the dataset(s) from the specified source and storing them in the specified directory.
-
----
-
-## [Feature](../features/index.md)
-
-[Feature mode](../features/index.md) is used to generate features from the specified dataset(s). The routine can be customized via the configuration file or by setting the parameters directly in the code. The feature extraction process involves transforming the raw data into a format that can be used for training a machine learning model.
-
----
-
-## [Train](./train.md)
-
-[Train mode](./train.md) is used to train a model for the specified task and features. In this mode, the model is trained for a given task using the specified features, model architecture, and hyperparameters. The training process involves optimizing the model's parameters to maximize its performance on the training data.
-
----
-
-## [Evaluate](./evaluate.md)
-
-[Evaluate mode](./evaluate.md) is used to test the performance of the model on the reserved test set for the specified task. The routine can be customized via the configuration file or by setting the parameters directly in the code. The evaluation process involves testing the model's performance on the test data to measure its accuracy, precision, recall, and F1 score.
-
----
-
-## [Export](./export.md)
-
-[Export mode](./export.md) is used to convert the trained model into a format that can be used for deployment onto Ambiq's family of SoCs. Currently, the command will convert the TensorFlow model into both TensorFlow Lite (TFL) and TensorFlow Lite for micro-controller (TFLM) variants. The command will also verify the models' outputs match.
-
----
-
-## [Demo](./demo.md)
-
-[Demo mode](./demo.md) is used to run a task-level demonstration on the trained model using the specified backend inference engine (e.g. PC or EVB). This is useful to showcase the model's performance in real-time and to verify its accuracy in a real-world scenario.
-
----
-
-!!! Example "At-a-Glance"
-
-    === "Download"
-
-        <br>
-        Download specified datasets. <br>
-        Refer to [Download Mode](./download.md) for more details.
-
-    === "Feature"
-
-        <br>
-        Generate features from dataset(s). <br>
-        Refer to [Feature Mode](../features/index.md) for more details.
-
-    === "Train"
-
-        <br>
-        Train a model for specified task and features. <br>
-        Refer to [Train Mode](./train.md) for more details.
-
-    === "Evaluate"
-
-        <br>
-        Evaluate a model for specified task and features. <br>
-        Refer to [Evaluate Mode](./evaluate.md) for more details.
-
-    === "Export"
-
-        <br>
-        Export a trained model to TensorFlow Lite and TFLM. <br>
-        Refer to [Export Mode](./export.md) for more details.
-
-    === "Demo"
-
-        <br>
-        Run task-level demo on PC or EVB. <br>
-        Refer to [Demo Mode](./demo.md) for more details.
+The Python interface exposes the same task operations for scripts and notebooks. See [Quickstart](../quickstart.md#use-sleepkit-with-python) for a configuration-driven example and [Configuration](./configuration.md) for parameter definitions.

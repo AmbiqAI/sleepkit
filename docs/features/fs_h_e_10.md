@@ -2,7 +2,7 @@
 
 ## Overview
 
-This feature set is targeted for sleep stage classification based on single pair of ECG and EOG sensor data collected on __head__ location. The feature set computes frequency band metrics over temporal windows (e.g. 30 seconds) captured from ECG and EOG sensors.
+This feature set is targeted for sleep stage classification based on single pair of EEG and EOG sensor data collected on __head__ location. The feature set computes frequency band metrics over temporal windows (e.g. 30 seconds) captured from EEG and EOG sensors.
 
 ## Target Location/Sensors
 
@@ -38,4 +38,4 @@ The feature set is stored as HDF5 files (`.h5`) with one file per subject with p
 
 * `/features`: Time x Feature tensor (fp32). Features are computed over windows of sensor data.
 * `/mask`: Time x Mask tensor (bool). Mask indicates valid feature values.
-* `/labels`: Time x Label (int). Labels are sleep stages.
+* `/stage_labels`: Time x Label (int). Labels are sleep stages.

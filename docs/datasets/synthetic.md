@@ -15,9 +15,7 @@ NA
 
 The tool is available under BSD-3-Clause License.
 
-## Supported Tasks
-
-* [Detect](../tasks/detect.md)
+## Integration
 
 
 
@@ -46,6 +44,4 @@ The tool is available under BSD-3-Clause License.
 
     ```
 
-    <div class="sk-plotly-graph-div">
-    --8<-- "assets/segmentation_example.html"
-    </div>
+Synthetic signal generation is a standalone preprocessing tool, not a registered sleepKIT dataset. To use generated signals in a task, provide a [custom dataset adapter](byod.md) and matching feature extraction.

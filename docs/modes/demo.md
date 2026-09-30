@@ -13,7 +13,7 @@ Each task in sleepKIT has a corresponding demo mode that allows you to run a tas
 1. Generate report (e.g. `report.html`)
 
 ```mermaid
-graph LR
+graph TD
 A("`Load
 configuration
 __TaskParams__
@@ -71,7 +71,7 @@ The EVB backend is used to run the task-level demo on an Ambiq EVB. This is usef
 1. Ensure "evb" is selected as the backend in configuration file.
 1. Plug EVB into PC via two USB-C cables.
 1. Build and flash firmware to EVB `cd evb && make && make deploy`
-1. Run demo `sleepkit --mode demo --task beat --config ./configs/stage-class-4.json`
+1. Run demo `sleepkit --mode demo --task stage --config ./configs/stage-class-4.json`
 1. HTML report will be saved to `${job_dir}/report.html`
 
 ### Bring-Your-Own-Backend
@@ -80,29 +80,30 @@ Similar to datasets, tasks, and models, the demo mode can be customized to use y
 
 #### How it Works
 
-1. **Create a Backend**: Define a new backend class that inherits from the `sk.InferenceBackend` base class and implements the required methods.
+1. **Create a Backend**: Define a new backend class that inherits from the `sk.InferenceBackend` base class and implements the required methods. This skeleton must be implemented before use.
 
     ```py linenums="1"
     import sleepkit as sk
+    import numpy.typing as npt
 
     class CustomBackend(sk.InferenceBackend):
-        def __init__(self, params: TaskParams) -> None:
+        def __init__(self, params: sk.TaskParams) -> None:
             self.params = params
 
         def open(self):
-            pass
+            raise NotImplementedError("Implement the backend operation")
 
         def close(self):
-            pass
+            raise NotImplementedError("Implement the backend operation")
 
         def set_inputs(self, inputs: npt.NDArray):
-            pass
+            raise NotImplementedError("Implement the backend operation")
 
         def perform_inference(self):
-            pass
+            raise NotImplementedError("Implement the backend operation")
 
         def get_outputs(self) -> npt.NDArray:
-            pass
+            raise NotImplementedError("Implement the backend operation")
     ```
 
 2. **Register the Backend**: Register the new backend with the `sk.BackendFactory` by calling the `register` method. This method takes the backend name and the backend class as arguments.
@@ -117,10 +118,10 @@ Similar to datasets, tasks, and models, the demo mode can be customized to use y
     ```py linenums="1"
     import sleepkit as sk
 
-    params = sk.TaskParams(
-        ...,
-        backend="custom"
-    )
+    from pathlib import Path
+
+    params = sk.TaskParams.model_validate_json(Path("configuration.json").read_text())
+    params.backend = "custom"
 
     task = sk.TaskFactory.get("detect")
 
@@ -132,10 +133,10 @@ Similar to datasets, tasks, and models, the demo mode can be customized to use y
     ```py linenums="1"
     import sleepkit as sk
 
-    params = sk.TaskParams(
-        ...,
-        backend="custom"
-    )
+    from pathlib import Path
+
+    params = sk.TaskParams.model_validate_json(Path("configuration.json").read_text())
+    params.backend = "custom"
 
     backend = sk.BackendFactory.get("custom")(params)
 
@@ -150,7 +151,7 @@ The following is an example of a task-level demo report for the sleep staging ta
 === "CLI"
 
     ```bash
-    sleepkit -m export -t stage -c ./configuration.json
+    sleepkit -m demo -t stage -c ./configuration.json
     ```
 
 === "Python"
@@ -160,9 +161,8 @@ The following is an example of a task-level demo report for the sleep staging ta
     import sleepkit as sk
 
     task = sk.TaskFactory.get("stage")
-    task.export(sk.TaskParams(
-        ...
-    ))
+    params = sk.TaskParams.model_validate_json(Path("configuration.json").read_text())
+    task.demo(params)
     ```
 
 <div class="sk-plotly-graph-div">

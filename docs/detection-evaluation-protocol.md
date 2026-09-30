@@ -1,5 +1,8 @@
 # Detection evaluation checkpoint
 
+This page preserves a historical evaluation checkpoint. For the implemented workflow, see the [annotated dataset adapter](detection-annotated-dataset.md) and [comparison report](detection-comparison.md). The checkpoint discussion below records the decisions leading to that workflow.
+
+
 The pipeline and artifact contracts are implemented. The next question is whether
 a comparison is valid, before asking which model scores better. This checkpoint
 adds an annotation audit and defines the evidence needed for an evaluation run.
@@ -139,12 +142,12 @@ Reproduce substantive findings, add a regression check where appropriate, fix th
 owning PR, and update any stacked PRs. Avoid repeatedly reviewing unchanged code
 or treating review approval as a substitute for source evidence.
 
-Next implementation checkpoint: raw-series alignment and a reviewed annotation
-policy. Historical model exposure and model licensing remain unresolved. No model
+At this checkpoint, raw-series alignment and annotation-policy review were
+the next steps; their completed records are linked below. Historical model exposure and model licensing remain unresolved. No model
 publication is authorized by producing an audit report.
 
-The next policy candidate is described in [event-supported labels](detection-label-policy.md).
-It is a proposal requiring annotation-protocol evidence, not a relabeling of the audit output.
+The [event-supported label policy](detection-label-policy.md) records the
+subsequent review and adopted target. It does not overwrite the audit output.
 
 The [raw-source verification](detection-source-alignment.md) now confirms step/index,
 UTC cadence, and channel alignment for the audited local snapshot. Its 44 local-clock

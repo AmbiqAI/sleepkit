@@ -89,7 +89,7 @@ The sleepKIT command line interface (CLI) allows for simple single-line commands
         Where:
 
         * `MODE` is one of `download`, `feature`, `train`, `evaluate`, `export`, or `demo`
-        * `TASK` is one of `detect`, `stage`, `apnea`, or `arousal`
+        * `TASK` is one of `detect`, `stage`, or `apnea`
         * `CONFIG` is configuration as JSON content or file path
 
     === "Download"
@@ -132,30 +132,24 @@ The __sleepKIT__ Python package allows for more fine-grained control and customi
 
 For example, you can create a custom model, train it, evaluate its performance on a validation set, and even export a quantized TensorFlow Lite model for deployment. Check out the [Python Guide](./usage/python.md) to learn more about using sleepKIT as a Python package.
 
-!!! Example
+Load a task configuration, then call the steps you need. Replace `configuration.json` with a configuration for your dataset and model.
 
-    ```py linenums="1"
+```python title="run_task.py"
+from pathlib import Path
+import sleepkit as sk
 
-    import sleepkit as sk
+params = sk.TaskParams.model_validate_json(
+    Path("configuration.json").read_text()
+)
+task = sk.TaskFactory.get("stage")
 
-    params = sk.HKTaskParams(...)  # Expand to see example (1)
+task.download(params)
+task.feature(params)
+task.train(params)
+task.evaluate(params)
+task.export(params)
+```
 
-    task = sk.TaskFactory.get("stage")
+The configuration controls dataset locations, features, class mapping and training settings. This example shows the configuration structure; adapt its paths and task-specific values before running it.
 
-    task.download(params)  # Download dataset(s)
-
-    task.feature(params)  # Generate features
-
-    task.train(params)  # Train the model
-
-    task.evaluate(params)  # Evaluate the model
-
-    task.export(params)  # Export to TFLite
-
-    ```
-
-    1. Configuration parameters:
-    --8<-- "assets/usage/python-configuration.md"
-
-
----
+--8<-- "assets/usage/json-configuration.md"

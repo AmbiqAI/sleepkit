@@ -24,8 +24,8 @@ manifest = create_split(
 write_json("/private/split.json", manifest)
 ```
 
-The manifest contains `schema`, `dataset`, and explicit `train`, `validation`,
-and `test` lists. Lists must be nonempty, unique and disjoint, with safe filename
+The manifest contains `schema`, `dataset`, and a `partitions` object containing
+explicit `train`, `validation`, and `test` lists. Lists must be nonempty, unique and disjoint, with safe filename
 stems. The generator permutes sorted IDs with NumPy `default_rng(seed)`, takes
 first test IDs, then validation IDs, then training IDs, and sorts each partition.
 Persist the resulting manifest; a seed alone is not membership evidence. The

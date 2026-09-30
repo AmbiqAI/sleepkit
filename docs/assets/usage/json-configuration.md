@@ -1,4 +1,4 @@
-```javascript
+```json
 {
     "name": "sd-2-tcn-sm",
     "job_dir": "./results/sd-2-tcn-sm",
