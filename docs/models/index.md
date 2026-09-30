@@ -8,7 +8,7 @@ sleepKIT provides a number of model architectures that can be used for training 
 
 - **[TCN](https://ambiqai.github.io/helia-edge/models/tcn)**: A CNN leveraging dilated convolutions (key=`tcn`)
 - **[U-Net](https://ambiqai.github.io/helia-edge/models/unet)**: A CNN with encoder-decoder architecture for segmentation tasks (key=`unet`)
-- **[U-NeXt](https://ambiqai.github.io/helia-edge/models/unext)**: A U-Net variant leveraging MBConv blocks (key=`unext`)
+- **U-NeXt**: Registered as an alias for the U-Net builder (key=`unext`)
 - **[EfficientNetV2](https://ambiqai.github.io/helia-edge/models/efficientnet)**: A CNN leveraging MBConv blocks (key=`efficientnetv2`)
 - **[MobileOne](https://ambiqai.github.io/helia-edge/models/mobileone)**: A CNN aimed at sub-1ms inference (key=`mobileone`)
 - **[ResNet](https://ambiqai.github.io/helia-edge/models/resnet)**: A popular CNN often used for vision tasks (key=`resnet`)

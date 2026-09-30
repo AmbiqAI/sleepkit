@@ -55,8 +55,8 @@ We provide several installation methods including pip, uv, and Docker. Install _
 
 ## Requirements
 
-* [Python ^3.12+](https://www.python.org)
-* [uv ^1.6.1+](https://docs.astral.sh/uv/getting-started/installation/)
+* [Python 3.12–3.13](https://www.python.org)
+* [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 Check the project's [pyproject.toml](https://github.com/AmbiqAI/sleepkit/blob/main/pyproject.toml) file for a list of up-to-date Python dependencies. Note that the installation methods above install all required dependencies. The following are optional dependencies only needed when running `demo` command using Ambiq's evaluation board (`EVB`) backend:
 
@@ -69,7 +69,7 @@ Once installed, __sleepKIT__ can be used as either a CLI-based tool or as a Pyth
 
 ## Use sleepKIT with CLI
 
-The sleepKIT command line interface (CLI) allows for simple single-line commands without the need for a Python environment. The CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `sleepkit` command. Check out the [CLI Guide](./usage/cli.md) to learn more about available options.
+The sleepKIT command line interface (CLI) allows for simple single-line commands without writing Python code. The CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `sleepkit` command. Check out the [CLI Guide](./usage/cli.md) to learn more about available options.
 
 !!! example
 
