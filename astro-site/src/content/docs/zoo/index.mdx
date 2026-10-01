@@ -1,0 +1,38 @@
+---
+title: "Model Zoo"
+description: "A number of pre-trained models are available for download to use in your own project. These models are trained on the datasets listed below and are available…"
+---
+
+A number of pre-trained models are available for download to use in your own project. These models are trained on the datasets listed below and are available in TensorFlow flatbuffer formats.
+
+Model licenses are specific to each release and its data sources. Public downloads
+do not imply commercial-use permission or a BSD license for weights. See the
+[licensing policy](/sleepkit/model-licensing-policy/); historical models have not yet
+received a complete per-artifact provenance and licensing review.
+
+## [Sleep Detect](/sleepkit/zoo/detect/)
+
+The following table provides the latest performance and accuracy results for sleep detection models.
+
+| NAME             | LOCATION | # CLASSES | MODEL | PARAMS | FLOPS   | ACCURACY | AP    |
+| ---------------- | -------- | --------- | ----- | ------ | ------- | -------- | ----- |
+| __SD-2-TCN-SM__  | Wrist    | 2         | TCN   | 9K     | 1.5M/hr | 95.9%    | 94.5% |
+
+## [Sleep Stage](/sleepkit/zoo/stage/)
+
+The following table provides the latest performance and accuracy results for sleep staging models.
+
+| NAME             | LOCATION | # CLASSES | MODEL | PARAMS | FLOPS   | ACCURACY | AP    |
+| ---------------- | -------- | --------- | ----- | ------ | ------- | -------- | ----- |
+| SS-2-TCN-SM      | Wrist    | 2         | TCN   | 10K    | 1.7M/hr | 88.9%    | 96.0% |
+| SS-3-TCN-SM      | Wrist    | 3         | TCN   | 11K    | 1.9M/hr | 84.4%    | 91.8% |
+| SS-4-TCN-SM      | Wrist    | 4         | TCN   | 26K    | 4.2M/hr | 75.5%    | 81.6% |
+| SS-5-TCN-SM      | Wrist    | 5         | TCN   | 28K    | 4.6M/hr | 68.4%    | 74.1% |
+
+## [Sleep Apnea](/sleepkit/zoo/apnea/)
+
+The following table provides the latest performance and accuracy results for sleep apnea detection models.
+
+| NAME             | LOCATION | # CLASSES | MODEL   | PARAMS | FLOPS   | ACCURACY | F1    |
+| ---------------- | -------- | --------- | ------- | ------ | ------- | -------- | ----- |
+| __SA-2-TCN-SM__  | Wrist    | 2         | TCN     | 5K     | 20M/hr  | 91.0%    | 91.0% |

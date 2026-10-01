@@ -45,3 +45,7 @@ Landing installation examples are copyable Bash commands with no Termynal progre
 ## Public documentation boundary
 
 Private implementation API modules and their redirects are excluded. Shared architecture proposals, reusable-component experiments, feature-preparation implementation notes and unadopted draft license terms stay in the repository and are not published. Public task workflows and model licensing guidance remain. The public site now contains 55 authored Markdown pages, one notebook and 110 API modules (216 catalog symbols). Output checks reject internal routes and private modules in the catalog/reference model.
+
+## Canonical sources
+
+The one-time MkDocs adapter has been retired. Authored pages are now in `src/content/docs/`, navigation in `src/navigation.mjs`, and static assets in `public/`. API and notebook generation remain. See README.md for source ownership.

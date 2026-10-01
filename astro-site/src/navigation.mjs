@@ -1,14 +1,6 @@
-import sidebar from "./data/sidebar.json" with { type: "json" };
 import apiSidebar from "./data/api-sidebar.json" with { type: "json" };
 const page = (label, slug) => ({ label, slug });
 const group = (label, items) => ({ label, items, collapsed: false });
-const original = (label) =>
-  sidebar
-    .find((item) => item.label === label)
-    .items.map((item) => ({
-      ...item,
-      slug: item.slug?.replace(/\.ipynb$/, ""),
-    }));
 const apiGroups = Object.entries(
   Object.groupBy(apiSidebar, (item) => item.label.split(".")[1] || "Package"),
 ).map(([label, items]) => ({ label, items, collapsed: true }));
@@ -37,9 +29,76 @@ export const sections = [
         page("Export", "modes/export"),
         page("Demo", "modes/demo"),
       ]),
-      group("Datasets", original("Datasets")),
-      group("Feature extraction", original("Features")),
-      group("Model architectures", original("Models")),
+      group("Datasets", [
+  {
+    "label": "Datasets",
+    "slug": "datasets"
+  },
+  {
+    "label": "CMIDSS",
+    "slug": "datasets/cmidss"
+  },
+  {
+    "label": "MESA",
+    "slug": "datasets/mesa"
+  },
+  {
+    "label": "YSYW",
+    "slug": "datasets/ysyw"
+  },
+  {
+    "label": "STAGES",
+    "slug": "datasets/stages"
+  },
+  {
+    "label": "Synthetic",
+    "slug": "datasets/synthetic"
+  },
+  {
+    "label": "BYOD",
+    "slug": "datasets/byod"
+  }
+]),
+      group("Feature extraction", [
+  {
+    "label": "Features",
+    "slug": "features"
+  },
+  {
+    "label": "FS-W-PA-14",
+    "slug": "features/fs_w_pa_14"
+  },
+  {
+    "label": "FS-C-EAR-9",
+    "slug": "features/fs_c_ear_9"
+  },
+  {
+    "label": "FS-W-A-5",
+    "slug": "features/fs_w_a_5"
+  },
+  {
+    "label": "FS-H-E-10",
+    "slug": "features/fs_h_e_10"
+  },
+  {
+    "label": "FS-W-P-5",
+    "slug": "features/fs_w_p_5"
+  },
+  {
+    "label": "BYOFS",
+    "slug": "features/byofs"
+  }
+]),
+      group("Model architectures", [
+  {
+    "label": "Models",
+    "slug": "models"
+  },
+  {
+    "label": "BYOM",
+    "slug": "models/byom"
+  }
+]),
       group("Tutorials", [
         page("Train a detection model", "guides/train-detect-model"),
         page("Staging ablation", "guides/stage-ablation"),
@@ -71,7 +130,24 @@ export const sections = [
     sidebar: [
       page("Python API catalog", "reference"),
       group("Model zoo", [
-        ...original("Model Zoo"),
+        ...[
+  {
+    "label": "Model Zoo",
+    "slug": "zoo"
+  },
+  {
+    "label": "Detect",
+    "slug": "zoo/detect"
+  },
+  {
+    "label": "Stage",
+    "slug": "zoo/stage"
+  },
+  {
+    "label": "Apnea",
+    "slug": "zoo/apnea"
+  }
+],
         page("Model artifacts", "huggingface-artifacts"),
       ]),
       group("Licensing", [

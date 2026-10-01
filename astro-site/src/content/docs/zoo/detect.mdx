@@ -1,0 +1,98 @@
+---
+title: "Sleep Detection Model"
+description: "The following table provides the latest pre-trained models for sleep detection. Below we also provide additional details including training configuration,…"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Model Overview
+
+The following table provides the latest pre-trained models for sleep detection. Below we also provide additional details including training configuration, accuracy metrics, and hardware performance results for the models.
+
+| NAME             | LOCATION | # CLASSES | MODEL | PARAMS | FLOPS   | ACCURACY | AP    |
+| ---------------- | -------- | --------- | ----- | ------ | ------- | -------- | ----- |
+| __SD-2-TCN-SM__  | Wrist    | 2         | TCN   | 9K     | 1.5M/hr | 95.9%    | 94.5% |
+
+---
+
+## Model Details
+
+<Tabs>
+<TabItem label="SD-2-TCN-SM">
+
+The __SD-2-TCN-SM__ model is a 2-stage sleep detection model that uses a Temporal Convolutional Network (TCN) architecture. The model is trained on accelerometer sensor data collected from the wrist and is able to classify sleep and wake stages.
+
+- **Location**: Wrist
+- **Classes**: Awake, Sleep
+- **Frame Size**: 2 hours
+- **Datasets**: [MESA](/sleepkit/datasets/mesa/)
+- **Features**: [FS-W-A-5](/sleepkit/features/fs_w_a_5/)
+
+</TabItem>
+</Tabs>
+
+## Model Performance
+
+<Tabs>
+<TabItem label="SD-2-TCN-SM">
+
+### Confusion Matrix
+
+The confusion matrix provides a detailed breakdown of the model's performance on the test set. The rows represent the true labels, while the columns represent the predicted labels. The diagonal elements represent the number of correct predictions for each class, while the off-diagonal elements represent the number of incorrect predictions.
+
+<div class="sk-plotly-graph-div">
+<iframe title="Interactive example" src="/sleepkit/assets/zoo/detect/detect-2-cm.html" loading="lazy" style={{width:'100%',height:'480px',border:0}} />
+</div>
+
+### Sleep Efficiency Plot
+
+The following plot shows the model's performance in detecting sleep efficieny- percentage of time spent asleep while in bed. The x-axis represents the true sleep efficiency, while the y-axis represents the predicted sleep efficiency.
+
+<div class="sk-plotly-graph-div">
+<iframe title="Interactive example" src="/sleepkit/assets/zoo/detect/detect-2-eff.html" loading="lazy" style={{width:'100%',height:'480px',border:0}} />
+</div>
+
+### Total Sleep Time (TST) Plot
+
+The following plot shows the model's performance in detecting total sleep time (TST). The x-axis represents the true TST, while the y-axis represents the predicted TST. The plot shows a strong correlation between the true and predicted TST values.
+
+<div class="sk-plotly-graph-div">
+<iframe title="Interactive example" src="/sleepkit/assets/zoo/detect/detect-2-tst.html" loading="lazy" style={{width:'100%',height:'480px',border:0}} />
+</div>
+
+</TabItem>
+</Tabs>
+
+---
+
+## EVB Performance
+
+The following table provides the latest performance results when running on Apollo4 Plus EVB. These results are obtained using neuralSPOTs [Autodeploy tool](https://ambiqai.github.io/neuralSPOT/docs/From%20TF%20to%20EVB%20-%20testing%2C%20profiling%2C%20and%20deploying%20AI%20models.html). From neuralSPOT repo, the following command can be used to capture EVB results via Autodeploy:
+
+```console title="Terminal"
+python -m ns_autodeploy \
+--tflite-filename model.tflite \
+--model-name model \
+--cpu-mode 192 \
+--arena-size-scratch-buffer-padding 0 \
+--max-arena-size 60 \
+```
+
+| Name            | Params   | FLOPS   | Metric     | Time    | Arena | Energy     |
+| --------------- | -------- | ------- | ---------- | ------- | ----- | ---------- |
+| __SD-2-TCN-SM__ | 9K       | 1.5M/hr | 94.5% AP   | 61ms/hr |  34KB | 586uJ/hr   |
+
+## Downloads
+
+<Tabs>
+<TabItem label="SD-2-TCN-SM">
+
+| Asset                                                                | Description                   |
+| -------------------------------------------------------------------- | ----------------------------- |
+| [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/detect/sd-2-tcn-sm/latest/configuration.json)   | Configuration file            |
+| [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/detect/sd-2-tcn-sm/latest/model.keras)            | Keras Model file              |
+| [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/detect/sd-2-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+| [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/detect/sd-2-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+</TabItem>
+</Tabs>

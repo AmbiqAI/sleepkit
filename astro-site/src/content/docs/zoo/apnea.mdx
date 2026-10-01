@@ -1,0 +1,90 @@
+---
+title: "Sleep Apnea Detection"
+description: "The following table provides the latest pre-trained models for sleep apnea. Below we also provide additional details including training configuration, accuracy…"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Model Overview
+
+The following table provides the latest pre-trained models for sleep apnea. Below we also provide additional details including training configuration, accuracy metrics, and hardware performance results for the models.
+
+| NAME             | LOCATION | # CLASSES | MODEL   | PARAMS | FLOPS   | ACCURACY | F1    |
+| ---------------- | -------- | --------- | ------- | ------ | ------- | -------- | ----- |
+| __SA-2-TCN-SM__  | Wrist    | 2         | TCN     | 5K     | 20M/hr  | 91.0%    | 91.0% |
+
+## Model Details
+
+<Tabs>
+<TabItem label="SA-2-TCN-SM">
+
+The __SA-2-TCN-SM__ model is a 2-stage sleep apnea detection model that uses a Temporal convolutional network (TCN). The model is trained on PPG sensor data collected from the wrist and is able to locate apnea/hypopnea events.
+
+- **Location**: Wrist
+- **Classes**: Normal, Apnea
+- **Frame Size**: 10 minutes
+- **Datasets**: [MESA](/sleepkit/datasets/mesa/)
+- **Features**: [FS-W-P-5](/sleepkit/features/fs_w_p_5/)
+
+</TabItem>
+</Tabs>
+
+## Model Performance
+
+<Tabs>
+<TabItem label="SA-2-TCN-SM">
+
+The following plots show the model's performance in detecting apnea/hypopnea events. The first plot shows the confusion matrix for apnea detection.
+
+<div class="sk-plotly-graph-div">
+<iframe title="Interactive example" src="/sleepkit/assets/zoo/apnea/sa-2-tcn-sm-cm.html" loading="lazy" style={{width:'100%',height:'480px',border:0}} />
+</div>
+
+The following plot shows the model's ability to detect AHI (Apnea-Hypopnea Index) compared to the ground truth AHI values. The x-axis represents the true AHI values, while the y-axis represents the predicted AHI values. The plot shows a strong correlation between the true and predicted AHI values.
+
+<div class="sk-plotly-graph-div">
+<iframe title="Interactive example" src="/sleepkit/assets/zoo/apnea/sa-2-tcn-sm-ahi-scatter.html" loading="lazy" style={{width:'100%',height:'480px',border:0}} />
+</div>
+
+The following table provides the corresponding confusion matrix for AHI.
+
+<div class="sk-plotly-graph-div">
+<iframe title="Interactive example" src="/sleepkit/assets/zoo/apnea/sa-2-tcn-sm-ahi-cm.html" loading="lazy" style={{width:'100%',height:'480px',border:0}} />
+</div>
+
+</TabItem>
+</Tabs>
+
+---
+
+## EVB Performance
+
+The following table provides the latest performance results when running on Apollo4 Plus EVB. These results are obtained using neuralSPOTs [Autodeploy tool](https://ambiqai.github.io/neuralSPOT/docs/From%20TF%20to%20EVB%20-%20testing%2C%20profiling%2C%20and%20deploying%20AI%20models.html). From neuralSPOT repo, the following command can be used to capture EVB results via Autodeploy:
+
+```console title="Terminal"
+python -m ns_autodeploy \
+--tflite-filename model.tflite \
+--model-name model \
+--cpu-mode 192 \
+--arena-size-scratch-buffer-padding 0 \
+--max-arena-size 60 \
+```
+
+| Name            | Params   | FLOPS   | Metric     | Time     | Arena | Energy     |
+| --------------- | -------- | ------- | ---------- | -------- | ----- | ---------- |
+| __SA-2-TCN-SM__ | 10K      | 44M/hr  | 91.0% F1   | 1.8s/hr  |  61KB |  17.0mJ/hr |
+
+## Downloads
+
+<Tabs>
+<TabItem label="SA-2-TCN-SM">
+
+| Asset                                                                | Description                   |
+| -------------------------------------------------------------------- | ----------------------------- |
+| [configuration.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/apnea/sa-2-tcn-sm/latest/configuration.json)   | Configuration file            |
+| [model.keras](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/apnea/sa-2-tcn-sm/latest/model.keras)            | Keras Model file              |
+| [model.tflite](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/apnea/sa-2-tcn-sm/latest/model.tflite)       | TFLite Model file             |
+| [metrics.json](https://ambiqai-model-zoo.s3.us-west-2.amazonaws.com/sleepkit/apnea/sa-2-tcn-sm/latest/metrics.json)       | Metrics file                  |
+
+</TabItem>
+</Tabs>
