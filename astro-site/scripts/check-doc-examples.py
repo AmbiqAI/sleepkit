@@ -10,7 +10,7 @@ for name in ["fs_w_a_5", "fs_c_ear_9", "fs_w_pa_14", "fs_w_p_5", "fs_h_e_10"]:
     tree = ast.parse((root / "sleepkit/features" / f"{name}.py").read_text())
     function = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "feature_names")
     names = ast.literal_eval(next(n.value for n in ast.walk(function) if isinstance(n, ast.Return)))
-    doc = (root / "docs/features" / f"{name}.md").read_text()
+    doc = (root / "astro-site/src/content/docs/features" / f"{name}.mdx").read_text()
     table = re.findall(r"^\| (\w+) \|", doc, re.MULTILINE)
     assert table == names, f"{name}: feature table does not match feature_names()"
     paths = {
@@ -33,7 +33,7 @@ for rel in [
     "modes/demo.md",
     "datasets/cmidss.md",
 ]:
-    text = (root / "docs" / rel).read_text()
+    text = (root / "astro-site/src/content/docs" / (rel + "x")).read_text()
     for match in re.finditer(r"^([ \t]*)```(?:py|python)(?:[^\n]*)\n(.*?)^\1```", text, re.MULTILINE | re.DOTALL):
         ast.parse(textwrap.dedent(match[2]))
 print("Verified feature tables, HDF5 paths and updated Python example syntax.")

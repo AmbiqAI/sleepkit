@@ -12,7 +12,7 @@ assets = Path("public/notebooks")
 shutil.rmtree(assets, ignore_errors=True)
 assets.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(source, assets / source.name)
-shutil.copyfile(Path("../docs/guides/train-detect-model.ipynb"), assets / "previous-docs-train-detect-model.ipynb")
+shutil.copyfile(Path("../notebooks/archive/previous-docs-train-detect-model.ipynb"), assets / "previous-docs-train-detect-model.ipynb")
 parts = [
     "---\ntitle: Train Sleep Detection Model\ndescription: Train a wrist-based sleep detection model with saved notebook code and outputs.\n---",
     f'<div class="sleepkit-actions"><a class="md-button" href="/sleepkit/notebooks/{source.name}">Download notebook</a> <a class="md-button" href="https://github.com/AmbiqAI/sleepkit/blob/main/notebooks/{source.name}">View source</a> <a class="md-button" href="https://colab.research.google.com/github/AmbiqAI/sleepkit/blob/main/notebooks/{source.name}">Open in Colab</a></div>',

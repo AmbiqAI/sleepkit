@@ -71,18 +71,13 @@ console.log(
   `Verified internal links across ${cache.size} pages, ${index.rows.length} API symbols and discovery exports.`,
 );
 
-for (const path of files(resolve("../docs")).filter(
-  (p) => p.endsWith(".md") && !p.includes("/assets/"),
-)) {
-  const rel = relative(resolve("../docs"), path).replace(/(?:index)?\.md$/, "");
-  if (internalPages.has(relative(resolve("../docs"), path))) {
-    assert(!existsSync(join(root, rel, "index.html")), `Internal page published: ${rel}`);
-    continue;
-  }
-  assert(
-    existsSync(join(root, rel, "index.html")),
-    `Missing authored route: ${rel}`,
-  );
+for (const path of files(resolve("src/content/docs")).filter((p) => /\.mdx?$/.test(p))) {
+  const rel = relative(resolve("src/content/docs"), path).replace(/(?:index)?\.mdx?$/, "");
+  assert(existsSync(join(root, rel, "index.html")), `Missing authored route: ${rel}`);
+}
+for (const path of internalPages) {
+  const rel = path.replace(/(?:index)?\.md$/, "");
+  assert(!existsSync(join(root, rel, "index.html")), `Internal page published: ${rel}`);
 }
 const notebook = JSON.parse(
   readFileSync("../notebooks/train-detect-model.ipynb", "utf8"),
@@ -202,10 +197,21 @@ assert(
   "Notebook duplicates the page title",
 );
 assert.deepEqual(
-  readFileSync("../docs/guides/train-detect-model.ipynb"),
+  readFileSync("../notebooks/archive/previous-docs-train-detect-model.ipynb"),
   readFileSync("dist/notebooks/previous-docs-train-detect-model.ipynb"),
 );
 assert(
   !existsSync("public/examples/models-index-1.json"),
   "Model fragment should not be offered as a runnable configuration",
 );
+
+for (const path of files(resolve("../notebooks")).filter((p) => p.endsWith(".ipynb"))) {
+  const notebook = JSON.parse(readFileSync(path, "utf8"));
+  for (const cell of notebook.cells) {
+    if (cell.cell_type !== "markdown") continue;
+    const source = Array.isArray(cell.source) ? cell.source.join("") : cell.source;
+    for (const match of source.matchAll(/(?:github\.com|github)\/AmbiqAI\/sleepkit\/blob\/main\/([^\s)"<>]+)/g)) {
+      assert(existsSync(resolve("..", match[1])), `Notebook source link is missing: ${path} -> ${match[1]}`);
+    }
+  }
+}

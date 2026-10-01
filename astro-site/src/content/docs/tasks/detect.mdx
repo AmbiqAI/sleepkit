@@ -1,0 +1,57 @@
+---
+title: "Sleep Detection Task"
+description: "The objective of sleep detection is to identify periods of sustained sleep over the course of several days or weeks. The de facto standard for long-term,…"
+---
+
+## Overview
+
+The objective of sleep detection is to identify periods of sustained sleep over the course of several days or weeks. The de facto standard for long-term, ambulatory sleep detection is actigraphy, which is a method of monitoring gross motor activity using an accelerometer. However, actigraphy is not a reliable method for sleep detection as it employs very simple heuristics to determine sleep. Often actigraphy can misclassify periods of inactivity or even not-worn as detected sleep.
+
+In this task, we look to leverage a light-weight model that can outperform actigraphy similarly using only data from an IMU. For more advanced sleep analysis, refer to the [Sleep Stage Classification](/sleepkit/tasks/stage/). By leveraring Ambiq's ultra-low-power microcontroller along with an ultra-low-power IMU, an efficient AI enabled actigraphy or fitness band will be able to run for weeks off a single charge.
+
+<figure>
+  <img src="/sleepkit/assets/tasks/detect/ambiq-watch.webp" alt="Wrist-based Sleep Classification" width="540" />
+  <figcaption>Wrist-based Sleep Detection</figcaption>
+</figure>
+
+---
+
+## Model Zoo
+
+The following table provides the latest performance and accuracy results for pre-trained models. Additional result details can be found in [Model Zoo → Detect](/sleepkit/zoo/detect/).
+
+| NAME             | LOCATION | # CLASSES | MODEL | PARAMS | FLOPS   | ACCURACY | AP    |
+| ---------------- | -------- | --------- | ----- | ------ | ------- | -------- | ----- |
+| __SD-2-TCN-SM__  | Wrist    | 2         | TCN   | 9K     | 1.5M/hr | 95.9%    | 94.5% |
+
+---
+
+## Target Classes
+
+Below outlines the classes available for sleep detect classification. When training a model, the number of classes, mapping, and names must be provided.
+
+| CLASS   | LABELS          |
+| ------- | --------------- |
+| 0       | AWAKE           |
+| 1       | SLEEP           |
+
+**Class Mapping**
+
+Below is an example of a class mapping for a 2-class sleep detect model. The class map keys are the original class labels and the values are the new class labels. Any class not included will be skipped.
+
+```json title="JSON example"
+{
+    "num_classes": 2,
+    "class_names": ["AWAKE", "SLEEP"],
+    "class_map": {
+        "0": 0,
+        "1": 1
+    }
+}
+```
+
+---
+
+## References
+
+* [AI-Driven sleep staging from actigraphy and heart rate](https://doi.org/10.1371/journal.pone.0285703)

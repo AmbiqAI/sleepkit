@@ -115,26 +115,26 @@ Checkout the [Guides](https://ambiqai.github.io/sleepkit/guides) to see detailed
 
 ### Hugging Face baseline artifacts
 
-See [the artifact publishing guide](docs/huggingface-artifacts.md) for the additive
+See [the artifact publishing guide](astro-site/src/content/docs/huggingface-artifacts.mdx) for the additive
 `python -m sleepkit.artifacts` workflow, starting with the historical SD-2-TCN-SM
 TFLite baseline. Staging and publication dry runs require no training runtime.
 
 ### Python detection recipe
 
-See [the detection recipe guide](docs/detection-recipe.md) for a sensor-to-artifact
+See [the detection recipe guide](astro-site/src/content/docs/detection-recipe.mdx) for a sensor-to-artifact
 pipeline with built-in feature generation, fitted preprocessing, held-out evaluation,
 and unlabeled inference. It is additive to the legacy task CLI.
 
-The [first golden experiment](docs/detection-golden.md) pins the membership
-baseline's config and dataset evidence. The [profiling harness](docs/detection-profiling.md)
+The [first golden experiment](astro-site/src/content/docs/detection-golden.mdx) pins the membership
+baseline's config and dataset evidence. The [profiling harness](astro-site/src/content/docs/detection-profiling.mdx)
 measures preparation, loading and training while preserving its finite sampling contract.
 
 ### Saved-feature sleep staging
 
-The [staging baseline guide](docs/staging-baseline.md) provides an explicit
+The [staging baseline guide](astro-site/src/content/docs/staging-baseline.mdx) provides an explicit
 read → preprocess → window → evaluate path for the historical SS-3 Keras model.
 It records cohort/input hashes and coverage while keeping historical provenance
-limitations visible. The [staging training recipe](docs/staging-training.md) adds
+limitations visible. The [staging training recipe](astro-site/src/content/docs/staging-training.mdx) adds
 explicit subject splits, Keras training, and prospective golden declarations.
 
 ### Licensing
@@ -142,13 +142,13 @@ explicit subject splits, Keras training, and prospective golden declarations.
 The code and Ambiq-authored documentation/site content use [BSD-3-Clause](LICENSE),
 except material with a separate notice. Model weights and datasets have their own
 terms; public availability does not imply commercial-use permission. See the
-[model licensing policy](docs/model-licensing-policy.md) for per-model choices,
+[model licensing policy](astro-site/src/content/docs/model-licensing-policy.mdx) for per-model choices,
 research restrictions and proposed optional Ambiq device terms.
 
 ### Shared foundation direction
 
-The [cross-KIT architecture proposal](docs/shared-foundation.md) describes the path
+The [cross-KIT architecture proposal](docs-maintainers/shared-foundation.md) describes the path
 toward reusable heliaEDGE blocks, first-class TensorFlow/PyTorch workflows, measured
 input-pipeline improvements, and traceable golden releases across the KITs.
-The [reusable-block candidates](docs/reusable-blocks.md) and synthetic signal recipe
+The [reusable-block candidates](docs-maintainers/reusable-blocks.md) and synthetic signal recipe
 exercise the first local interfaces with Git-pinned heliaEDGE backend profiles.

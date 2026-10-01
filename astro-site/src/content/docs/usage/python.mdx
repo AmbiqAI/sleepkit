@@ -1,0 +1,198 @@
+---
+title: "Python Usage"
+description: "sleepKIT python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for both built-in…"
+---
+
+import ConfigExample from "../../../components/ConfigExample.astro";
+
+__sleepKIT__ python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for both built-in tasks and custom tasks. In addition, custom datasets and model architectures can be created and registered with corresponding factories.
+
+## Overview
+
+The main components of sleepKIT include the following:
+
+### [Tasks](/sleepkit/tasks/)
+
+A [Task](/sleepkit/tasks/) inherits from the [sk.Task](/sleepkit/api/sleepkit/tasks/task) class and provides implementations for each of the main modes: download, feature, train, evaluate, export, and demo. Each mode is provided with a set of parameters defined by [sk.TaskParams](/sleepkit/api/sleepkit/defines). Additional task-specific parameters can be extended to the `TaskParams` class. These tasks are then registered and accessed via the `sk.TaskFactory` using a unique task name as the key and the custom Task class as the value.
+
+```py title="Python example" linenums="1"
+import sleepkit as sk
+
+task = sk.TaskFactory.get('stage')
+```
+
+### [Datasets](/sleepkit/datasets/)
+
+A dataset inherits from the [sk.Dataset](/sleepkit/api/sleepkit/datasets/dataset) class and provides implementations for downloading, preparing, and loading the dataset. Each dataset is provided with a set of custom parameters for initialization. The datasets are registered and accessed via the [DatasetFactory](/sleepkit/api/sleepkit/datasets/factory) using a unique dataset name as the key and the Dataset class as the value.
+
+```py title="Python example" linenums="1"
+import sleepkit as sk
+
+ds = sk.DatasetFactory.get('cmidss')(path='./datasets/cmidss')
+```
+
+### [Features](/sleepkit/features/)
+
+Since each task will require specific transformations of the data, a feature store is used to generate features from the dataset. The feature store provides a set of feature sets that can be used by the task. Each feature set is provided with a set of custom parameters for initialization. The feature sets are registered and accessed via the [sk.FeatureFactory](/sleepkit/api/sleepkit/features/factory) using a unique feature set name as the key and the Feature class as the value.
+
+### [Models](/sleepkit/models/)
+
+Lastly, sleepKIT leverages [helia-edge's](https://ambiqai.github.io/helia-edge/) customizable model architectures. To enable creating custom network topologies from configuration files, sleepKIT provides a `sk.ModelFactory` that allows you to create models by specifying the model key and the model parameters. Each item in the factory is a callable that takes a `keras.Input`, model parameters, and number of classes as arguments and returns a `keras.Model`.
+
+```python title="Python example"
+import keras
+import sleepkit as sk
+
+inputs = keras.Input((256, 1), dtype="float32")
+num_classes = 4
+model_params = {"blocks": [{"filters": 16, "kernel": [1, 3]}]}
+
+model = sk.ModelFactory.get('tcn')(
+    inputs=inputs,
+    params=model_params,
+    num_classes=num_classes
+)
+
+```
+
+## Usage
+
+### Running a built-in task w/ existing datasets
+
+1. Create a task configuration file defining the model, datasets, class labels, mode parameters, and so on. Have a look at the [sk.TaskParams](/sleepkit/modes/configuration/#taskparams) for more details on the available parameters.
+
+2. Leverage `sk.TaskFactory` to get the desired built-in task.
+
+3. Run the task's main modes: `download`, `feature`, `train`, `evaluate`, `export`, and/or `demo`.
+
+```py title="Python example" linenums="1"
+
+from pathlib import Path
+import sleepkit as sk
+
+params = sk.TaskParams.model_validate_json(
+    Path("configuration.json").read_text()
+)
+
+task = sk.TaskFactory.get("stage")
+
+task.download(params)  # Download dataset(s)
+
+task.feature(params)  # Generate features
+
+task.train(params)  # Train the model
+
+task.evaluate(params)  # Evaluate the model
+
+task.export(params)  # Export to TFLite
+
+```
+
+**Example configuration**
+<ConfigExample code={"{\n    \"name\": \"sd-2-tcn-sm\",\n    \"job_dir\": \"./results/sd-2-tcn-sm\",\n    \"verbose\": 2,\n\n    \"datasets\": [{\n        \"name\": \"cmidss\",\n        \"params\": {\n            \"path\": \"./datasets/cmidss\"\n        }\n    }],\n\n    \"feature\": {\n        \"name\": \"FS-W-A-5\",\n        \"sampling_rate\": 0.2,\n        \"frame_size\": 12,\n        \"loader\": \"hdf5\",\n        \"feat_key\": \"features\",\n        \"label_key\": \"detect_labels\",\n        \"mask_key\": \"mask\",\n        \"feat_cols\": null,\n        \"save_path\": \"./datasets/store/fs-w-a-5-60\",\n        \"params\": {}\n    },\n\n    \"sampling_rate\": 0.0083333,\n    \"frame_size\": 240,\n\n    \"num_classes\": 2,\n    \"class_map\": {\n        \"0\": 0,\n        \"1\": 1,\n        \"2\": 1,\n        \"3\": 1,\n        \"4\": 1,\n        \"5\": 1\n    },\n    \"class_names\": [\"WAKE\", \"SLEEP\"],\n\n    \"samples_per_subject\": 100,\n    \"val_samples_per_subject\": 100,\n    \"test_samples_per_subject\": 50,\n\n    \"val_size\": 4000,\n    \"test_size\": 2500,\n\n    \"val_subjects\": 0.20,\n    \"batch_size\": 128,\n    \"buffer_size\": 10000,\n    \"epochs\": 200,\n    \"steps_per_epoch\": 25,\n    \"val_steps_per_epoch\": 25,\n    \"val_metric\": \"loss\",\n    \"lr_rate\": 1e-3,\n    \"lr_cycles\": 1,\n    \"label_smoothing\": 0,\n\n    \"test_metric\": \"f1\",\n    \"test_metric_threshold\": 0.02,\n    \"tflm_var_name\": \"sk_detect_flatbuffer\",\n    \"tflm_file\": \"sk_detect_flatbuffer.h\",\n\n    \"backend\": \"pc\",\n    \"display_report\": true,\n\n    \"quantization\": {\n        \"qat\": false,\n        \"mode\": \"INT8\",\n        \"io_type\": \"int8\",\n        \"concrete\": true,\n        \"debug\": false\n    },\n\n    \"model_file\": \"model.keras\",\n    \"use_logits\": false,\n    \"architecture\": {\n        \"name\": \"tcn\",\n        \"params\": {\n            \"input_kernel\": [1, 5],\n            \"input_norm\": \"batch\",\n            \"blocks\": [\n                {\"depth\": 1, \"branch\": 1, \"filters\": 16, \"kernel\": [1, 5], \"dilation\": [1, 1], \"dropout\": 0.10, \"ex_ratio\": 1, \"se_ratio\": 4, \"norm\": \"batch\"},\n                {\"depth\": 1, \"branch\": 1, \"filters\": 32, \"kernel\": [1, 5], \"dilation\": [1, 2], \"dropout\": 0.10, \"ex_ratio\": 1, \"se_ratio\": 4, \"norm\": \"batch\"},\n                {\"depth\": 1, \"branch\": 1, \"filters\": 48, \"kernel\": [1, 5], \"dilation\": [1, 4], \"dropout\": 0.10, \"ex_ratio\": 1, \"se_ratio\": 4, \"norm\": \"batch\"},\n                {\"depth\": 1, \"branch\": 1, \"filters\": 64, \"kernel\": [1, 5], \"dilation\": [1, 8], \"dropout\": 0.10, \"ex_ratio\": 1, \"se_ratio\": 4, \"norm\": \"batch\"}\n            ],\n            \"output_kernel\": [1, 5],\n            \"include_top\": true,\n            \"use_logits\": true,\n            \"model_name\": \"tcn\"\n        }\n    }\n}"} lang="json" filename="usage-python-5.json" download="/sleepkit/examples/usage-python-5.json">
+
+```json title="usage-python-5.json"
+{
+    "name": "sd-2-tcn-sm",
+    "job_dir": "./results/sd-2-tcn-sm",
+    "verbose": 2,
+
+    "datasets": [{
+        "name": "cmidss",
+        "params": {
+            "path": "./datasets/cmidss"
+        }
+    }],
+
+    "feature": {
+        "name": "FS-W-A-5",
+        "sampling_rate": 0.2,
+        "frame_size": 12,
+        "loader": "hdf5",
+        "feat_key": "features",
+        "label_key": "detect_labels",
+        "mask_key": "mask",
+        "feat_cols": null,
+        "save_path": "./datasets/store/fs-w-a-5-60",
+        "params": {}
+    },
+
+    "sampling_rate": 0.0083333,
+    "frame_size": 240,
+
+    "num_classes": 2,
+    "class_map": {
+        "0": 0,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1
+    },
+    "class_names": ["WAKE", "SLEEP"],
+
+    "samples_per_subject": 100,
+    "val_samples_per_subject": 100,
+    "test_samples_per_subject": 50,
+
+    "val_size": 4000,
+    "test_size": 2500,
+
+    "val_subjects": 0.20,
+    "batch_size": 128,
+    "buffer_size": 10000,
+    "epochs": 200,
+    "steps_per_epoch": 25,
+    "val_steps_per_epoch": 25,
+    "val_metric": "loss",
+    "lr_rate": 1e-3,
+    "lr_cycles": 1,
+    "label_smoothing": 0,
+
+    "test_metric": "f1",
+    "test_metric_threshold": 0.02,
+    "tflm_var_name": "sk_detect_flatbuffer",
+    "tflm_file": "sk_detect_flatbuffer.h",
+
+    "backend": "pc",
+    "display_report": true,
+
+    "quantization": {
+        "qat": false,
+        "mode": "INT8",
+        "io_type": "int8",
+        "concrete": true,
+        "debug": false
+    },
+
+    "model_file": "model.keras",
+    "use_logits": false,
+    "architecture": {
+        "name": "tcn",
+        "params": {
+            "input_kernel": [1, 5],
+            "input_norm": "batch",
+            "blocks": [
+                {"depth": 1, "branch": 1, "filters": 16, "kernel": [1, 5], "dilation": [1, 1], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 32, "kernel": [1, 5], "dilation": [1, 2], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 48, "kernel": [1, 5], "dilation": [1, 4], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 64, "kernel": [1, 5], "dilation": [1, 8], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"}
+            ],
+            "output_kernel": [1, 5],
+            "include_top": true,
+            "use_logits": true,
+            "model_name": "tcn"
+        }
+    }
+}
+```
+
+</ConfigExample>
+
+### Running a custom task w/ custom datasets
+
+To create a custom task, check out the [Bring-Your-Own-Task Guide](/sleepkit/tasks/byot/).
+
+To create a custom dataset, check out the [Bring-Your-Own-Dataset Guide](/sleepkit/datasets/byod/).
+
+---

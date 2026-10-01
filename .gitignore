@@ -161,8 +161,6 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
 
 # mypy
 .mypy_cache/
@@ -188,8 +186,13 @@ cython_debug/
 # Generated documentation
 astro-site/node_modules/
 astro-site/.astro/
-astro-site/src/content/docs/
 astro-site/src/data/
-astro-site/public/
 astro-site/test-results/
 astro-site/playwright-report/
+
+astro-site/src/content/docs/reference/
+astro-site/public/reference/
+astro-site/public/notebooks/
+astro-site/public/examples/
+astro-site/src/content/docs/guides/train-detect-model.md
+astro-site/public/evidence/

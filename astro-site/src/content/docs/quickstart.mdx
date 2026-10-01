@@ -1,0 +1,277 @@
+---
+title: "Quickstart"
+description: "We provide several installation methods including pip, uv, and Docker. Install sleepKIT via pip/uv for the latest stable release or by cloning the GitHub repo…"
+---
+
+import ConfigExample from "../../components/ConfigExample.astro";
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Install sleepKIT
+
+We provide several installation methods including pip, uv, and Docker. Install __sleepKIT__ via pip/uv for the latest stable release or by cloning the GitHub repo for the most up-to-date. Additionally, a [VSCode Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) is available and defined in [./.devcontainer](https://github.com/AmbiqAI/sleepkit/tree/main/.devcontainer) to run in an isolated Docker environment.
+
+<Tabs>
+<TabItem label="Git clone">
+
+Clone the repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package. In this mode, uv is recommended.
+
+```bash title="Terminal"
+# Clone the repository
+git clone https://github.com/AmbiqAI/sleepkit.git
+
+# Navigate to the cloned directory
+cd sleepkit
+
+# Install the package in editable mode for development
+uv sync
+```
+
+When using editable mode via uv, be sure to activate the python environment: `source .venv/bin/activate`. <br />
+On Windows using Powershell, use `.venv\Scripts\activate`.
+
+</TabItem>
+<TabItem label="PyPI install">
+
+Install the sleepKIT package using pip or uv.
+Visit the Python Package Index (PyPI) for more details on the package: [https://pypi.org/project/sleepkit/](https://pypi.org/project/sleepkit/)
+
+```bash title="Terminal"
+# Install with pip
+pip install sleepkit
+```
+
+Or, if you prefer to use uv, you can install the package with the following command:
+
+```bash title="Terminal"
+# Install with uv
+uv add sleepkit
+```
+
+Alternatively, you can install the latest development version directly from the GitHub repository. Make sure to have the Git command-line tool installed on your system. The @main command installs the main branch and may be modified to another branch, i.e. @canary.
+
+```bash title="Terminal"
+pip install git+https://github.com/AmbiqAI/sleepkit.git@main
+```
+
+Or, using uv:
+
+```bash title="Terminal"
+uv add git+https://github.com/AmbiqAI/sleepkit.git@main
+```
+
+</TabItem>
+</Tabs>
+
+## Requirements
+
+* [Python 3.12–3.13](https://www.python.org)
+* [uv](https://docs.astral.sh/uv/getting-started/installation/)
+
+Check the project's [pyproject.toml](https://github.com/AmbiqAI/sleepkit/blob/main/pyproject.toml) file for a list of up-to-date Python dependencies. Note that the installation methods above install all required dependencies. The following are optional dependencies only needed when running `demo` command using Ambiq's evaluation board (`EVB`) backend:
+
+* [Arm GNU Toolchain ^12.2](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+* [Segger J-Link ^7.92](https://www.segger.com/downloads/jlink/)
+
+Once installed, __sleepKIT__ can be used as either a CLI-based tool or as a Python package to perform advanced experimentation.
+
+---
+
+## Use sleepKIT with CLI
+
+The sleepKIT command line interface (CLI) allows for simple single-line commands without writing Python code. The CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `sleepkit` command. Check out the [CLI Guide](/sleepkit/usage/cli/) to learn more about available options.
+
+<Tabs>
+<TabItem label="Syntax">
+
+`sleepkit` commands use the following syntax:
+
+```bash title="Terminal"
+sleepkit --mode [MODE] --task [TASK] --config [CONFIG]
+```
+
+Or using short flags:
+
+```bash title="Terminal"
+sleepkit -m [MODE] -t [TASK] -c [CONFIG]
+```
+
+Where:
+
+* `MODE` is one of `download`, `feature`, `train`, `evaluate`, `export`, or `demo`
+* `TASK` is one of `detect`, `stage`, or `apnea`
+* `CONFIG` is configuration as JSON content or file path
+
+</TabItem>
+<TabItem label="Download">
+
+Download datasets specified in the configuration file.
+
+```bash title="Terminal"
+sleepkit -m download -c ./configuration.json
+```
+
+</TabItem>
+<TabItem label="Feature">
+
+Extract features from the datasets using the supplied configuration file.
+
+```bash title="Terminal"
+sleepkit -m feature -c ./configuration.json
+```
+
+</TabItem>
+<TabItem label="Train">
+
+Train a sleep stage model using the supplied configuration file.
+
+```bash title="Terminal"
+sleepkit -m train -t stage -c ./configuration.json
+```
+
+</TabItem>
+<TabItem label="Evaluate">
+
+Evaluate the trained sleep stage model using the supplied configuration file.
+
+```bash title="Terminal"
+sleepkit -m evaluate -t stage  -c ./configuration.json
+```
+
+</TabItem>
+<TabItem label="Demo">
+
+Run demo on trained sleep stage model using the supplied configuration file.
+
+```bash title="Terminal"
+sleepkit -m demo -t stage -c ./configuration.json
+```
+
+</TabItem>
+</Tabs>
+
+## Use sleepKIT with Python
+
+The __sleepKIT__ Python package allows for more fine-grained control and customization. You can use the package to train, evaluate, and deploy models for a variety of tasks. The package is designed to be simple and easy to use.
+
+For example, you can create a custom model, train it, evaluate its performance on a validation set, and even export a quantized TensorFlow Lite model for deployment. Check out the [Python Guide](/sleepkit/usage/python/) to learn more about using sleepKIT as a Python package.
+
+Load a task configuration, then call the steps you need. Replace `configuration.json` with a configuration for your dataset and model.
+
+```python title="run_task.py"
+from pathlib import Path
+import sleepkit as sk
+
+params = sk.TaskParams.model_validate_json(
+    Path("configuration.json").read_text()
+)
+task = sk.TaskFactory.get("stage")
+
+task.download(params)
+task.feature(params)
+task.train(params)
+task.evaluate(params)
+task.export(params)
+```
+
+The configuration controls dataset locations, features, class mapping and training settings. This example shows the configuration structure; adapt its paths and task-specific values before running it.
+
+<ConfigExample code={"{\n    \"name\": \"sd-2-tcn-sm\",\n    \"job_dir\": \"./results/sd-2-tcn-sm\",\n    \"verbose\": 2,\n\n    \"datasets\": [{\n        \"name\": \"cmidss\",\n        \"params\": {\n            \"path\": \"./datasets/cmidss\"\n        }\n    }],\n\n    \"feature\": {\n        \"name\": \"FS-W-A-5\",\n        \"sampling_rate\": 0.2,\n        \"frame_size\": 12,\n        \"loader\": \"hdf5\",\n        \"feat_key\": \"features\",\n        \"label_key\": \"detect_labels\",\n        \"mask_key\": \"mask\",\n        \"feat_cols\": null,\n        \"save_path\": \"./datasets/store/fs-w-a-5-60\",\n        \"params\": {}\n    },\n\n    \"sampling_rate\": 0.0083333,\n    \"frame_size\": 240,\n\n    \"num_classes\": 2,\n    \"class_map\": {\n        \"0\": 0,\n        \"1\": 1,\n        \"2\": 1,\n        \"3\": 1,\n        \"4\": 1,\n        \"5\": 1\n    },\n    \"class_names\": [\"WAKE\", \"SLEEP\"],\n\n    \"samples_per_subject\": 100,\n    \"val_samples_per_subject\": 100,\n    \"test_samples_per_subject\": 50,\n\n    \"val_size\": 4000,\n    \"test_size\": 2500,\n\n    \"val_subjects\": 0.20,\n    \"batch_size\": 128,\n    \"buffer_size\": 10000,\n    \"epochs\": 200,\n    \"steps_per_epoch\": 25,\n    \"val_steps_per_epoch\": 25,\n    \"val_metric\": \"loss\",\n    \"lr_rate\": 1e-3,\n    \"lr_cycles\": 1,\n    \"label_smoothing\": 0,\n\n    \"test_metric\": \"f1\",\n    \"test_metric_threshold\": 0.02,\n    \"tflm_var_name\": \"sk_detect_flatbuffer\",\n    \"tflm_file\": \"sk_detect_flatbuffer.h\",\n\n    \"backend\": \"pc\",\n    \"display_report\": true,\n\n    \"quantization\": {\n        \"qat\": false,\n        \"mode\": \"INT8\",\n        \"io_type\": \"int8\",\n        \"concrete\": true,\n        \"debug\": false\n    },\n\n    \"model_file\": \"model.keras\",\n    \"use_logits\": false,\n    \"architecture\": {\n        \"name\": \"tcn\",\n        \"params\": {\n            \"input_kernel\": [1, 5],\n            \"input_norm\": \"batch\",\n            \"blocks\": [\n                {\"depth\": 1, \"branch\": 1, \"filters\": 16, \"kernel\": [1, 5], \"dilation\": [1, 1], \"dropout\": 0.10, \"ex_ratio\": 1, \"se_ratio\": 4, \"norm\": \"batch\"},\n                {\"depth\": 1, \"branch\": 1, \"filters\": 32, \"kernel\": [1, 5], \"dilation\": [1, 2], \"dropout\": 0.10, \"ex_ratio\": 1, \"se_ratio\": 4, \"norm\": \"batch\"},\n                {\"depth\": 1, \"branch\": 1, \"filters\": 48, \"kernel\": [1, 5], \"dilation\": [1, 4], \"dropout\": 0.10, \"ex_ratio\": 1, \"se_ratio\": 4, \"norm\": \"batch\"},\n                {\"depth\": 1, \"branch\": 1, \"filters\": 64, \"kernel\": [1, 5], \"dilation\": [1, 8], \"dropout\": 0.10, \"ex_ratio\": 1, \"se_ratio\": 4, \"norm\": \"batch\"}\n            ],\n            \"output_kernel\": [1, 5],\n            \"include_top\": true,\n            \"use_logits\": true,\n            \"model_name\": \"tcn\"\n        }\n    }\n}"} lang="json" filename="quickstart-14.json" download="/sleepkit/examples/quickstart-14.json">
+
+```json title="quickstart-14.json"
+{
+    "name": "sd-2-tcn-sm",
+    "job_dir": "./results/sd-2-tcn-sm",
+    "verbose": 2,
+
+    "datasets": [{
+        "name": "cmidss",
+        "params": {
+            "path": "./datasets/cmidss"
+        }
+    }],
+
+    "feature": {
+        "name": "FS-W-A-5",
+        "sampling_rate": 0.2,
+        "frame_size": 12,
+        "loader": "hdf5",
+        "feat_key": "features",
+        "label_key": "detect_labels",
+        "mask_key": "mask",
+        "feat_cols": null,
+        "save_path": "./datasets/store/fs-w-a-5-60",
+        "params": {}
+    },
+
+    "sampling_rate": 0.0083333,
+    "frame_size": 240,
+
+    "num_classes": 2,
+    "class_map": {
+        "0": 0,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1
+    },
+    "class_names": ["WAKE", "SLEEP"],
+
+    "samples_per_subject": 100,
+    "val_samples_per_subject": 100,
+    "test_samples_per_subject": 50,
+
+    "val_size": 4000,
+    "test_size": 2500,
+
+    "val_subjects": 0.20,
+    "batch_size": 128,
+    "buffer_size": 10000,
+    "epochs": 200,
+    "steps_per_epoch": 25,
+    "val_steps_per_epoch": 25,
+    "val_metric": "loss",
+    "lr_rate": 1e-3,
+    "lr_cycles": 1,
+    "label_smoothing": 0,
+
+    "test_metric": "f1",
+    "test_metric_threshold": 0.02,
+    "tflm_var_name": "sk_detect_flatbuffer",
+    "tflm_file": "sk_detect_flatbuffer.h",
+
+    "backend": "pc",
+    "display_report": true,
+
+    "quantization": {
+        "qat": false,
+        "mode": "INT8",
+        "io_type": "int8",
+        "concrete": true,
+        "debug": false
+    },
+
+    "model_file": "model.keras",
+    "use_logits": false,
+    "architecture": {
+        "name": "tcn",
+        "params": {
+            "input_kernel": [1, 5],
+            "input_norm": "batch",
+            "blocks": [
+                {"depth": 1, "branch": 1, "filters": 16, "kernel": [1, 5], "dilation": [1, 1], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 32, "kernel": [1, 5], "dilation": [1, 2], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 48, "kernel": [1, 5], "dilation": [1, 4], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"},
+                {"depth": 1, "branch": 1, "filters": 64, "kernel": [1, 5], "dilation": [1, 8], "dropout": 0.10, "ex_ratio": 1, "se_ratio": 4, "norm": "batch"}
+            ],
+            "output_kernel": [1, 5],
+            "include_top": true,
+            "use_logits": true,
+            "model_name": "tcn"
+        }
+    }
+}
+```
+
+</ConfigExample>

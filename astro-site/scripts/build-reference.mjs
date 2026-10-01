@@ -12,6 +12,8 @@ const run = (cmd, args) =>
 rmSync("public/reference", { recursive: true, force: true });
 const commit = run("git", ["rev-parse", "HEAD"]).trim();
 mkdirSync(".cache", { recursive: true });
+mkdirSync("src/data", { recursive: true });
+rmSync("src/content/docs/reference/api", { recursive: true, force: true });
 const dump = JSON.parse(
   run("uv", [
     "tool",
@@ -107,14 +109,13 @@ writeFileSync(
 );
 writeFileSync(
   "src/data/redirects.json",
-  JSON.stringify(
-    Object.fromEntries(
-      modules.map((m) => [
-        "/api/" + m.path.replaceAll(".", "/"),
-        "/sleepkit/" + route(m) + "/",
-      ]),
-    ),
-  ),
+  JSON.stringify({
+    ...JSON.parse(readFileSync("src/redirects.json", "utf8")),
+    ...Object.fromEntries(modules.map((m) => [
+      "/api/" + m.path.replaceAll(".", "/"),
+      "/sleepkit/" + route(m) + "/",
+    ])),
+  }),
 );
 writeFileSync(
   "src/content/docs/reference/index.mdx",
