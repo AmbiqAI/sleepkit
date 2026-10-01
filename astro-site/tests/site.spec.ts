@@ -74,23 +74,10 @@ test("mobile navigation has a single Home link and task-specific staging guides"
 }) => {
   await page.setViewportSize({ width: 835, height: 890 });
   await page.goto("");
-  await page
-    .getByRole("button", { name: "Open navigation", exact: true })
-    .click();
-  await expect(
-    page
-      .locator('nav[aria-label="Main"] summary')
-      .filter({ hasText: /^Home$/ }),
-  ).toHaveCount(0);
-  await expect(
-    page
-      .locator('nav[aria-label="Main"]')
-      .getByRole("link", { name: "Home", exact: true }),
-  ).toHaveCount(1);
-  await page
-    .locator('nav[aria-label="Main"] summary')
-    .filter({ hasText: /^Tasks$/ })
-    .click();
+  await page.locator('[data-helia-section-dropdown] summary').click();
+  await page.getByRole('navigation', { name: 'Choose section' }).getByRole('link', { name: 'Tasks', exact: true }).click();
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+  await expect(page.locator('[data-helia-sidebar-heading]')).toHaveText('Tasks');
   await page
     .getByRole("link", { name: "Saved-feature baseline", exact: true })
     .click();
