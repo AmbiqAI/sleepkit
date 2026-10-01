@@ -1,6 +1,6 @@
 # sleepKIT documentation site
 
-The Astro/Starlight site reads the authored Markdown in `../docs` and the saved notebook in `../notebooks` and generates Python reference pages with Griffe. The Python package is inspected statically; no training dependencies or notebook execution are required.
+The Astro/Starlight site reads the authored Markdown/MDX in `src/content/docs/` and the saved notebook in `../notebooks` and generates Python reference pages with Griffe. The Python package is inspected statically; no training dependencies or notebook execution are required.
 
 Use Node 24, Python 3.12 and uv:
 

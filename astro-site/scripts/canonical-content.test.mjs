@@ -10,7 +10,7 @@ const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((entry) 
 const snapshot = () => Object.fromEntries([
   ...walk("src/content/docs").filter((p) => p.endsWith(".mdx") && !p.startsWith("src/content/docs/reference/")),
   "src/navigation.mjs", "src/redirects.json",
-  ...walk("public").filter((p) => !/^public\/(reference|notebooks|examples)\//.test(p)),
+  ...walk("public").filter((p) => !/^public\/(reference|notebooks|examples|evidence)\//.test(p)),
 ].map((p) => [relative(".", p), readFileSync(p).toString("base64")]));
 
 test("generation preserves authored pages, navigation, redirects and static assets", () => {

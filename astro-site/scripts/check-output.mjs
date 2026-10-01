@@ -204,3 +204,14 @@ assert(
   !existsSync("public/examples/models-index-1.json"),
   "Model fragment should not be offered as a runnable configuration",
 );
+
+for (const path of files(resolve("../notebooks")).filter((p) => p.endsWith(".ipynb"))) {
+  const notebook = JSON.parse(readFileSync(path, "utf8"));
+  for (const cell of notebook.cells) {
+    if (cell.cell_type !== "markdown") continue;
+    const source = Array.isArray(cell.source) ? cell.source.join("") : cell.source;
+    for (const match of source.matchAll(/(?:github\.com|github)\/AmbiqAI\/sleepkit\/blob\/main\/([^\s)"<>]+)/g)) {
+      assert(existsSync(resolve("..", match[1])), `Notebook source link is missing: ${path} -> ${match[1]}`);
+    }
+  }
+}

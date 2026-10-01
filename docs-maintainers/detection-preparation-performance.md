@@ -58,7 +58,7 @@ not a controlled cross-backend or hardware performance certification.
 
 ## Recorded equivalence and extraction timing
 
-The [full training comparison](../astro-site/public/evidence/membership-vectorized-equivalence-20260920/report.json)
+The [full training comparison](../docs/evidence/membership-vectorized-equivalence-20260920/report.json)
 passed for all **14,857,307 feature frames from 193 training series**. Feature
 values, validity masks and endpoints matched byte for byte. The fitted normalizer
 fingerprint also equals the original CPU profile's fingerprint. Measurements used
@@ -82,7 +82,7 @@ no recordings, features or subject identifiers are included.
 
 ## Full recipe stage profile
 
-A [fresh-cache profile of the revised recipe](../astro-site/public/evidence/membership-vectorized-profile-20260920/report.json)
+A [fresh-cache profile of the revised recipe](../docs/evidence/membership-vectorized-profile-20260920/report.json)
 used the same frozen inputs and thread settings as the first profile. Its counts,
 fitted-normalizer fingerprint and resident input/target fingerprints match the
 baseline exactly: 34,474 training contexts in 1,078 batches, with ten contexts in
