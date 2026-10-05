@@ -34,7 +34,7 @@ dependencies = [
   "h5py>=3.13.0",
   "pyedflib>=0.1.40",
   "kaggle>=1.7.4.5",
-  "helia-edge>=0.4.1",
+  "helia-edge>=0.4.1,<0.8",
 ]
 
 [project.optional-dependencies]
