@@ -42,4 +42,5 @@ test('unknown routes show the not-found page rather than the home hero', async (
   const response = await page.goto('/sleepkit/this-route-does-not-exist/');
   expect(response?.status()).toBe(404);
   await expect(page.getByRole('heading', { name: '404', exact: true })).toBeVisible();
+  await expect(page.locator('.sleepkit-hero')).toHaveCount(0);
 });
