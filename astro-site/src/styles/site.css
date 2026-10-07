@@ -102,12 +102,34 @@
   margin: 0;
   padding: 1.25rem;
   border: 1px solid var(--sl-color-gray-5);
-  border-top: 3px solid var(--sleepkit-button-border);
   border-radius: 0.75rem;
   color: var(--sl-color-text);
   text-decoration: none;
 }
-.sleepkit-task-card strong {
+.sleepkit-card-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.sleepkit-card-heading svg {
+  flex: none;
+  color: var(--sleepkit-button-text);
+  font-size: 1.15rem;
+}
+.sl-markdown-content .helia-card-header .helia-icon__glyph {
+  color: var(--sleepkit-button-text);
+}
+.sl-markdown-content .sleepkit-card-cue {
+  color: var(--sleepkit-button-text);
+  font-weight: 600;
+  margin-top: auto;
+}
+.sl-markdown-content .kit-home-nav .helia-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.sleepkit-card-heading strong {
   font-size: 1.1rem;
   color: var(--sl-color-white);
 }
@@ -123,7 +145,7 @@
 .sleepkit-task-card:hover {
   background: var(--sl-color-gray-6);
 }
-@media (max-width: 50rem) {
+@media (max-width: 40rem) {
   .sleepkit-task-grid {
     grid-template-columns: 1fr;
   }

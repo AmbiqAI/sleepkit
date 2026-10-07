@@ -5,165 +5,70 @@ hero:
   tagline: "sleepKIT is a Python development kit for building sleep-monitoring AI for Ambiq devices. Turn sensor recordings into features, train and evaluate models, and prepare them for deployment at the edge."
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Icon as StarlightIcon } from '@astrojs/starlight/components';
+import Card from '@ambiqai/helia-ui/astro/Card';
+import CardHeader from '@ambiqai/helia-ui/astro/CardHeader';
+import CardContent from '@ambiqai/helia-ui/astro/CardContent';
+import CardGrid from '@ambiqai/helia-ui/astro/CardGrid';
+import Icon from '@ambiqai/helia-ui/astro/Icon';
 
-## A starting point for your sleep-monitoring application
+<span id="a-starting-point-for-your-sleep-monitoring-application"></span>
 
-Building a sleep model takes more than choosing a network. You need recordings and labels, consistent signal processing, a training setup and a way to evaluate the results. sleepKIT brings these pieces together in a configurable development workflow for engineers and researchers working on wearable and edge applications.
+## What is sleepKIT?
 
-Start with the included dataset integrations, feature sets, model configurations and examples. Run experiments from the command line or compose a custom workflow with the Python API. You can replace individual components as your application develops, then use the export tools to prepare models for integration on Ambiq devices.
+Building a sleep-monitoring model involves recordings and labels, signal processing, a training setup and a way to assess the result. sleepKIT brings those pieces into a configurable Python workflow for wearable and edge applications.
+
+Start with an included task, run it from the command line or adapt the workflow through the Python API. The task and guide pages explain the options in detail, including how to prepare a model for integration on Ambiq devices.
 
 ## Included tasks
 
-Start with a built-in task, or extend the same workflow with your own training, evaluation and export routines.
+Start with a built-in task, or extend the workflow with your own training, evaluation and export routines.
 
 <div class="sleepkit-task-grid">
-<a class="sleepkit-task-card" href="/sleepkit/tasks/detect/">
-<strong>Sleep detection</strong>
-<span>Identify sleep and wake periods from wrist-worn motion signals.</span>
-<span class="sleepkit-card-link">Explore detection →</span>
-</a>
-<a class="sleepkit-task-card" href="/sleepkit/tasks/stage/">
-<strong>Sleep staging</strong>
-<span>Explore feature sets and models for classifying sleep stages.</span>
-<span class="sleepkit-card-link">Explore staging →</span>
-</a>
-<a class="sleepkit-task-card" href="/sleepkit/tasks/apnea/">
-<strong>Sleep apnea</strong>
-<span>Explore the task and available resources for apnea event detection.</span>
-<span class="sleepkit-card-link">Explore apnea →</span>
-</a>
-<a class="sleepkit-task-card" href="/sleepkit/tasks/byot/">
-<strong>Bring your own task</strong>
-<span>Register a custom task and reuse sleepKIT’s configuration, datasets and development workflow.</span>
-<span class="sleepkit-card-link">Create a task →</span>
-</a>
+  <a class="sleepkit-task-card" href="/sleepkit/tasks/detect/">
+    <span class="sleepkit-card-heading"><StarlightIcon name="moon" /><strong>Sleep detection</strong></span>
+    <span>Identify sleep and wake periods from wrist-worn motion signals.</span>
+    <span class="sleepkit-card-link">Explore detection →</span>
+  </a>
+  <a class="sleepkit-task-card" href="/sleepkit/tasks/stage/">
+    <span class="sleepkit-card-heading"><StarlightIcon name="clock" /><strong>Sleep staging</strong></span>
+    <span>Explore feature sets and models for classifying sleep stages.</span>
+    <span class="sleepkit-card-link">Explore staging →</span>
+  </a>
+  <a class="sleepkit-task-card" href="/sleepkit/tasks/apnea/">
+    <span class="sleepkit-card-heading"><StarlightIcon name="heart" /><strong>Sleep apnea</strong></span>
+    <span>Explore the task and available resources for apnea event detection.</span>
+    <span class="sleepkit-card-link">Explore apnea →</span>
+  </a>
+  <a class="sleepkit-task-card" href="/sleepkit/tasks/byot/">
+    <span class="sleepkit-card-heading"><StarlightIcon name="puzzle" /><strong>Bring your own task</strong></span>
+    <span>Register a custom task and reuse sleepKIT’s configuration and development workflow.</span>
+    <span class="sleepkit-card-link">Create a task →</span>
+  </a>
 </div>
-
-Code and Ambiq-authored documentation use BSD-3-Clause, except separately licensed material. Model weights and datasets have [their own terms](/sleepkit/model-licensing-policy/).
 
 ## Installation
 
-Use **uv** for a Python project, **uvx** to run the CLI in an isolated environment, or **pipx** to keep the CLI installed. Choose **Git clone** when developing sleepKIT itself.
+In a Python 3.12 project, add sleepKIT and check that the command line tool is available:
 
-<div class="sleepkit-install">
-
-<Tabs>
-<TabItem label="uv project">
-
-Create a project with Python 3.12, then add sleepKIT. In an existing uv project, start with `uv add sleepkit`.
-
-```bash title="Terminal"
+```bash
 uv init --python 3.12 my-sleep-project
 cd my-sleep-project
 uv add sleepkit
 uv run sleepkit --help
 ```
 
-</TabItem>
-<TabItem label="uvx">
+The [quickstart](/sleepkit/quickstart/) covers `pip` and source-checkout installation, configuration and your first workflow.
 
-Run the CLI without adding sleepKIT to a project. The first invocation downloads sleepKIT and its dependencies into an isolated environment.
+Code and Ambiq-authored documentation use BSD-3-Clause, except separately licensed material. Model weights and datasets have [their own terms](/sleepkit/model-licensing-policy/).
 
-```bash title="Terminal"
-uvx --python 3.12 sleepkit --help
-```
+<span id="usage"></span><span id="modes"></span><span id="datasets"></span><span id="models"></span><span id="features"></span><span id="model-zoo"></span><span id="guides"></span>
 
-Use a project installation for Python imports and notebooks.
+## Explore the documentation
 
-</TabItem>
-<TabItem label="pipx">
-
-Install the CLI in its own environment. This command uses an installed Python 3.12 interpreter.
-
-```bash title="Terminal"
-pipx install --python python3.12 sleepkit
-sleepkit --help
-```
-
-If the command is not on your PATH, run `pipx ensurepath` and reopen your terminal. Use a project installation for Python imports and notebooks.
-
-</TabItem>
-<TabItem label="pip">
-
-Install into an activated virtual environment.
-
-```bash title="Terminal"
-python -m pip install sleepkit
-sleepkit --help
-```
-
-</TabItem>
-<TabItem label="Git clone">
-
-Work with the repository source and its development dependencies.
-
-```bash title="Terminal"
-git clone https://github.com/AmbiqAI/sleepkit.git
-cd sleepkit
-uv sync --python 3.12
-uv run sleepkit --help
-```
-
-</TabItem>
-</Tabs>
-
-</div>
-
-Need the package manager first? See the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) or [pipx installation guide](https://pipx.pypa.io/stable/installation/). The [Quickstart](/sleepkit/quickstart/) covers configuration and your first workflow.
-
----
-
-## Usage
-
-__sleepKIT__ can be used as either a CLI-based tool or as a Python package to perform advanced development. In both forms, sleepKIT exposes a number of modes and tasks outlined below. In addition, by leveraging highly-customizable configurations, sleepKIT can be used to create custom workflows for a given application with minimal coding. Refer to the [Quickstart](/sleepkit/quickstart/) to quickly get up and running in minutes.
-
----
-
-## Modes
-
-The __ADK__ provides a number of [modes](/sleepkit/modes/) that can be invoked for a given task. These modes can be accessed via the CLI or directly within the Python package. Each mode is accompanied by a set of [task parameters](/sleepkit/modes/configuration/) that can be customized to fit the user's needs.
-
-- **[Download](/sleepkit/modes/download/)**: Download specified datasets
-- **[Feature](/sleepkit/features/)**: Generate features from datasets
-- **[Train](/sleepkit/modes/train/)**: Train a model for specified task and feature set
-- **[Evaluate](/sleepkit/modes/evaluate/)**: Evaluate a model for specified task and feature set
-- **[Export](/sleepkit/modes/export/)**: Export a trained model to TensorFlow Lite and TFLM
-- **[Demo](/sleepkit/modes/demo/)**: Run task-level demo on PC or remotely on Ambiq EVB
-
----
-
-## Datasets
-
-__sleepKIT__ includes several open-source datasets via the __dataset factory__. Each dataset has a corresponding Python class to aid in downloading and extracting the data. The datasets are used to generate feature sets that are then used to train and evaluate the models. Check out the [Datasets Guide](/sleepkit/datasets/) to learn more about the available datasets along with their corresponding licenses and limitations.
-
-* **[MESA](/sleepkit/datasets/mesa/)**: A longitudinal investigation of factors associated with the development of subclinical cardiovascular disease and the progression of subclinical to clinical cardiovascular disease in 6,814 black, white, Hispanic, and Chinese
-* **[CMIDSS](/sleepkit/datasets/cmidss/)**: The Child Mind Institute - Detect Sleep States (CMIDSS) dataset comprises 300 subjects with over 500 multi-day recordings of wrist-worn accelerometer data annotated with two event types: onset, the beginning of sleep, and wakeup, the end of sleep.
-* **[YSYW](/sleepkit/datasets/ysyw/)**: A total of 1,983 PSG recordings were provided by the Massachusetts General Hospital’s (MGH) Sleep Lab in the Sleep Division together with the Computational Clinical Neurophysiology Laboratory, and the Clinical Data Ani- mation Center.
-* **[STAGES](/sleepkit/datasets/stages/)**: The Stanford Technology Analytics and Genomics in Sleep (STAGES) study is a prospective cross-sectional, multi-site study involving 20 data collection sites from six centers including Stanford University, Bogan Sleep Consulting, Geisinger Health, Mayo Clinic, MedSleep, and St. Luke's Hospital.
-
----
-
-## Models
-
-The __ADK__ provides a variety of model architectures geared towards efficient, real-time edge applications. These models are provided by Ambiq's [helia-edge](https://ambiqai.github.io/helia-edge/) and expose a set of parameters that can be used to fully customize the network for a given application. In addition, sleepKIT includes a model factory, [ModelFactory](/sleepkit/models/#model-factory), to register current models as well as allow new custom architectures to be added. Check out the [Models Guide](/sleepkit/models/) to learn more about the available network architectures and model factory.
-
----
-
-## Features
-
-The __ADK__ provides a __feature store__ that allows you to easily create and extract features from the given datasets. The feature store includes a number of feature sets used to train the included model zoo. Each feature set exposes a number of high-level parameters that can be used to customize the feature extraction process for a given application. These parameters can be set as part of the configuration accessible via the CLI and Python package. Check out the [Features Guide](/sleepkit/features/) to learn more about the available feature set generators.
-
----
-
-## Model Zoo
-
-A number of pre-trained models are available for each task. These models are trained on a variety of datasets and are optimized for deployment on Ambiq's ultra-low power SoCs. In addition to providing links to download the models, __sleepKIT__ provides the corresponding configuration files and performance metrics. The configuration files allow you to easily recreate the models or use them as a starting point for custom solutions. Furthermore, the performance metrics provide insights into the model's accuracy, precision, recall, and F1 score. For a number of the models, we provide experimental and ablation studies to showcase the impact of various design choices. Check out the [Model Zoo](/sleepkit/zoo/) to learn more about the available models and their corresponding performance metrics.
-
----
-
-## [Guides](/sleepkit/guides/)
-
-Checkout the [Guides](/sleepkit/guides/) to see detailed examples and tutorials on how to use sleepKIT for a variety of tasks. The guides provide step-by-step instructions on how to train, evaluate, and deploy models for a given task. In addition, the guides provide insights into the design choices and performance metrics for the models. The guides are designed to help you get up and running quickly and to provide a deeper understanding of the capabilities provided by sleepKIT.
-
----
+<CardGrid columns={2} equalize class="kit-home-nav">
+  <Card as="article" interactive><CardHeader titleAs="h3" href="/sleepkit/quickstart/"><Icon name="circle-play" text="Getting started" /></CardHeader><CardContent><p>Install sleepKIT and run a first workflow.</p><p class="sleepkit-card-cue">Start here →</p></CardContent></Card>
+  <Card as="article" interactive><CardHeader titleAs="h3" href="/sleepkit/tasks/"><Icon name="moon" text="Tasks" /></CardHeader><CardContent><p>Choose a sleep-monitoring task or bring your own.</p><p class="sleepkit-card-cue">Explore tasks →</p></CardContent></Card>
+  <Card as="article" interactive><CardHeader titleAs="h3" href="/sleepkit/guides/"><Icon name="book-open" text="Guides" /></CardHeader><CardContent><p>Follow examples for training, evaluation and export.</p><p class="sleepkit-card-cue">Follow a guide →</p></CardContent></Card>
+  <Card as="article" interactive><CardHeader titleAs="h3" href="/sleepkit/reference/"><Icon name="code" text="Python API" /></CardHeader><CardContent><p>Look up packages, classes and function parameters.</p><p class="sleepkit-card-cue">Browse the API →</p></CardContent></Card>
+</CardGrid>
