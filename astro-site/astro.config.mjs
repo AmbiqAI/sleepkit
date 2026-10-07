@@ -64,6 +64,7 @@ export default defineConfig({
           sidebar: "always",
           header: {
             title: "sleepKIT",
+            titleRegularPrefix: "sleep",
             hub: {
               label: "HELIA",
               href: "https://ambiqai.github.io/helia-developer-hub/",

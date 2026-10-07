@@ -148,6 +148,7 @@ test("navigation scopes historical routes and installation contains only command
   await page.goto("");
   await expect(page.locator('nav[aria-label="Primary"] a')).toHaveCount(5);
   await expect(page.locator("helia-ascii-terminal")).toHaveCount(0);
+  await page.goto("quickstart/");
   await page.getByRole("tab", { name: "Git clone", exact: true }).click();
   const content = page.getByRole("tabpanel").filter({ hasText: "git clone" });
   await expect(content).toBeVisible();

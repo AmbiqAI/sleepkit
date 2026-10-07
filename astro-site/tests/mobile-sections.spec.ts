@@ -47,7 +47,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
   test(`tabbed terminals keep commands and copy controls in ${colorScheme}`, async ({ page }) => {
     await page.setViewportSize({ width: 835, height: 890 });
     await page.emulateMedia({ colorScheme });
-    await page.goto(`${base}/`);
+    await page.goto(`${base}/quickstart/`);
     const terminal = page.locator('[role="tabpanel"] .frame.is-terminal:visible').first();
     await expect(terminal).toBeVisible();
     await expect(terminal.locator('.header')).toBeHidden();

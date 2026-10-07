@@ -1,9 +1,13 @@
-# Canonical Astro documentation
+# sleepKIT landing consistency
 
-Goal: retire the MkDocs compatibility layer while preserving public content and routes.
+Goal: issue #55, align the landing page with heartKIT, compressionKIT and physioKIT. PR #56 is ready for review on codex/kit-home-consistency. Adam authorized merge after green CI.
 
-PR: https://github.com/AmbiqAI/sleepkit/pull/49. Authored Markdown/MDX, navigation, redirects and static assets now belong to Astro. API pages, notebooks and downloads remain generated. MkDocs configuration and unused dependencies are removed.
+Done: product hero icon, regular sleep prefix and bold KIT navbar suffix, shared quick buttons, overview, task cards with small pink icons and neutral borders, short installation path and full-card documentation links. Historical home anchors remain. The custom hero only renders on the home route.
 
-Review: notebook source links, download command examples and generation regression coverage corrected. Local build, type checks, content checks and browser tests pass. Independent final review and CI on the fix commit gate merging. CompressionKIT follows this cleanup.
+Verified: immutable helia-ui v0.1.0-alpha.24 pin and npm 11.19.0 lockfile, clean install, Astro check/build/output and 20 browser tests. Light/dark mobile and desktop screenshots inspected. Tests exercise title weights, logo, readable buttons, card-body navigation and absent home hero on 404. Full PR CI passed before the final regression assertion; CI on this assertion must finish before merge.
 
-Ownership: edit astro-site/src/content/docs for authored pages, src/navigation.mjs for navigation and notebooks/ for notebook sources. See astro-site/README.md for generated paths and validation commands.
+Review: prior dependency and installation-test findings resolved. Final review requested a more explicit 404 assertion and consistent handoff status; both addressed.
+
+Next: verify final CI, complete review, squash merge and confirm Pages deployment. No publication of this landing change is claimed yet.
+
+Preview: http://127.0.0.1:8776/sleepkit/. Builds use generated API and notebook material; training is not run. A clean install needs no package patch.
