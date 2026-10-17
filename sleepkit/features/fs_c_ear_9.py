@@ -179,4 +179,4 @@ class FS_C_EAR_9(FeatureSet):
 
         # pylint: disable=broad-except
         except Exception as err:
-            logger.exception(f"Error computing features for subject {subject_id}", err)
+            logger.exception(f"Error computing features for subject {subject_id}")
